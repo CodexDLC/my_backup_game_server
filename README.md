@@ -11,6 +11,7 @@
 * [Запуск Celery](#запуск-celery)
 * [Запуск приложения](#запуск-приложения)
 * [Запуск через Docker Compose](#запуск-через-docker-compose)
+* [Локальные и публичные адреса](#локальные-и-публичные-адреса)
 * [API](#api)
 
 ---
@@ -20,16 +21,16 @@
 * Python 3.8+
 * Redis (локально или через Docker)
 * Celery
-* PostgreSQL (для хранения основной БД)
+* PostgreSQL
 
 ---
 
 ## Установка
 
-1. Клонируйте репозиторий и перейдите в него:
+1. Клонируйте репозиторий:
 
    ```bash
-   git clone https://github.com/your-org/new_order_rpg.git
+   git clone git@github.com:your-org/new_order_rpg.git
    cd new_order_rpg
    ```
 2. Установите зависимости:
@@ -47,19 +48,41 @@
 
 ## Переменные окружения
 
-| Переменная                 | Описание                                                         | Пример                                            |
-| -------------------------- | ---------------------------------------------------------------- | ------------------------------------------------- |
-| `DISCORD_TOKEN`            | Токен вашего Discord-бота                                        | `MTM2...`                                         |
-| `BOT_PREFIX`               | Префикс команд бота                                              | `!`                                               |
-| `GAME_SERVER_API`          | Базовый URL HTTP API сервера                                     | `http://localhost:8000`                           |
-| `DATABASE_URL`             | SQLAlchemy URL для подключения к PostgreSQL                      | `postgresql+asyncpg://user:pass@host:5432/dbname` |
-| `REDIS_URL`                | URL подключения к Redis (используется Celery и кеш)              | `redis://redis:6379/0`                            |
-| `RANDOM_POOL_SIZE`         | Размер пула случайных элементов, загружаемого при старте сервиса | `65535`                                           |
-| `RANDOM_POOL_THRESHOLD`    | Минимальный порог элементов в пуле для авто-рестока              | `10`                                              |
-| `CELERY_BROKER_URL`        | URL брокера задач Celery (обычно совпадает с `REDIS_URL`)        | `${REDIS_URL}`                                    |
-| `CELERY_RESULT_BACKEND`    | URL для хранения результатов Celery                              | `${REDIS_URL}`                                    |
-| `TICK_INTERVAL_SECONDS`    | Интервал глобального тика сервера (в секундах)                   | `60`                                              |
-| `TICK_XP_INTERVAL_SECONDS` | Интервал тика начисления опыта (в секундах)                      | `600`                                             |
+Файл `.env` в корне проекта содержит следующие переменные:
+
+```ini
+# Discord-бот
+DISCORD_TOKEN=MTM2MTA3NTgyNjU4NTYzMjc2OA.G4pHmT...  # токен бота
+BOT_PREFIX=!                                     # префикс команд
+
+# HTTP API (устаревшая переменная, используется в части кода)
+GAME_SERVER_API=http://localhost:8000            # legacy-константа для API
+
+# Публичный и внутренний адреса
+PUBLIC_GAME_SERVER_API=https://api.yourdomain.com
+INTERNAL_GAME_SERVER_API=http://fastapi:8000      # имя сервиса из docker-compose
+
+# PostgreSQL
+DB_NAME=game_db
+DB_USER=codexen
+DB_PASSWORD=123
+DB_HOST=localhost
+DB_PORT=5432
+DATABASE_URL=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+
+# Redis и пул генерации
+REDIS_URL=redis://redis:6379/0
+RANDOM_POOL_SIZE=65535
+RANDOM_POOL_THRESHOLD=10
+
+# Celery
+CELERY_BROKER_URL=${REDIS_URL}
+CELERY_RESULT_BACKEND=${REDIS_URL}
+
+# Интервалы тиков (в секундах)
+TICK_INTERVAL_SECONDS=60
+TICK_XP_INTERVAL_SECONDS=600
+```
 
 ---
 
@@ -93,8 +116,6 @@ celery -A game_server.storage.celery_app worker --loglevel=info
 celery -A game_server.storage.celery_app beat --loglevel=info
 ```
 
-> Периодические задачи, такие как глобальный тик, будут выполняться по расписанию.
-
 ---
 
 ## Запуск приложения
@@ -103,26 +124,42 @@ celery -A game_server.storage.celery_app beat --loglevel=info
 uvicorn game_server.api.main:app --reload
 ```
 
-Сервер доступен по адресу `http://127.0.0.1:8000` (или `GAME_SERVER_API`).
+Сервер будет доступен по адресу `http://127.0.0.1:8000`.
 
 ---
 
 ## Запуск через Docker Compose
 
-В корне проекта есть файл `docker-compose.yml`, который поднимает основные сервисы:
+В файле `docker-compose.yml` настроены сервисы:
 
-* **redis** — сервер Redis на порту `6379`.
-* **fastapi** — приложение FastAPI на порту `8000`.
-* **celery** — Celery worker (команда `celery -A game_server.storage.celery_app worker --loglevel=info`).
-* **prometheus** — Prometheus мониторинг на порту `9090`.
+* `redis` — Redis на порту 6379.
+* `fastapi` — приложение FastAPI на порту 8000.
+* `celery` — воркер Celery.
+* `prometheus` — мониторинг Prometheus на порту 9090.
 
-Запустите все сервисы одной командой:
+Запуск всех сервисов:
 
 ```bash
-docker-compose up -d
+docker-compose --env-file .env up -d --build
 ```
 
-Окружение читается из `.env`, переменные `CELERY_BROKER_URL` и `REDIS_URL` задаются автоматически по конфигу.
+---
+
+## Локальные и публичные адреса
+
+Проект читает из `.env` два адреса:
+
+* `PUBLIC_GAME_SERVER_API` — адрес, который видят внешние клиенты и вебхуки.
+* `INTERNAL_GAME_SERVER_API` — адрес для внутренних вызовов между сервисами (имя контейнера).
+
+Пример использования в коде:
+
+```python
+from game_server.config.server_config import get_settings
+cfg = get_settings()
+PUBLIC_API = cfg.public_api
+INTERNAL_API = cfg.internal_api
+```
 
 ---
 
@@ -130,17 +167,16 @@ docker-compose up -d
 
 ### GET `/random/next`
 
-Возвращает следующий случайный элемент из заранее загруженного пула.
+Возвращает следующий случайный элемент из пула.
 
-**Параметры запроса:**
+**Параметры:**
 
-* `pool_size` (integer, optional) — размер пула. По умолчанию `RANDOM_POOL_SIZE`.
+* `pool_size` (integer, optional) — размер пула, по умолчанию `RANDOM_POOL_SIZE`.
 
 **Примеры:**
 
 ```bash
-# Без параметров, используется RANDOM_POOL_SIZE
-curl "${GAME_SERVER_API}/random/next"
+curl "${PUBLIC_GAME_SERVER_API}/random/next"
 ```
 
 ```json
@@ -148,8 +184,7 @@ curl "${GAME_SERVER_API}/random/next"
 ```
 
 ```bash
-# С указанием размера пула
-curl "${GAME_SERVER_API}/random/next?pool_size=500"
+curl "${PUBLIC_GAME_SERVER_API}/random/next?pool_size=500"
 ```
 
 ```json
@@ -158,4 +193,4 @@ curl "${GAME_SERVER_API}/random/next?pool_size=500"
 
 ---
 
-README обновлён с учётом запуска через Docker Compose и детальными инструкциями для всех сервисов.
+*Документация обновлена на основе вашего `.env`.*
