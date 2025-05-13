@@ -51,3 +51,6 @@ PyJWT
 rich
 pytest
 typing_extensions
+
+
+prometheus-fastapi-instrumentator

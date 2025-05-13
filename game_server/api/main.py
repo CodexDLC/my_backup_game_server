@@ -1,11 +1,23 @@
 import os
-import sys
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from game_server.Logic.DataAccessLogic.db_instance import get_db_session
 from game_server.services.logging_config import logger  # Импорт глобального логера
-from game_server.api.routers.random_pool import router as random_pool_router
+from game_server.api.routers.random_pool import generate_two_pools, router as random_pool_router
+
+# Импорт маршрутов (роутеров)
+from game_server.api.routers.discord import (
+    discord_bindings_router,
+    discord_roles_router,
+    discord_permissions_router,
+)
+from game_server.api.routers.system import (
+    system_gameworld_router,
+    system_entities_router,
+    system_mapping_router,
+)
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Загрузка переменных из `.env`
 root_env = os.path.abspath(
@@ -13,17 +25,11 @@ root_env = os.path.abspath(
 )
 load_dotenv(root_env)
 
-
-# Импорт маршрутов (роутеров)
-from game_server.api.routers.discord import *
-from game_server.api.routers.system import *
-
-import asyncio
-
 # Описание тегов для Swagger UI
 tags_metadata = [
     {"name": "Discord", "description": "API для управления Discord-функциями"},
     {"name": "System", "description": "API для игровых систем и структуры мира"},
+    {"name": "Random", "description": "API для получения случайных чисел"},
 ]
 
 @asynccontextmanager
@@ -31,7 +37,7 @@ async def lifespan(app: FastAPI):
     # Открываем сессию с помощью get_db_session
     async with get_db_session() as session:
         logger.info("База данных подключена")
-        yield {}  # Передаем пустой словарь, так как FastAPI ожидает именно его для lifespan
+        yield {}
 
     logger.info("DB connection closed")
 
@@ -42,6 +48,11 @@ app = FastAPI(
     openapi_tags=tags_metadata,
     lifespan=lifespan
 )
+
+# Настройка сбора метрик Prometheus
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app)
+
 @app.get("/")
 async def root():
     return {"message": "FastAPI работает!"}
@@ -67,3 +78,9 @@ logger.info("Роут /system/mapping успешно подключен")
 
 app.include_router(random_pool_router, prefix="/random", tags=["Random"])
 logger.info("Роут /random успешно подключен")
+
+@app.on_event("startup")
+async def startup_event():
+    # при старте один раз заполняем оба пула
+    await generate_two_pools()
+    logger.info("✅ Оба пула чисел сгенерированы при старте")

@@ -1,29 +1,53 @@
-# Основная библиотека для работы с Discord API
-discord.py
+# FastAPI для REST API
+fastapi
+uvicorn
 
-# Загрузка переменных окружения из .env файла
-python-dotenv
+# Асинхронная работа с PostgreSQL и Redis
+asyncpg
+aioredis
+psycopg2-binary
 
-# Логирование с улучшенным форматированием
+# Celery и зависимости
+celery
+redis
+billiard
+kombu
+
+# Pydantic для схем и валидации
+pydantic
+pydantic_core
+
+# Логирование
+loguru
 colorlog
 
-# Для выполнения HTTP-запросов
-requests
+# Работа с .env файлами
+python-dotenv
 
-# Асинхронные HTTP-запросы для работы с API (например, для взаимодействия с сервером игры)
+# HTTP-клиенты
+requests
 aiohttp
 
-# Для создания API для мобильных приложений, например, с использованием WebSocket или REST
-fastapi
+# Discord API
+discord.py
 
-# Для работы с WebSocket-соединениями (можно использовать для чатов и других реальных подключений)
-websockets
-
-# Если потребуется интеграция с Telegram API для дальнейшего расширения функционала
+# Telegram API (опционально)
 python-telegram-bot
 
-# Для логирования в JSON формате (может быть полезно для интеграции с внешними сервисами)
-loguru
+# Prometheus
+prometheus_client
 
-# Для красивого вывода в консоль
+# SQLAlchemy и миграции
+SQLAlchemy
+alembic
+Mako
+
+# Пароли, безопасность
+passlib[bcrypt]
+bcrypt
+PyJWT
+
+# Тестирование и вспомогательные
 rich
+pytest
+typing_extensions
