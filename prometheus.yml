@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s  # Интервал сбора метрик
+
+scrape_configs:
+  - job_name: 'fastapi'
+    static_configs:
+      - targets: ['fastapi:8000']  # Сбор метрик с FastAPI по порту 8000
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']  # Сбор метрик с самого Prometheus

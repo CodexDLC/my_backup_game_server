@@ -1,0 +1,60 @@
+body.theme-light {
+  --background-main: #f4f4f4;
+  --background-header: #ffffff;
+  --background-footer: #eeeeee;
+  --text-light: #222222;
+}
+body.theme-dark {
+  --background-main: #1e1e1e;
+  --background-header: #2c2c2c;
+  --background-footer: #1a1a1a;
+  --text-light: #f0f0f0;
+}
+body.theme-sepia {
+  --background-main: #f3e6d0;
+  --background-header: #e8d3b9;
+  --background-footer: #d2b89f;
+  --text-light: #4b3e2b;
+}
+body.theme-cyber {
+  --background-main: #000013;
+  --background-header: #0f001f;
+  --background-footer: #1b0033;
+  --text-light: #00ffff;
+}
+body.theme-forest {
+  --background-main: #223322;
+  --background-header: #335533;
+  --background-footer: #1a331a;
+  --text-light: #aaffaa;
+}
+body.theme-sunset {
+  --background-main: #ffecd2;
+  --background-header: #ffb347;
+  --background-footer: #f67280;
+  --text-light: #6a0572;
+}
+body.theme-ice {
+  --background-main: #e0f7fa;
+  --background-header: #b2ebf2;
+  --background-footer: #80deea;
+  --text-light: #004d40;
+}
+body.theme-solar {
+  --background-main: #fff8e1;
+  --background-header: #ffe57f;
+  --background-footer: #ffd740;
+  --text-light: #5d4037;
+}
+body.theme-grape {
+  --background-main: #f3e5f5;
+  --background-header: #ce93d8;
+  --background-footer: #ab47bc;
+  --text-light: #4a148c;
+}
+body.theme-blueprint {
+  --background-main: #e3f2fd;
+  --background-header: #90caf9;
+  --background-footer: #42a5f5;
+  --text-light: #0d47a1;
+}

@@ -1,0 +1,5 @@
+2025-05-12 15:07:06,413 - ERROR - Ошибка подключения к базе: 'async_generator' object does not support the asynchronous context manager protocol
+2025-05-12 15:07:19,760 - ERROR - Ошибка подключения к базе: 'async_generator' object does not support the asynchronous context manager protocol
+2025-05-12 15:28:36,618 - ERROR - Ошибка подключения к базе: 'AsyncSession' object is not a mapping
+2025-05-12 15:29:23,929 - ERROR - Ошибка подключения к базе: 'AsyncSession' object is not a mapping
+2025-05-12 15:29:25,241 - ERROR - Ошибка подключения к базе: 'AsyncSession' object is not a mapping

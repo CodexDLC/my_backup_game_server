@@ -1,0 +1,21 @@
+CREATE TABLE public.weapon_templates (
+    id integer NOT NULL,
+    base_item_code integer NOT NULL,
+    suffix_code integer NOT NULL,
+    name text NOT NULL,
+    rarity integer NOT NULL,
+    color text NOT NULL,
+    p_atk integer,
+    m_atk integer,
+    crit_chance double precision,
+    crit_damage_bonus double precision,
+    armor_penetration double precision,
+    durability integer,
+    accuracy double precision,
+    hp_steal_percent double precision DEFAULT 0,
+    effect_description text,
+    allowed_for_class text,
+    visual_asset text,
+    is_fragile boolean DEFAULT false NOT NULL,
+    strength_percentage double precision DEFAULT 0 NOT NULL
+)

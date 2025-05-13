@@ -1,0 +1,16 @@
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (1, 'Медь', 'Ржавый', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (2, 'Бронза', 'Изношенный', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (3, 'Железо', 'Дефектный', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (4, 'Серебро', 'Тусклый', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (5, 'Золото', 'Блеклый', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (6, 'Мифрил', 'Ослабленный', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (7, 'Адамантит', 'Старый', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (8, 'Бессмертный', 'Потёртый', '#A9A9A9', True, 0);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (9, 'Разломная медь', 'Редкий', '#FFFFFF', False, 10);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (10, 'Разломная бронза', 'Превосходный', '#00FF00', False, 20);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (11, 'Разломное железо', 'Высший', '#1E90FF', False, 30);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (12, 'Разломное серебро', 'Героический', '#FFD700', False, 50);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (13, 'Разломное золото', 'Легендарный', '#FFA500', False, 100);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (14, 'Разломный мифрил', 'Мифический', '#FF0000', False, 500);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (15, 'Разломный адамантит', 'Божественный', '#800080', False, 2000);
+INSERT INTO materials (id, name, prefix, color, is_fragile, strength_percentage) VALUES (16, 'Божественный металл', 'Абсолютный', '#DDA0DD', False, 3000);

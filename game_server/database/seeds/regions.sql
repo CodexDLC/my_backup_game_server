@@ -1,0 +1,5 @@
+INSERT INTO regions (id, world_id, access_key, name, description) VALUES (b65096ff-06d2-441a-87da-4b7f91a3ec68, fdeb7c5b-95d2-4d03-bf03-298830c39731, '10001', 'Информация', 'Справочная информация и правила');
+INSERT INTO regions (id, world_id, access_key, name, description) VALUES (4255c9f1-2d93-4955-9ba2-f8b5377ae67f, fdeb7c5b-95d2-4d03-bf03-298830c39731, '10002', 'Игровое лобби', 'Регистрация и начало пути');
+INSERT INTO regions (id, world_id, access_key, name, description) VALUES (66372dde-da05-4e8b-baa1-df26ebc0a97e, fdeb7c5b-95d2-4d03-bf03-298830c39731, '10003', 'Город', 'Центральная городская локация');
+INSERT INTO regions (id, world_id, access_key, name, description) VALUES (9060ab57-5aa6-4841-819d-63a3d8050812, fdeb7c5b-95d2-4d03-bf03-298830c39731, '10004', 'Эпицентр', 'Первый эпицентр для тестирования');
+INSERT INTO regions (id, world_id, access_key, name, description) VALUES (5a643719-8e95-469a-8ff1-079ea164012d, fdeb7c5b-95d2-4d03-bf03-298830c39731, '10005', 'Admin', 'Административная панель и модерация');

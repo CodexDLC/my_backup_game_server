@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru" class="nojs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Превью темы</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+</head>
+<body class="theme-{{ theme }}">
+  <div id="site-container">
+    <header id="header-container">
+      <h1>Мой сайт</h1>
+      <div id="preview-controls">
+        <!-- Кнопка для применения темы -->
+        <button id="apply-theme-btn" class="header-btn">Применить тему</button>
+        <!-- Кнопка для возврата -->
+        <button id="back-to-settings-btn" class="header-btn">Вернуться</button>
+    </div>
+   </header>
+
+    <div id="content-frame">
+      <div id="sidebar-panel"></div>
+      <main id="main-content">
+        <section>
+          <p>Контент раздела</p>
+        </section>
+      </main>
+    </div>
+
+    <footer id="footer-container">
+      <p>© 2025 Мой сайт</p>
+    </footer>
+  </div>
+</body>
+</html>

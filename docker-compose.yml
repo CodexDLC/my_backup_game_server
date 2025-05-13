@@ -1,0 +1,37 @@
+
+services:
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+
+  fastapi:
+    build:
+      context: ./  # Контекст - корень проекта, где находится Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  celery:
+    build:
+      context: ./  # Тот же контекст
+      dockerfile: Dockerfile
+    command: celery -A game_server.storage.celery_app worker --loglevel=info
+    depends_on:
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Монтируем файл конфигурации
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker  # Указывает на конкретную роль ноды для развертывания в Docker Swarm
