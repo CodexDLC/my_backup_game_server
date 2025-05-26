@@ -1,4 +1,4 @@
-CREATE TABLE public.reputation (
+CREATE TABLE IF NOT EXISTS reputation (
     reputation_id integer NOT NULL,
     character_id integer,
     faction_id integer,

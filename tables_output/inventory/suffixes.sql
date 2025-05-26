@@ -1,4 +1,4 @@
-CREATE TABLE public.suffixes (
+CREATE TABLE IF NOT EXISTS suffixes (
     suffix_code integer NOT NULL,
     fragment text NOT NULL,
     is_for_weapon boolean NOT NULL,

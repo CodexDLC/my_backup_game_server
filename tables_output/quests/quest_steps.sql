@@ -1,4 +1,4 @@
-CREATE TABLE public.quest_steps (
+CREATE TABLE IF NOT EXISTS quest_steps (
     step_key character varying(100) NOT NULL,
     quest_key integer NOT NULL,
     step_order integer NOT NULL,

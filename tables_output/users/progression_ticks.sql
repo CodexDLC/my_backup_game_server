@@ -1,4 +1,4 @@
-CREATE TABLE public.progression_ticks (
+CREATE TABLE IF NOT EXISTS progression_ticks (
     tick_id integer NOT NULL,
     character_id integer,
     skill_id integer,

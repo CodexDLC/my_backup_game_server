@@ -1,4 +1,4 @@
-CREATE TABLE public.characters_special (
+CREATE TABLE IF NOT EXISTS characters_special (
     character_id integer NOT NULL,
     strength integer,
     perception integer,

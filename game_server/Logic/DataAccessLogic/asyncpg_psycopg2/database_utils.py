@@ -1,16 +1,15 @@
 # database_utils.py
-import logging
+from game_server.services.logging.logging_setup import logger
 from db_instance import get_db_session
-from sqlalchemy.future import select
 from game_server.Logic.DataAccessLogic.db_instance import get_db_session
 
 
 # Логгер
-logging.basicConfig(
-    level=logging.INFO,
+logger.basicConfig(
+    level=logger.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-logger = logging.getLogger("DatabaseUtils")
+logger = logger.getLogger("DatabaseUtils")
 
 class DatabaseUtils:
     def __init__(self, db_name, db_user, db_password, db_host, db_port):

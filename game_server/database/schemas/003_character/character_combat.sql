@@ -1,7 +1,7 @@
 -- Файл: character_combat.sql
 -- Боевые характеристики персонажа
 
-CREATE TABLE public.player_magic_attack (
+CREATE TABLE IF NOT EXISTS player_magic_attack (
     player_id integer NOT NULL,
     elemental_power_bonus double precision,
     fire_power_bonus double precision,
@@ -13,7 +13,7 @@ CREATE TABLE public.player_magic_attack (
     gray_magic_power_bonus double precision
 );
 
-CREATE TABLE public.player_magic_defense (
+CREATE TABLE IF NOT EXISTS player_magic_defense (
     player_id integer NOT NULL,
     fire_resistance double precision,
     water_resistance double precision,
@@ -25,7 +25,7 @@ CREATE TABLE public.player_magic_defense (
     magic_resistance_percent double precision
 );
 
-CREATE TABLE public.player_physical_attack (
+CREATE TABLE IF NOT EXISTS player_physical_attack (
     player_id integer NOT NULL,
     piercing_damage_bonus double precision,
     slashing_damage_bonus double precision,
@@ -33,7 +33,7 @@ CREATE TABLE public.player_physical_attack (
     cutting_damage_bonus double precision
 );
 
-CREATE TABLE public.player_physical_defense (
+CREATE TABLE IF NOT EXISTS player_physical_defense (
     player_id integer NOT NULL,
     piercing_resistance double precision,
     slashing_resistance double precision,
@@ -42,9 +42,8 @@ CREATE TABLE public.player_physical_defense (
     physical_resistance_percent double precision
 );
 
-
-CREATE TABLE public.character_status (
-    player_id integer NOT NULL,
+CREATE TABLE IF NOT EXISTS character_status (
+    player_id integer NOT NULL,  -- Идентификатор персонажа, который ссылается на character_id
     current_health integer,
     max_health integer,
     current_energy integer,
@@ -69,4 +68,5 @@ CREATE TABLE public.character_status (
     absorption_bonus double precision,
     shield_value double precision,
     shield_regeneration double precision,
+    CONSTRAINT fk_character FOREIGN KEY (player_id) REFERENCES characters(character_id) ON DELETE CASCADE  -- Внешний ключ для связи с characters
 );

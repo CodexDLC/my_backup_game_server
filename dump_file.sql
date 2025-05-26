@@ -25,7 +25,7 @@ SET default_table_access_method = heap;
 -- Name: reputation; Type: TABLE; Schema: public; Owner: codexen
 --
 
-CREATE TABLE public.reputation (
+CREATE TABLE IF NOT EXISTS reputation (
     reputation_id integer NOT NULL,
     character_id integer,
     faction_id integer,
@@ -62,7 +62,7 @@ ALTER SEQUENCE public.reputation_reputation_id_seq OWNED BY public.reputation.re
 -- Name: special_stat_effects; Type: TABLE; Schema: public; Owner: codexen
 --
 
-CREATE TABLE public.special_stat_effects (
+CREATE TABLE IF NOT EXISTS special_stat_effects (
     stat_key character varying(50) NOT NULL,
     effect_field character varying(50) NOT NULL,
     multiplier numeric(12,4) NOT NULL,
@@ -76,7 +76,7 @@ ALTER TABLE public.special_stat_effects OWNER TO codexen;
 -- Name: state_entities; Type: TABLE; Schema: public; Owner: codexen
 --
 
-CREATE TABLE public.state_entities (
+CREATE TABLE IF NOT EXISTS state_entities (
     id integer NOT NULL,
     access_code integer NOT NULL,
     code_name text NOT NULL,
@@ -92,7 +92,7 @@ ALTER TABLE public.state_entities OWNER TO codexen;
 -- Name: state_entities_discord; Type: TABLE; Schema: public; Owner: codexen
 --
 
-CREATE TABLE public.state_entities_discord (
+CREATE TABLE IF NOT EXISTS state_entities_discord (
     guild_id bigint NOT NULL,
     world_id uuid NOT NULL,
     access_code integer NOT NULL,

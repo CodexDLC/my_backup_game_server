@@ -1,5 +1,5 @@
 import os
-from .logging_config import logger
+from game_server.services.logging.logging_setup import logger
 
 
 

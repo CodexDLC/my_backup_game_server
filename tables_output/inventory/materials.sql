@@ -1,4 +1,4 @@
-CREATE TABLE public.materials (
+CREATE TABLE IF NOT EXISTS materials (
     id integer NOT NULL,
     name text,
     prefix text,

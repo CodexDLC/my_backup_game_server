@@ -1,4 +1,4 @@
-CREATE TABLE public.subregions (
+CREATE TABLE IF NOT EXISTS subregions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     region_id uuid NOT NULL,
     access_key character varying NOT NULL,

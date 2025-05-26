@@ -2,7 +2,7 @@ import os
 import sys
 import discord
 from discord.ext import commands
-import logging
+from game_server.services.logging.logging_setup import logger
 
 # 🔧 Добавляем корень проекта в sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -12,7 +12,7 @@ if project_root not in sys.path:
 from Discord_API.api.world import *
 
 
-logger = logging.getLogger(__name__)
+logger = logger.getLogger(__name__)
 
 class SetupWorld(commands.Cog):
     def __init__(self, bot: commands.Bot):

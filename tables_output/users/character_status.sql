@@ -1,4 +1,4 @@
-CREATE TABLE public.character_status (
+CREATE TABLE IF NOT EXISTS character_status (
     player_id integer NOT NULL,
     current_health integer,
     max_health integer,

@@ -1,4 +1,4 @@
-CREATE TABLE public.quest_types (
+CREATE TABLE IF NOT EXISTS quest_types (
     type_id integer NOT NULL,
     type_key character varying(100) NOT NULL,
     type_name character varying(255) NOT NULL,

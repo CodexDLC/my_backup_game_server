@@ -2,7 +2,7 @@
 -- Полная структура генерации предметов, их модификаций и шаблонов
 
 -- 🔹 Шаблоны аксессуаров
-CREATE TABLE public.accessory_templates (
+CREATE TABLE IF NOT EXISTS accessory_templates (
     id integer NOT NULL,
     base_item_code integer NOT NULL,
     suffix_code integer NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE public.accessory_templates (
 );
 
 -- 🔹 Шаблоны брони
-CREATE TABLE public.armor_templates (
+CREATE TABLE IF NOT EXISTS armor_templates (
     id integer NOT NULL,
     base_item_code integer NOT NULL,
     suffix_code integer NOT NULL,
@@ -50,50 +50,9 @@ CREATE TABLE public.armor_templates (
     strength_percentage double precision DEFAULT 0 NOT NULL
 );
 
--- 🔹 Базовые материалы
-CREATE TABLE public.materials (
-    id integer NOT NULL,
-    name text,
-    prefix text,
-    color text,
-    is_fragile boolean,
-    strength_percentage integer
-);
-
--- 🔹 Библиотека модификаторов
-CREATE TABLE public.modifiers_library (
-    id integer NOT NULL,
-    access_modifier integer NOT NULL,
-    modifier_name text NOT NULL,
-    effect_description text
-);
-
--- 🔹 Суффиксы предметов
-CREATE TABLE public.suffixes (
-    suffix_code integer NOT NULL,
-    fragment text NOT NULL,
-    is_for_weapon boolean NOT NULL,
-    is_for_armor boolean NOT NULL,
-    is_for_accessory boolean NOT NULL,
-    mod1_code integer,
-    mod1_value numeric,
-    mod2_code integer,
-    mod2_value numeric,
-    mod3_code integer,
-    mod3_value numeric,
-    mod4_code integer,
-    mod4_value numeric
-);
-
--- 🔹 Стандартные модификаторы
-CREATE TABLE public.template_modifier_defaults (
-    base_item_code integer NOT NULL,
-    access_modifier integer NOT NULL,
-    default_value numeric NOT NULL
-);
 
 -- 🔹 Шаблоны оружия
-CREATE TABLE public.weapon_templates (
+CREATE TABLE IF NOT EXISTS weapon_templates (
     id integer NOT NULL,
     base_item_code integer NOT NULL,
     suffix_code integer NOT NULL,
@@ -115,8 +74,53 @@ CREATE TABLE public.weapon_templates (
     strength_percentage double precision DEFAULT 0 NOT NULL
 );
 
+
+-- 🔹 Базовые материалы
+CREATE TABLE IF NOT EXISTS materials (
+    id integer NOT NULL,
+    name text,
+    prefix text,
+    color text,
+    is_fragile boolean,
+    strength_percentage integer
+);
+
+-- 🔹 Библиотека модификаторов
+CREATE TABLE IF NOT EXISTS modifiers_library (
+    id integer NOT NULL,
+    access_modifier integer NOT NULL,
+    modifier_name text NOT NULL,
+    effect_description text
+);
+
+-- 🔹 Суффиксы предметов
+CREATE TABLE IF NOT EXISTS suffixes (
+    suffix_code integer NOT NULL,
+    fragment text NOT NULL,
+    is_for_weapon boolean NOT NULL,
+    is_for_armor boolean NOT NULL,
+    is_for_accessory boolean NOT NULL,
+    mod1_code integer,
+    mod1_value numeric,
+    mod2_code integer,
+    mod2_value numeric,
+    mod3_code integer,
+    mod3_value numeric,
+    mod4_code integer,
+    mod4_value numeric
+);
+
+-- 🔹 Стандартные модификаторы
+CREATE TABLE IF NOT EXISTS template_modifier_defaults (
+    base_item_code integer NOT NULL,
+    access_modifier integer NOT NULL,
+    default_value numeric NOT NULL
+);
+
+
+
 -- 🔹 Базовые предметы
-CREATE TABLE public.item_base (
+CREATE TABLE IF NOT EXISTS item_base (
     base_item_code integer NOT NULL,
     item_name text NOT NULL,
     category text NOT NULL,

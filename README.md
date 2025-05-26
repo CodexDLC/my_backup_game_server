@@ -33,11 +33,13 @@
    git clone git@github.com:your-org/new_order_rpg.git
    cd new_order_rpg
    ```
+
 2. Установите зависимости:
 
    ```bash
    pip install -r requirements.txt
    ```
+
 3. Скопируйте шаблон окружения и заполните свои значения:
 
    ```bash

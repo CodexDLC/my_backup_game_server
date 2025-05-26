@@ -1,4 +1,4 @@
-CREATE TABLE public.character_skills (
+CREATE TABLE IF NOT EXISTS character_skills (
     character_id integer NOT NULL,
     skill_id integer NOT NULL,
     level integer DEFAULT 1 NOT NULL,

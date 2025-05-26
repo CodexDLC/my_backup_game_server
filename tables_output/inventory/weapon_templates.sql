@@ -1,4 +1,4 @@
-CREATE TABLE public.weapon_templates (
+CREATE TABLE IF NOT EXISTS weapon_templates (
     id integer NOT NULL,
     base_item_code integer NOT NULL,
     suffix_code integer NOT NULL,

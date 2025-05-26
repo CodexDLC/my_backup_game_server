@@ -5,7 +5,7 @@ from game_server.database.models.models import (
     ArmorTemplates,
     WeaponTemplates,
 )
-from game_server.Logic.DomainLogic.ItemGenerator.generator_functions import (
+from game_server.Logic.DomainLogic.ItemGenerator.generator_item import (
     generate_accessories,
     generate_armor,
     generate_weapons,

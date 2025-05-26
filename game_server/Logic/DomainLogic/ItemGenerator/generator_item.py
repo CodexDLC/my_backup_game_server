@@ -1,6 +1,8 @@
 import asyncio
 
-from game_server.services.logging_config import logger  # Используем глобальный логер
+
+from game_server.services.logging.logging_setup import logger
+  # Используем глобальный логер
 
 # Формирование шаблона предмета
 def build_item_template(material, base_item, suffix=None, modifiers_defaults=None):

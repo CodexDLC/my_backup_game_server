@@ -1,4 +1,4 @@
-CREATE TABLE public.player_magic_attack (
+CREATE TABLE IF NOT EXISTS player_magic_attack (
     player_id integer NOT NULL,
     elemental_power_bonus double precision,
     fire_power_bonus double precision,

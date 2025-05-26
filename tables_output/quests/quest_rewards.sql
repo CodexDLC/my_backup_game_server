@@ -1,4 +1,4 @@
-CREATE TABLE public.quest_rewards (
+CREATE TABLE IF NOT EXISTS quest_rewards (
     id integer NOT NULL,
     reward_key character varying(100) NOT NULL,
     reward_name text NOT NULL,

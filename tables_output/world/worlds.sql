@@ -1,4 +1,4 @@
-CREATE TABLE public.worlds (
+CREATE TABLE IF NOT EXISTS worlds (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name character varying NOT NULL,
     is_static boolean DEFAULT true NOT NULL,

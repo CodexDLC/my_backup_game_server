@@ -1,4 +1,4 @@
-CREATE TABLE public.account_info (
+CREATE TABLE IF NOT EXISTS account_info (
     account_id integer NOT NULL,
     username character varying(50),
     email text,

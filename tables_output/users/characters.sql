@@ -1,4 +1,4 @@
-CREATE TABLE public.characters (
+CREATE TABLE IF NOT EXISTS characters (
     character_id integer NOT NULL,
     account_id integer,
     name character varying(255) NOT NULL,

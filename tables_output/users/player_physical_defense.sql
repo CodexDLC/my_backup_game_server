@@ -1,4 +1,4 @@
-CREATE TABLE public.player_physical_defense (
+CREATE TABLE IF NOT EXISTS player_physical_defense (
     player_id integer NOT NULL,
     piercing_resistance double precision,
     slashing_resistance double precision,

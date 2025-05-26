@@ -1,22 +1,20 @@
-CREATE TABLE public.connection_types (
+CREATE TABLE IF NOT EXISTS connection_types (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name character varying NOT NULL,
     description text,
     time_cost integer NOT NULL
-)
-
-
+);
 -- Файл: meta_world.sql
 -- Основные параметры миров, регионов и свойств сущностей
 
-CREATE TABLE public.worlds (
+CREATE TABLE IF NOT EXISTS worlds (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name character varying NOT NULL,
     is_static boolean DEFAULT true NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-CREATE TABLE public.regions (
+CREATE TABLE IF NOT EXISTS regions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     world_id uuid NOT NULL,
     access_key character varying NOT NULL,
@@ -24,7 +22,7 @@ CREATE TABLE public.regions (
     description text
 );
 
-CREATE TABLE public.subregions (
+CREATE TABLE IF NOT EXISTS subregions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     region_id uuid NOT NULL,
     access_key character varying NOT NULL,
@@ -33,7 +31,7 @@ CREATE TABLE public.subregions (
     is_peaceful boolean DEFAULT false NOT NULL
 );
 
-CREATE TABLE public.entity_properties (
+CREATE TABLE IF NOT EXISTS entity_properties (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     entity_type character varying NOT NULL,
     entity_id uuid NOT NULL,
@@ -41,12 +39,30 @@ CREATE TABLE public.entity_properties (
     value text
 );
 
-CREATE TABLE public.entity_state_map (
+CREATE TABLE IF NOT EXISTS entity_state_map (
     entity_access_key character varying NOT NULL,
     access_code integer NOT NULL
 );
 
-CREATE TABLE public.connections (
+CREATE TABLE IF NOT EXISTS state_entities (
+    id integer NOT NULL,
+    access_code integer NOT NULL,
+    code_name text NOT NULL,
+    ui_type text NOT NULL,
+    description text DEFAULT ''::text,
+    is_active boolean DEFAULT true
+);
+
+
+
+CREATE TABLE IF NOT EXISTS connection_types (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    time_cost integer NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS connections (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     from_type character varying NOT NULL,
     from_id uuid NOT NULL,
@@ -57,21 +73,4 @@ CREATE TABLE public.connections (
     difficulty integer DEFAULT 1 NOT NULL,
     CONSTRAINT connections_from_type_check CHECK (((from_type)::text = ANY ((ARRAY['region'::character varying, 'subregion'::character varying])::text[]))),
     CONSTRAINT connections_to_type_check CHECK (((to_type)::text = ANY ((ARRAY['region'::character varying, 'subregion'::character varying])::text[])))
-)
-
-CREATE TABLE public.connection_types (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    name character varying NOT NULL,
-    description text,
-    time_cost integer NOT NULL
-);
-
-
-CREATE TABLE public.state_entities (
-    id integer NOT NULL,
-    access_code integer NOT NULL,
-    code_name text NOT NULL,
-    ui_type text NOT NULL,
-    description text DEFAULT ''::text,
-    is_active boolean DEFAULT true
 );

@@ -1,7 +1,7 @@
 import os
 import sys
 
-from fastapi import logger
+from game_server.services.logging.logging_setup import logger
 
 # Добавляем корень проекта в sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))

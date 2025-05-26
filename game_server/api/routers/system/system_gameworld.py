@@ -1,80 +1,42 @@
-from fastapi import APIRouter, HTTPException
-from game_server.services.logging_config import logger
-from game_server.Logic.DataAccessLogic.db_instance import get_db_session
-from sqlalchemy.future import select
-from pydantic import BaseModel
 from typing import List
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from game_server.database.models.models import Regions, Worlds, Subregions  # Импортируем SQLAlchemy модели
+from game_server.Logic.CRUD_LOGIC.CRUD.system.world.crud_world import ManageWorld
+from game_server.services.logging.logging_setup import logger
+from game_server.database import get_db_session
 
 
-# -------------------- Модели --------------------
-class WorldsResponse(BaseModel):
-    id: str
-    name: str
-    is_static: bool
-    created_at: str
+class SystemGameWorldRoutes:
+    router = APIRouter(prefix="/gameworld")
 
+    @router.get("/world", summary="Получить текущий мир")
+    async def get_current_world_route(db_session: AsyncSession = Depends(get_db_session)):
+        logger.info("Запрос на получение текущего мира")
+        result = await ManageWorld.manage_worlds("get", db_session=db_session)
+        return SystemGameWorldRoutes.handle_response(result, "Мир не найден")
 
-# -------------------- Роуты --------------------
-router = APIRouter()
+    @router.get("/regions", response_model=List[str], summary="Получить все регионы для категории в Discord")
+    async def get_all_regions_route(db_session: AsyncSession = Depends(get_db_session)):
+        logger.info("Запрос на получение всех регионов")
+        result = await ManageWorld.manage_regions("get", db_session=db_session)
+        return SystemGameWorldRoutes.handle_response(result, "Регионы не найдены", list_key="name")
 
-@router.get("/world", response_model=WorldsResponse, summary="Получить текущий мир")
-async def get_current_world():
-    logger.info("Запрос на получение текущего мира")
-    
-    try:
-        # Получаем сессию из AsyncSession
-        async with get_db_session() as session:
-            query = select(Worlds).order_by(Worlds.created_at.desc()).limit(1)
-            result = await session.execute(query)
-            world = result.scalar_one_or_none()  # Получаем первую строку, или None, если нет данных
-            
-            if not world:
-                raise HTTPException(status_code=404, detail="Мир не найден")
-            
-            return WorldsResponse(**world.__dict__)  # Преобразуем в pydantic модель
-            
-    except Exception as e:
-        logger.error(f"Ошибка при получении текущего мира: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при получении текущего мира")
+    @router.get("/subregions/{region_access_key}", response_model=List[str], summary="Получить подрегионы для указанного региона")
+    async def get_subregions_route(region_access_key: str, db_session: AsyncSession = Depends(get_db_session)):
+        logger.info(f"Запрос на получение подрегионов для region_access_key={region_access_key}")
+        result = await ManageWorld.manage_subregions("get", db_session=db_session)
+        return SystemGameWorldRoutes.handle_response(result, "Подрегионы не найдены", list_key="name", filter_key="access_key", filter_value=region_access_key)
 
-
-@router.get("/regions", response_model=List[str], summary="Получить все регионы для категории в Discord")
-async def get_all_regions():
-    logger.info("Запрос на получение всех регионов")
-    
-    try:
-        async with get_db_session() as session:
-            query = select(Regions.region_name)  # Используем модель Regions для запроса
-            result = await session.execute(query)
-            rows = result.fetchall()
-            
-            if not rows:
-                raise HTTPException(status_code=404, detail="Регионы не найдены")
-            
-            return [row['region_name'] for row in rows]  # Возвращаем список регионов
-            
-    except Exception as e:
-        logger.error(f"Ошибка при получении регионов: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при получении регионов")
-
-
-@router.get("/subregions/{region_access_key}", response_model=List[str], summary="Получить подрегионы для указанного региона")
-async def get_subregions(region_access_key: str):
-    logger.info(f"Запрос на получение подрегионов для region_access_key={region_access_key}")
-    
-    try:
-        async with get_db_session() as session:
-            query = select(Subregions.subregion_name).where(Subregions.region_access_key == region_access_key)
-            result = await session.execute(query)
-            rows = result.fetchall()
-            
-            if not rows:
-                raise HTTPException(status_code=404, detail="Подрегионы не найдены")
-            
-            return [row['subregion_name'] for row in rows]  # Возвращаем список подрегионов
-            
-    except Exception as e:
-        logger.error(f"Ошибка при получении подрегионов: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при получении подрегионов")
+    @staticmethod
+    def handle_response(result, error_message, list_key=None, filter_key=None, filter_value=None):
+        """Обрабатывает ответ CRUD-функций и упрощает роута-код."""
+        if result["status"] == "error":
+            raise HTTPException(status_code=404, detail=error_message)
+        
+        data = result["data"]
+        if list_key:
+            data = [row[list_key] for row in data]
+        if filter_key and filter_value:
+            data = [row[list_key] for row in data if row[filter_key] == filter_value]
+        
+        return data

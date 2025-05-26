@@ -1,10 +1,9 @@
 import os
-import logging
+import game_server.logger.logger_config as logger
 import argparse
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
-logger = logging.getLogger()
+
 
 def update_all_init_files(root_dir):
     try:

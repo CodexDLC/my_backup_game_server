@@ -1,7 +1,7 @@
 import os
 import sys
 import aiohttp
-import logging
+from game_server.services.logging.logging_setup import logger
 
 # 🔧 Добавление корня проекта в sys.path для корректного импорта модулей
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -11,9 +11,9 @@ if project_root not in sys.path:
 # 🔗 Получение URL API
 API_URL = os.getenv("GAME_SERVER_API", "http://localhost:8000")
 
-from configs.logging_config import logger
 
-logger = logging.getLogger(__name__)
+
+logger = logger.getLogger(__name__)
 
 # ---------------------- Получение информации о мире ----------------------
 async def get_world_id():

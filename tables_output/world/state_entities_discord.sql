@@ -1,4 +1,4 @@
-CREATE TABLE public.state_entities_discord (
+CREATE TABLE IF NOT EXISTS state_entities_discord (
     guild_id bigint NOT NULL,
     world_id uuid NOT NULL,
     access_code integer NOT NULL,

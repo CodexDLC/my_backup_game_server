@@ -1,4 +1,4 @@
-CREATE TABLE public.skill_unlocks (
+CREATE TABLE IF NOT EXISTS skill_unlocks (
     skill_key character varying(100) NOT NULL,
     rank smallint NOT NULL,
     xp_threshold bigint NOT NULL,

@@ -6,14 +6,13 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from configs.logging_config import logger
+from game_server.services.logging.logging_setup import logger
 from discord.ext import commands
 
 from bot_service.Discord_API.api.roles import *
 from bot_service.Discord_API.discord_functions.roles_functions import create_roles_in_discord, delete_roles_from_discord
 
 
-from configs.logging_config import logger  # 🔹 Используем глобальный логгер
 
 class RoleManager(commands.Cog):
     def __init__(self, bot):

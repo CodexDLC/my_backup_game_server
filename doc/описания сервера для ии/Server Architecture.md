@@ -24,7 +24,7 @@ website/ — веб-интерфейс (Flask), будущая основа кл
 
 Discord_API/ — код бота (cogs, команды, события, утилиты).
 
-configs/ — orderbot_config.py, logging_config.py.
+configs/ — orderbot_config.py, logger_config.py.
 
 requirements.txt — зависимости сервиса.
 

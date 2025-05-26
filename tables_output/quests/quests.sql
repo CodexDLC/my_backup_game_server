@@ -1,4 +1,4 @@
-CREATE TABLE public.quests (
+CREATE TABLE IF NOT EXISTS quests (
     quest_id integer NOT NULL,
     quest_key integer NOT NULL,
     quest_name character varying(255) NOT NULL,

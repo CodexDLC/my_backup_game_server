@@ -1,27 +1,27 @@
-# SQLAlchemy_config.py
 import os
-from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession  # Импортируем AsyncSession
-from sqlalchemy.orm import sessionmaker
 
-# Загрузка переменных окружения
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+from sqlalchemy.ext.asyncio import create_async_engine
+from game_server.services.logging.logging_config import loggerConfig
+from game_server.settings import DATABASE_URL
 
-# Получение переменных для подключения к базе данных
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL не задан в .env")
 
-# Создание асинхронного движка SQLAlchemy
+# ✅ Инициализация конфигурации логирования
+config = loggerConfig()
+logger = config.get_logger()
+
+
+
+# ✅ Создание движка с учетом настроек логирования из `loggerConfig`
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,  # Для вывода SQL-запросов в лог
+    echo=config.sql_echo,  # 🔹 Управление логами SQL через конфиг
     future=True
 )
 
-# Создание фабрики сессий
-AsyncSessionLocal = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,  # Указываем правильный класс AsyncSession
-    expire_on_commit=False
-)
+# ✅ Функция проверки соединения с БД
+async def test_connection():
+    try:
+        async with engine.connect() as conn:
+            logger.info("✅ Успешное подключение к базе данных!")
+    except Exception as e:
+        logger.error(f"⚠ Ошибка подключения: {e}", exc_info=True)

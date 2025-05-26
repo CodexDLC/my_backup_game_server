@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+.env
+.env.*
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# VS Code
+.vscode/
+
+# Alembic cache
+alembic/versions/__pycache__/
+
+# Logs
+*.log
+*.log.*
+*.pid
+*.db
+*.sqlite3
+
+# Redis dumps
+*.rdb
+*.aof
+
+# Docker
+*.pid
+*.sock
+docker-compose.override.yml
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# MyPy / Coverage / Pytest
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml

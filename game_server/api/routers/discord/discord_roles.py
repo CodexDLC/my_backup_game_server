@@ -1,119 +1,42 @@
-from fastapi import APIRouter, HTTPException, Depends
-from game_server.database.models.models import StateEntities
-from game_server.services.logging_config import logger
-from game_server.Logic.DataAccessLogic.db_instance import get_db_session  # Подключаем сессию SQLAlchemy
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException
+from game_server.Logic.Interfaces.Discord.discord_roles_logic import StateEntitiesLogic
+from game_server.services.logging.logging_setup import logger
 
-router = APIRouter()
+class DiscordRolesRoutes:
+    """Класс маршрутов для управления ролями Discord-гильдий."""
 
-# -------------------- Модели запроса --------------------
-class RoleCreateRequest(BaseModel):
-    access_code: str
-    role_name: str
-    permissions: int
+    def __init__(self):
+        self.router = APIRouter()
+        self.router.post("/create_roles")(self.create_roles_route)
+        self.router.get("/list_roles/{guild_id}")(self.list_roles_route)
+        self.router.delete("/delete_role/{guild_id}/{access_code}")(self.delete_role_route)
+        self.router.delete("/delete_all_roles/{guild_id}")(self.delete_all_roles_route)
 
-class CreateRoleRequest(BaseModel):
-    guild_id: int
-    world_id: str
-    roles: List[RoleCreateRequest]
+    async def create_roles_route(self, payload: dict):
+        """Создание ролей."""
+        logger.info(f"Создание ролей для guild_id={payload['guild_id']}")
+        return await StateEntitiesLogic.create_roles(payload["guild_id"], payload)
 
-class RoleResponse(BaseModel):
-    access_code: str
-    role_name: str
-    permissions: int
+    async def list_roles_route(self, guild_id: int):
+        """Получение списка ролей."""
+        logger.info(f"Запрос ролей для guild_id={guild_id}")
+        return await StateEntitiesLogic.list_roles(guild_id)
 
-
-# -------------------- POST /create_roles --------------------
-@router.post("/create_roles", summary="Создать роли для Discord")
-async def create_roles(payload: CreateRoleRequest, db: AsyncSession = Depends(get_db_session)):
-    logger.info(f"Создание ролей для guild_id={payload.guild_id}, world_id={payload.world_id}")
-    
-    try:
-        for role in payload.roles:
-            # Создаем роль через SQLAlchemy
-            new_role = StateEntities(
-                access_code=role.access_code,
-                role_name=role.role_name,
-                permissions=role.permissions
-            )
-            db.add(new_role)
-        
-        await db.commit()  # Сохраняем изменения
-        logger.info(f"INFO Роли для guild_id={payload.guild_id} успешно созданы")
-        return {"status": "Роли успешно созданы"}
-    
-    except Exception as e:
-        logger.error(f"Ошибка при создании ролей: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при создании ролей")
-
-
-# -------------------- GET /list_roles/{guild_id} --------------------
-@router.get("/list_roles/{guild_id}", response_model=List[RoleResponse], summary="Получить все роли для указанной гильдии")
-async def list_roles(guild_id: int, db: AsyncSession = Depends(get_db_session)):
-    logger.info(f"Запрос на получение ролей для guild_id={guild_id}")
-    
-    try:
-        # Выполняем запрос через SQLAlchemy
-        stmt = select(StateEntities).filter_by(guild_id=guild_id)
-        result = await db.execute(stmt)
-        rows = result.scalars().all()
-        
-        if not rows:
-            logger.info(f"⚠️ Роли для guild_id={guild_id} не найдены")
-            return []
-        
-        return [RoleResponse(**dict(r)) for r in rows]
-    
-    except Exception as e:
-        logger.error(f"Ошибка при получении ролей: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при получении ролей")
-
-
-# -------------------- DELETE /delete_role/{guild_id}/{access_code} --------------------
-@router.delete("/delete_role/{guild_id}/{access_code}", summary="Удалить роль по guild_id и access_code")
-async def delete_role(guild_id: int, access_code: int, db: AsyncSession = Depends(get_db_session)):
-    logger.info(f"Удаление роли для guild_id={guild_id}, access_code={access_code}")
-    
-    try:
-        stmt = select(StateEntities).filter_by(guild_id=guild_id, access_code=access_code)
-        result = await db.execute(stmt)
-        role = result.scalar_one_or_none()
-
-        if role:
-            await db.delete(role)
-            await db.commit()  # Удаляем роль
-            logger.info(f"INFO Роль с access_code={access_code} для guild_id={guild_id} успешно удалена")
-            return {"status": "Роль удалена"}
-        else:
+    async def delete_role_route(self, guild_id: int, access_code: int):
+        """Удаление одной роли."""
+        logger.info(f"Удаление роли для guild_id={guild_id}, access_code={access_code}")
+        try:
+            return await StateEntitiesLogic.delete_role(guild_id)
+        except ValueError:
             raise HTTPException(status_code=404, detail="Роль не найдена")
-    
-    except Exception as e:
-        logger.error(f"Ошибка при удалении роли: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при удалении роли")
 
-
-# -------------------- DELETE /delete_all_roles/{guild_id} --------------------
-@router.delete("/delete_all_roles/{guild_id}", summary="Удалить все роли для указанной гильдии")
-async def delete_all_roles(guild_id: int, db: AsyncSession = Depends(get_db_session)):
-    logger.info(f"Удаление всех ролей для guild_id={guild_id}")
-    
-    try:
-        stmt = select(StateEntities).filter_by(guild_id=guild_id)
-        result = await db.execute(stmt)
-        roles = result.scalars().all()
-
-        if roles:
-            for role in roles:
-                await db.delete(role)  # Удаляем все роли для guild_id
-            await db.commit()  # Коммитим изменения
-            logger.info(f"INFO Все роли для guild_id={guild_id} успешно удалены")
-            return {"status": "Все роли удалены"}
-        else:
+    async def delete_all_roles_route(self, guild_id: int):
+        """Удаление всех ролей."""
+        logger.info(f"Удаление всех ролей для guild_id={guild_id}")
+        try:
+            return await StateEntitiesLogic.delete_role(guild_id)
+        except ValueError:
             raise HTTPException(status_code=404, detail="Роли не найдены")
-    
-    except Exception as e:
-        logger.error(f"Ошибка при удалении всех ролей: {e}")
-        raise HTTPException(status_code=500, detail="Ошибка при удалении всех ролей")
+
+# 📌 Создаём экземпляр класса с роутами
+discord_roles_routes = DiscordRolesRoutes().router

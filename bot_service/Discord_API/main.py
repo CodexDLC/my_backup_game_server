@@ -2,10 +2,8 @@
 import os
 import sys
 
-sys.stdout.reconfigure(encoding="utf-8")  # Устанавливаем UTF-8 для консоли
-
 import asyncio
-import logging
+import game_server.logger.logger_config as logger
 from dotenv import load_dotenv
 import discord
 from discord.ext import commands
@@ -13,8 +11,7 @@ from discord.ext import commands
 
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
 
 # Загрузка переменных окружения
 root_env = os.path.abspath(

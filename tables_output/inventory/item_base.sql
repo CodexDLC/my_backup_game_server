@@ -1,4 +1,4 @@
-CREATE TABLE public.item_base (
+CREATE TABLE IF NOT EXISTS item_base (
     base_item_code integer NOT NULL,
     item_name text NOT NULL,
     category text NOT NULL,

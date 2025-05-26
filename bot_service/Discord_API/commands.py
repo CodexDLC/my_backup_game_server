@@ -1,8 +1,8 @@
 import os
-import logging
+from game_server.services.logging.logging_setup import logger
 
 # Логгер для загрузки когов
-logger = logging.getLogger("CommandsLoader")
+logger = logger.getLogger("CommandsLoader")
 
 class CommandsManager:
     def __init__(self, bot, cogs_directory="cogs"):

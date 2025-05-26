@@ -1,5 +1,7 @@
 import time
-import logging
+
+from game_server.services.logging.logging_setup import logger
+
 from prometheus_client import Histogram
 import asyncio  # Добавлено для обработки асинхронных функций
 
@@ -7,8 +9,7 @@ import asyncio  # Добавлено для обработки асинхрон�
 REQUEST_LATENCY = Histogram('request_latency_seconds', 'Время выполнения запроса', ['endpoint'])
 
 # Настройка логирования
-logger = logging.getLogger("performance_logger")
-logging.basicConfig(level=logging.INFO)
+
 
 def measure_time(endpoint_name):
     """

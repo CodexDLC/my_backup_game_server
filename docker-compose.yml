@@ -1,36 +1,81 @@
+networks:
+  backend_network: {}  # ✅ Исправлено
+
 
 services:
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
 
-  fastapi:
+  redis:
+      container_name: redis_service
+      image: redis
+      ports:
+        - "6379:6379"
+      restart: always
+      networks:
+        - backend_network
+      env_file: .env  # Подключаем файл с паролем
+      volumes:
+        - C:/install/Stream/server/new_order_rpg/redis.conf:/usr/local/etc/redis/redis.conf  # 📌 Передаём конфиг
+      command: redis-server /usr/local/etc/redis/redis.conf --requirepass "${REDIS_PASSWORD}"
+      healthcheck:
+        test: ["CMD", "redis-cli", "-a", "$${REDIS_PASSWORD}", "ping"]
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+
+  rest_api:
+    container_name: rest_api_service
+    env_file: .env 
     build:
-      context: ./  # Контекст - корень проекта, где находится Dockerfile
+      context: .
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    depends_on:
-      - redis
-
-  celery:
-    build:
-      context: ./  # Тот же контекст
-      dockerfile: Dockerfile
-    command: celery -A game_server.storage.celery_app worker --loglevel=info
-    depends_on:
-      - redis
+    restart: always
+    networks:
+      - backend_network
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      
+      - REDIS_URL=redis://redis:6379/0
+      - CONTAINER_ID=rest_api_service
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./logs/game_server:/app/logs/game_server_service
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    command: uvicorn game_server.api.main:app --host 0.0.0.0 --port 8000
+
+  tick_coordinator:
+    container_name: tick_coordinator_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m game_server.Logic.InfrastructureLogic.tick_infra.tick_coordinator
+    restart: always
+    networks:
+      - backend_network
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CONTAINER_ID=tick_coordinator_service
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./logs/game_server:/app/logs/tick_coordinator_service
+
   prometheus:
+    container_name: prometheus_monitoring
     image: prom/prometheus:latest
     ports:
       - "9090:9090"
+    restart: always
+    networks:
+      - backend_network
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Монтируем файл конфигурации
-    deploy:
-      placement:
-        constraints:
-          - node.role == worker  # Указывает на конкретную роль ноды для развертывания в Docker Swarm
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - CONTAINER_ID=prometheus_monitoring

@@ -2,7 +2,7 @@
 -- Полная структура генератора квестов, их типов, условий и наград
 
 -- 🔹 Главный шаблон квестов
-CREATE TABLE public.quest_templates_master (
+CREATE TABLE IF NOT EXISTS quest_templates_master (
     template_id integer NOT NULL,
     template_key character varying(100) NOT NULL,
     type_key character varying(100),
@@ -12,7 +12,7 @@ CREATE TABLE public.quest_templates_master (
 );
 
 -- 🔹 Категории квестов
-CREATE TABLE public.quest_types (
+CREATE TABLE IF NOT EXISTS quest_types (
     type_id integer NOT NULL,
     type_key character varying(100) NOT NULL,
     type_name character varying(255) NOT NULL,
@@ -20,14 +20,14 @@ CREATE TABLE public.quest_types (
 );
 
 -- 🔹 Условия начала квеста
-CREATE TABLE public.quest_conditions (
+CREATE TABLE IF NOT EXISTS quest_conditions (
     condition_id integer NOT NULL,
     condition_key character varying(100) NOT NULL,
     condition_name character varying(255) NOT NULL
 );
 
 -- 🔹 Требования к выполнению
-CREATE TABLE public.quest_requirements (
+CREATE TABLE IF NOT EXISTS quest_requirements (
     requirement_id integer NOT NULL,
     requirement_key character varying(100) NOT NULL,
     requirement_name character varying(255) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE public.quest_requirements (
 );
 
 -- 🔹 Награды за выполнение
-CREATE TABLE public.quest_rewards (
+CREATE TABLE IF NOT EXISTS quest_rewards (
     id integer NOT NULL,
     reward_key character varying(100) NOT NULL,
     reward_name text NOT NULL,

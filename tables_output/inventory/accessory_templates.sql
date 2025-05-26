@@ -1,4 +1,4 @@
-CREATE TABLE public.accessory_templates (
+CREATE TABLE IF NOT EXISTS accessory_templates (
     id integer NOT NULL,
     base_item_code integer NOT NULL,
     suffix_code integer NOT NULL,

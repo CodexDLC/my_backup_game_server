@@ -54,3 +54,9 @@ typing_extensions
 
 
 prometheus-fastapi-instrumentator
+
+sqlacodegen
+
+psutil>=5.9.0
+
+supervisor
