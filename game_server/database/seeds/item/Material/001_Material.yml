@@ -1,0 +1,81 @@
+# 001_Metals_Base.yml
+version: "1.0"
+schema: "materials"
+metadata:
+  author: "System"
+  description: "Defines base metal materials."
+
+data:
+  # Базовые металлы (соответствуют старым материалам 1-8 без rarity_level,
+  # но с типом METAL. Для них rarity_level будет 9 (no-rarity) в константах.)
+  - material_code: "COPPER"
+    name: "Copper"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Copper"
+    color: "#B87333" # Оригинальный цвет
+    is_fragile: true # Из старого Material.yml, возможно, базовые должны быть хрупкими
+    strength_percentage: 0
+
+  - material_code: "BRONZE"
+    name: "Bronze"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Bronze"
+    color: "#CD7F32" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0
+
+  - material_code: "IRON"
+    name: "Iron"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Iron"
+    color: "#A9A9A9" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0
+
+  - material_code: "SILVER"
+    name: "Silver"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Silver"
+    color: "#C0C0C0" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0
+
+  - material_code: "GOLD"
+    name: "Gold"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Gold"
+    color: "#FFD700" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0
+
+  - material_code: "MITHRIL"
+    name: "Mithril"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Mithril"
+    color: "#B0E0E6" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0
+
+  - material_code: "ADAMANTITE"
+    name: "Adamantite"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Adamantite"
+    color: "#6A0DAD" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0
+
+  - material_code: "IMMORTAL_METAL" # Исходя из старого "Бессмертный"
+    name: "Immortal Metal"
+    type: "METAL"
+    material_category: "BASE"
+    adjective: "Immortal Metal"
+    color: "#DDA0DD" # Оригинальный цвет
+    is_fragile: true
+    strength_percentage: 0

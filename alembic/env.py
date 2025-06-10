@@ -1,20 +1,14 @@
-import glob
-import os
-import sys
-from sqlalchemy import create_engine, pool, text
+
+from sqlalchemy import create_engine, pool
 from alembic import context
 from logging.config import fileConfig
-
-
-# Импорт глобального логгера
+from datetime import datetime
+from game_server.database.models.models import Base
 from game_server.services.logging.logging_setup import logger
 from game_server.settings import DATABASE_URL_SYNC
 
-# Пути
-here = os.path.dirname(__file__)
-project_root = os.path.dirname(here)
-sys.path.insert(0, project_root)
-SEEDS_DIR = os.path.join(project_root, "game_server", "database", "schemas", "seeds")
+
+
 
 # Конфигурация Alembic
 config = context.config
@@ -22,41 +16,57 @@ fileConfig(config.config_file_name)
 config.set_main_option("sqlalchemy.url", DATABASE_URL_SYNC)
 
 # Импорт моделей
-from game_server.database.models.models import Base
+
 target_metadata = Base.metadata
 
+def log_step(message: str, level: str = "info"):
+    """Логирование с временными метками"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_message = f"[{timestamp}] {message}"
+    getattr(logger, level)(log_message)
 
 def run_migrations_online():
-    """Запускает онлайн-миграции Alembic, используя синхронный движок."""
-    logger.info("🚀 [Alembic] Запуск онлайн-миграций...")
-    try:
-        engine = create_engine(DATABASE_URL_SYNC, poolclass=pool.NullPool)
-        with engine.connect() as connection:
-            logger.info("🔌 Подключение к БД успешно установлено.")
-            context.configure(connection=connection, target_metadata=target_metadata)
+    """Запуск миграций без обработки `seeds`"""
+    log_step("🚀 Начало онлайн-миграций")
 
+    try:
+        log_step(f"Попытка подключения к БД: {DATABASE_URL_SYNC}")
+        engine = create_engine(DATABASE_URL_SYNC, poolclass=pool.NullPool, echo=True)
+
+        with engine.connect() as connection:
+            log_step("🔌 Подключение успешно")
+
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                compare_type=True,
+                compare_server_default=True,
+                include_schemas=True
+            )
+
+            log_step("🔍 Запуск транзакции миграций")
             with context.begin_transaction():
                 context.run_migrations()
-                logger.info("✅ Миграции успешно выполнены!")
+                log_step("✅ Миграции успешно выполнены")
 
-            for path in sorted(glob.glob(os.path.join(SEEDS_DIR, "*.sql"))):
-                try:
-                    with open(path, "r", encoding="utf-8") as f:
-                        sql = f.read()
-                    connection.execute(text(sql))
-                    logger.info(f"🌱 Сид успешно загружен: {os.path.basename(path)}")
-                except Exception as e:
-                    logger.error(f"❌ Ошибка при выполнении сида {os.path.basename(path)}: {e}")
+            log_step("🏁 Все операции завершены")
+
     except Exception as e:
-        logger.critical(f"🔥 Ошибка в процессе миграции: {e}")
-
+        log_step(f"🔥 Ошибка миграции: {str(e)}", "critical")
+        raise
 
 if context.is_offline_mode():
-    logger.info("⚡ [Alembic] OFFLINE-режим: генерация SQL без подключения к БД.")
+    log_step("⚡ OFFLINE-режим: генерация SQL")
     try:
+        context.configure(
+            target_metadata=target_metadata,
+            literal_binds=True,
+            dialect_opts={"paramstyle": "named"},
+        )
         context.run_migrations()
-        logger.info("✅ Миграции OFFLINE завершены.")
+        log_step("✅ OFFLINE-миграции сгенерированы")
     except Exception as e:
-        logger.critical(f"❌ Ошибка при OFFLINE-миграции: {e}")
+        log_step(f"❌ Ошибка OFFLINE-миграции: {str(e)}", "critical")
+        raise
 else:
     run_migrations_online()

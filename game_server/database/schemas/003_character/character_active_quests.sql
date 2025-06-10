@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS active_quests (
+    id SERIAL PRIMARY KEY,  -- ✅ Уникальный идентификатор
     character_id integer NOT NULL,
     quest_id integer NOT NULL,
     quest_key character varying(100),
@@ -8,4 +9,3 @@ CREATE TABLE IF NOT EXISTS active_quests (
     completion_time timestamp without time zone,
     failure_reason character varying(255)
 );
-

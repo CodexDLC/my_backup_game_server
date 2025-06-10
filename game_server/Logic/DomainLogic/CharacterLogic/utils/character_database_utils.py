@@ -5,10 +5,10 @@
 
 import random
 import time
+from game_server.Logic.InfrastructureLogic.DataAccessLogic.db_instance import get_db_session
 from game_server.services.logging.logging_setup import logger
 from sqlalchemy import text
-from game_server.Logic.DataAccessLogic.db_instance import get_db_session
-from game_server.Logic.DataAccessLogic.db_instance import AsyncSession
+
 
 
 

@@ -1,0 +1,12 @@
+data:
+  - story_id: 1 # 🔥 ИСПОЛЬЗУЕМ ДЕФОЛТНЫЙ ID, который равен DEFAULT_BACKGROUND_STORY_ID
+    name: "Default Background"
+    display_name: "Базовая предыстория"
+    short_description: "Простая, стандартная предыстория, используемая по умолчанию."
+    stat_modifiers: {} # Пустой JSONB, так как нет специфичных модификаторов
+    skill_affinities: {} # Пустой JSONB
+    initial_inventory_items: {} # Пустой JSONB
+    starting_location_tags: [] # Пустой JSONB массив
+    lore_fragments: [] # Пустой JSONB массив
+    potential_factions: [] # Пустой JSONB массив
+    rarity_weight: 100 # Стандартный вес

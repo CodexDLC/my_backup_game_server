@@ -54,3 +54,9 @@ typing_extensions
 
 
 prometheus-fastapi-instrumentator
+
+gevent
+
+
+librabbitmq
+

@@ -1,6 +1,8 @@
 import asyncio
 from datetime import datetime
-from game_server.app_cache.redis_client import RedisClient
+
+from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
+
 
 class RandomPoolManager:
     _instance = None
@@ -25,7 +27,7 @@ class RandomPoolManager:
         if not hasattr(self, "_initialized"):
             if redis is None:
                 # Если подключение не передали, создаем его сами.
-                self.redis = RedisClient().redis
+                self.redis = CentralRedisClient().redis
             else:
                 self.redis = redis
             self._initialized = True
@@ -182,5 +184,37 @@ class RandomPoolManager:
             await r.delete(f"{self.redis_prefix}main")
             await r.delete(f"{self.redis_prefix}meta")
             print("✅ Основной пул (`main`) очищен!")
+            
+
+    async def get_random_number(self, key: str = "main") -> int:
+        """
+        Возвращает одно случайное число из указанного пула в Redis.
+        Если пул пуст, автоматически пополняет его.
+        :param key: Ключ пула (например, "main" или "character_rarity_selection_pool").
+        :return: Случайное число из пула.
+        """
+        await self.init_redis()
+        pool_key = f"{self.redis_prefix}{key}"
+
+        num_raw = await self.redis.spop(pool_key)
+        num = int(num_raw.decode()) if num_raw else None
+
+        if num is None:
+            print(f"⚠️ Пул `{key}` закончился, пополняем!")
+            # Используем max_range из meta, если есть, или из self.max_range
+            meta = await self.redis.hgetall(f"{pool_key}:meta")
+            current_max_range = int(meta.get(b"max_range", self.max_range)) if meta else self.max_range
+            current_pool_size = int(meta.get(b"pool_size", self.pool_size)) if meta else self.pool_size
+
+            # Важно: create_pool_by_key должен использовать переданные параметры или свои дефолты
+            await self.create_pool_by_key(key, pool_size=current_pool_size) # Или пересоздать с актуальными параметрами
+            
+            num_raw = await self.redis.spop(pool_key)
+            num = int(num_raw.decode()) if num_raw else None
+        
+        if num is None:
+            raise RuntimeError(f"Не удалось получить число из пула `{key}` даже после пополнения.")
+
+        return num
 
     

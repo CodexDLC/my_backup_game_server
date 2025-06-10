@@ -4,20 +4,23 @@
 
 
 from game_server.Logic.DomainLogic.CharacterLogic.character_creation import finalize_character_creation
+
+from game_server.Logic.InfrastructureLogic.DataAccessLogic.db_instance import get_db_session
+from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
+from game_server.database.models.models import Character
 from game_server.services.logging.logging_setup import logger
-from game_server.Logic.DataAccessLogic.db_instance import get_db_session
-from game_server.app_cache.redis_client import RedisClient
 
 
 
 
-class Character:
+
+class CharacterCreate:
     def __init__(self):
         """Инициализация подключений"""
 
         try:
             self.db_session = None  # Сессию получим в процессе работы
-            self.redis = RedisClient()  # ✅ Инкапсулированный клиент Redis
+            self.redis = CentralRedisClient()  # ✅ Инкапсулированный клиент Redis
             logger.info("Инициализация Character завершена.")
         except Exception as e:
             logger.error(f"Ошибка при инициализации: {e}")

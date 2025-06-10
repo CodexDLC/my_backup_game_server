@@ -1,8 +1,6 @@
--- Файл: meta_quests.sql
--- Список квестов, не связанных с генератором
-
+-- 🔹 Список квестов, не связанных с генератором
 CREATE TABLE IF NOT EXISTS quests (
-    quest_id integer NOT NULL,
+    quest_id SERIAL PRIMARY KEY,  -- ✅ Сделали уникальный ключ
     quest_key integer NOT NULL,
     quest_name character varying(255) NOT NULL,
     description_key character varying(100) NOT NULL,
@@ -11,7 +9,9 @@ CREATE TABLE IF NOT EXISTS quests (
     status character varying(50) DEFAULT 'inactive'::character varying NOT NULL
 );
 
+-- 🔹 Этапы выполнения квестов
 CREATE TABLE IF NOT EXISTS quest_steps (
+    step_id SERIAL PRIMARY KEY,  -- ✅ Добавили `PRIMARY KEY`
     step_key character varying(100) NOT NULL,
     quest_key integer NOT NULL,
     step_order integer NOT NULL,
@@ -21,8 +21,9 @@ CREATE TABLE IF NOT EXISTS quest_steps (
     status character varying(50) NOT NULL
 );
 
+-- 🔹 Флаги состояния квестов
 CREATE TABLE IF NOT EXISTS quest_flags (
-    flag_id integer NOT NULL,
+    flag_id SERIAL PRIMARY KEY,  -- ✅ Добавили `PRIMARY KEY`
     flag_key character varying(100) NOT NULL,
     quest_key integer,
     step_key character varying(100),

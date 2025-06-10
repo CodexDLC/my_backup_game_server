@@ -1,0 +1,42 @@
+# 004_suffix.yml
+version: "1.0"
+schema: "suffixes"
+metadata:
+  author: "System"
+  description: "Suffixes specifically designed for apparel."
+
+data:
+  OF_WARMTH:
+    group: "ENVIRONMENTAL"
+    fragment: "of Warmth"
+    modifiers:
+      - modifier_code: "cold_comfort_bonus"
+        value_tier_fixed: 2
+
+  OF_COOLING:
+    group: "ENVIRONMENTAL"
+    fragment: "of Cooling"
+    modifiers:
+      - modifier_code: "heat_comfort_bonus"
+        value_tier_fixed: 2
+
+  OF_PROTECTION_FROM_WIND:
+    group: "ENVIRONMENTAL"
+    fragment: "of the Wind Barrier"
+    modifiers:
+      - modifier_code: "wind_comfort_bonus"
+        value_tier_fixed: 2
+
+  OF_PRESENCE:
+    group: "SOCIAL"
+    fragment: "of Presence"
+    modifiers:
+      - modifier_code: "charisma_bonus"
+        value_tier_fixed: 1
+
+  OF_CONCEALMENT:
+    group: "STEALTH"
+    fragment: "of Concealment"
+    modifiers:
+      - modifier_code: "stealth_bonus"
+        value_tier_fixed: 2

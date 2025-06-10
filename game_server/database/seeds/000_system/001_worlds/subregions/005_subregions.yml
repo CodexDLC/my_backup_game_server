@@ -1,0 +1,32 @@
+version: "1.001"
+schema: "subregions"
+metadata:
+  author: "System"
+  description: "Основные входы и выходы города"
+
+data:
+
+# Каналы внутри категории "Городские ворота" (parent_access_key: "50")
+  - access_key: "5001"
+    access_code: "5001"
+    subregion_name: "🧭 Северные ворота"
+    description: "Главный проход в северную часть земель, охраняемый стражей"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "50"
+
+  - access_key: "5002"
+    access_code: "5002"
+    subregion_name: "🌅 Южные ворота"
+    description: "Ворота, ведущие к южным территориям, пропускают торговцев и путешественников"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "50"
+
+  - access_key: "5003"
+    access_code: "5003"
+    subregion_name: "🏰 Тюрма"
+    description: "Здания для содержания узников"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "50"

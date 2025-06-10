@@ -1,0 +1,32 @@
+version: "1.001"
+schema: "subregions"
+metadata:
+  author: "System"
+  description: "Центральная городская локация"
+
+data:
+
+# Каналы внутри категории "Центральная площадь" (parent_access_key: "20")
+  - access_key: "2001"
+    access_code: "2001"
+    subregion_name: "🏢 Ратуша"
+    description: "Официальное административное здание, центр власти города"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "20"
+
+  - access_key: "2002"
+    access_code: "2002"
+    subregion_name: "🍻 Таверна 'Громовая Чаша'"
+    description: "Популярное место отдыха для жителей и путешественников"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "20"
+
+  - access_key: "2003"
+    access_code: "2003"
+    subregion_name: "⚔️ Гильдия Искателей Приключений"
+    description: "Объединение смельчаков, исследователей и авантюристов"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "20"

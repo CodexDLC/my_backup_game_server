@@ -1,0 +1,87 @@
+# 004_Fabrics_Rift.yml
+version: "1.0"
+schema: "materials"
+metadata:
+  author: "System"
+  description: "Defines rift fabric materials."
+
+data:
+  - material_code: "RIFT_LINEN"
+    name: "Rift Linen"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 1
+    adjective: "Rift Linen"
+    color: "#FFD700" # Golden/Yellow - rarity 1 color
+    is_fragile: false
+    strength_percentage: 0.02 # Lower strength for fabric
+
+  - material_code: "RIFT_COTTON"
+    name: "Rift Cotton"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 2
+    adjective: "Rift Cotton"
+    color: "#ADD8E6" # Light Blue - rarity 2 color
+    is_fragile: false
+    strength_percentage: 0.03
+
+  - material_code: "RIFT_WOOL"
+    name: "Rift Wool"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 3
+    adjective: "Rift Wool"
+    color: "#90EE90" # Light Green - rarity 3 color
+    is_fragile: false
+    strength_percentage: 0.05
+
+  - material_code: "RIFT_SILK"
+    name: "Rift Silk"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 4
+    adjective: "Rift Silk"
+    color: "#FFDAB9" # Peach/Pink - rarity 4 color
+    is_fragile: false
+    strength_percentage: 0.08
+
+  - material_code: "RIFT_BROCADE"
+    name: "Rift Brocade"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 5
+    adjective: "Rift Brocade"
+    color: "#FFA07A" # Salmon/Orange - rarity 5 color
+    is_fragile: false
+    strength_percentage: 0.12
+
+  - material_code: "RIFT_VELVET"
+    name: "Rift Velvet"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 6
+    adjective: "Rift Velvet"
+    color: "#BA55D3" # Medium Purple - rarity 6 color
+    is_fragile: false
+    strength_percentage: 0.18
+
+  - material_code: "CELESTIAL_FABRIC"
+    name: "Celestial Fabric"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 7
+    adjective: "Celestial Fabric"
+    color: "#FF4500" # Orange-Red - rarity 7 color
+    is_fragile: false
+    strength_percentage: 0.25
+
+  - material_code: "DIVINE_SILK"
+    name: "Divine Silk"
+    type: "FABRIC"
+    material_category: "RIFT"
+    rarity_level: 8
+    adjective: "Divine Silk"
+    color: "#800080" # Dark Purple/Indigo - rarity 8 color
+    is_fragile: false
+    strength_percentage: 0.35

@@ -1,13 +1,14 @@
 -- Файл: character_reputation.sql
 -- Заглушка для механики репутации персонажа
 
+-- 🔹 Таблица репутации персонажа
 CREATE TABLE IF NOT EXISTS reputation (
-    reputation_id integer NOT NULL,
-    character_id integer,
-    faction_id integer,
-    reputation_value integer DEFAULT 0 NOT NULL,
-    reputation_status character varying(50) DEFAULT 'neutral'::character varying NOT NULL
+    character_id INTEGER PRIMARY KEY,  -- ✅ `character_id` теперь уникальный ключ
+    faction_id INTEGER,
+    reputation_value INTEGER DEFAULT 0 NOT NULL,
+    reputation_status CHARACTER VARYING(50) DEFAULT 'neutral'::character varying NOT NULL
 );
+
 
 -- 🔹 Будущие расширения:
 -- 1️⃣ Добавить систему влияния фракций

@@ -1,0 +1,217 @@
+version: "1.0"
+schema: "item_base"
+metadata:
+  author: "System"
+  description: "Defines base data for armor archetypes by type and slot."
+data:
+  # Light Armor Archetypes
+  LIGHT_HELMET:
+    category: "ARMOR"
+    properties:
+      armor_type: "Light"
+      base_roll_dice: "1d3"
+      inventory_size: "2x2"
+      equip_slot: "HEAD"
+    names:
+      "Leather Cap":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, SOCIAL]
+      Hood:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, STEALTH, ARCANE]
+      Skullcap:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE]
+
+  LIGHT_CHEST:
+    category: "ARMOR"
+    properties:
+      armor_type: "Light"
+      base_roll_dice: "2d3"
+      inventory_size: "2x2"
+      equip_slot: "TORSO_ARMOR"
+    names:
+      "Leather Tunic":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, ACTIVE_DEFENSE, VITALITY]
+      "Padded Vest":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, ACTIVE_DEFENSE]
+      "Quilted Jerkin":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL]
+
+  LIGHT_GLOVES:
+    category: "ARMOR"
+    properties:
+      armor_type: "Light"
+      base_roll_dice: "1d3"
+      inventory_size: "1x1"
+      equip_slot: "HANDS_ARMOR"
+    names:
+      "Leather Gloves":
+        allowed_suffix_groups: [SYSTEM, UTILITY, STEALTH, PHYSICAL_OFFENSE]
+      "Padded Mitts":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL]
+
+  LIGHT_PANTS:
+    category: "ARMOR"
+    properties:
+      armor_type: "Light"
+      base_roll_dice: "1d3"
+      inventory_size: "2x2"
+      equip_slot: "LEGS_ARMOR"
+    names:
+      "Leather Pants":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE, STEALTH]
+      "Quilted Leggings":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL]
+
+  LIGHT_BOOTS:
+    category: "ARMOR"
+    properties:
+      armor_type: "Light"
+      base_roll_dice: "1d3"
+      inventory_size: "2x2"
+      equip_slot: "FEET_ARMOR"
+    names:
+      "Leather Boots":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE, STEALTH]
+      "Soft Shoes":
+        allowed_suffix_groups: [SYSTEM, UTILITY, STEALTH, SOCIAL]
+
+  # Medium Armor Archetypes
+  MEDIUM_HELMET:
+    category: "ARMOR"
+    properties:
+      armor_type: "Medium"
+      base_roll_dice: "1d4"
+      inventory_size: "2x2"
+      equip_slot: "HEAD"
+    names:
+      "Chainmail Coif":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE]
+      "Steel Cap":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE, VITALITY]
+      "Banded Helmet":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, CRITICAL_DEFENSE]
+
+  MEDIUM_CHEST:
+    category: "ARMOR"
+    properties:
+      armor_type: "Medium"
+      base_roll_dice: "2d4"
+      inventory_size: "2x3"
+      equip_slot: "TORSO_ARMOR"
+    names:
+      "Chainmail Shirt":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE, VITALITY]
+      "Scale Vest":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE, ACTIVE_DEFENSE]
+      Brigandine:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, VITALITY]
+
+  MEDIUM_GLOVES:
+    category: "ARMOR"
+    properties:
+      armor_type: "Medium"
+      base_roll_dice: "1d4"
+      inventory_size: "1x2"
+      equip_slot: "HANDS_ARMOR"
+    names:
+      "Chainmail Gauntlets":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE]
+      "Scale Gauntlets":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE, PHYSICAL_DEFENSE]
+
+  MEDIUM_PANTS:
+    category: "ARMOR"
+    properties:
+      armor_type: "Medium"
+      base_roll_dice: "1d4"
+      inventory_size: "2x2"
+      equip_slot: "LEGS_ARMOR"
+    names:
+      "Chainmail Leggings":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE]
+      "Scale Leggings":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE, PHYSICAL_DEFENSE]
+
+  MEDIUM_BOOTS:
+    category: "ARMOR"
+    properties:
+      armor_type: "Medium"
+      base_roll_dice: "1d4"
+      inventory_size: "2x2"
+      equip_slot: "FEET_ARMOR"
+    names:
+      "Chainmail Boots":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, GENERAL_DEFENSE]
+      "Scale Boots":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE, PHYSICAL_DEFENSE]
+
+  # Heavy Armor Archetypes
+  HEAVY_HELMET:
+    category: "ARMOR"
+    properties:
+      armor_type: "Heavy"
+      base_roll_dice: "1d6"
+      inventory_size: "2x2"
+      equip_slot: "HEAD"
+    names:
+      "Full Helm":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, CRITICAL_DEFENSE, SHIELDING]
+      "Great Helm":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, PHYSICAL_DEFENSE, ABSORPTION]
+      Sallet:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, VITALITY]
+
+  HEAVY_CHEST:
+    category: "ARMOR"
+    properties:
+      armor_type: "Heavy"
+      base_roll_dice: "2d6"
+      inventory_size: "2x3"
+      equip_slot: "TORSO_ARMOR"
+    names:
+      Breastplate:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, PHYSICAL_DEFENSE, ABSORPTION]
+      Cuirass:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, SHIELDING, VITALITY]
+      "Plate Armor":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, CRITICAL_DEFENSE, PHYSICAL_DEFENSE]
+
+  HEAVY_GAUNTLETS:
+    category: "ARMOR"
+    properties:
+      armor_type: "Heavy"
+      base_roll_dice: "1d6"
+      inventory_size: "1x2"
+      equip_slot: "HANDS_ARMOR"
+    names:
+      "Plate Gauntlets":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, PHYSICAL_DEFENSE]
+      "Steel Gauntlets":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, SHIELDING]
+
+  HEAVY_GREAVES:
+    category: "ARMOR"
+    properties:
+      armor_type: "Heavy"
+      base_roll_dice: "1d6"
+      inventory_size: "2x2"
+      equip_slot: "LEGS_ARMOR"
+    names:
+      "Plate Greaves":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, PHYSICAL_DEFENSE]
+      "Steel Leggings":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, VITALITY]
+      Faulds:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, ABSORPTION]
+
+  HEAVY_SABATONS:
+    category: "ARMOR"
+    properties:
+      armor_type: "Heavy"
+      base_roll_dice: "1d6"
+      inventory_size: "2x2"
+      equip_slot: "FEET_ARMOR"
+    names:
+      Sabaton:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, PHYSICAL_DEFENSE]
+      "Plate Boots":
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, CRITICAL_DEFENSE]

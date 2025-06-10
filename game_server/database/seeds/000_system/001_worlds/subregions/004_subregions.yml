@@ -1,0 +1,55 @@
+version: "1.001"
+schema: "subregions"
+metadata:
+  author: "System"
+  description: "Здание в нутри района гильдий"
+
+data:
+# Каналы внутри категории "Квартал гильдий" (parent_access_key: "40")
+  - access_key: "4001"
+    access_code: "4001"
+    subregion_name: "⚔️ Гильдия Ордена Сталь Перунова"
+    description: "Мастерство владения оружием и тактикой боя"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "40"
+
+  - access_key: "4002"
+    access_code: "4002"
+    subregion_name: "⚡ Гильдия Ордена Нити Мокоши"
+    description: "Изучение стихийной и особой магии, развитие дара энергии"
+    is_peaceful: false
+    visibility: "private"
+    parent_access_key: "40"
+
+  - access_key: "4003"
+    access_code: "4003"
+    subregion_name: "💰 Гильдия Ордена Ветры Подаги"
+    description: "Искусство торговли и управления ресурсами"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "40"
+
+  - access_key: "4004"
+    access_code: "4004"
+    subregion_name: "🔨 Гильдия Ордена Искра Сварожья"
+    description: "Создание оружия, доспехов и магических артефактов"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "40"
+
+  - access_key: "4005"
+    access_code: "4005"
+    subregion_name: "🏺 Гильдия Ордена Велесовы Клады"
+    description: "Добыча ресурсов и исследование древних знаний"
+    is_peaceful: false
+    visibility: "private"
+    parent_access_key: "40"
+
+  - access_key: "4006"
+    access_code: "4006"
+    subregion_name: "🏛️ Гильдия Ордена Родово Вече"
+    description: "Развитие лидерских качеств и социальных навыков"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "40"

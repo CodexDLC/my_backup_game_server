@@ -1,5 +1,4 @@
-__all__ = ['crud_connection_world', 'crud_state_entities', 'crud_world']
+__all__ = ['crud_connection_world', 'crud_state_entities']
 
-from .crud_connection_world import *
-from .crud_state_entities import *
-from .crud_world import *
+from . import crud_connection_world
+from . import crud_state_entities

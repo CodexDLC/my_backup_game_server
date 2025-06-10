@@ -1,0 +1,85 @@
+# 003_suffix.yml
+version: "1.0"
+schema: "suffixes"
+metadata:
+  author: "System"
+  description: "Suffixes specifically designed for armor."
+
+data:
+  OF_STRENGTHENING:
+    group: "PHYSICAL_DEFENSE"
+    fragment: "of Strengthening"
+    modifiers:
+      - modifier_code: "physical_defense_bonus"
+        value_tier_fixed: 3
+
+  OF_THE_KNIGHT:
+    group: "GENERAL_DEFENSE"
+    fragment: "of the Knight"
+    modifiers:
+      - modifier_code: "physical_defense_bonus"
+        value_tier_fixed: 4
+      - modifier_code: "magic_resistance_percent"
+        value_tier_fixed: 2
+      - modifier_code: "max_health_bonus"
+        value_tier_fixed: 3
+
+  OF_ABSORPTION:
+    group: "ABSORPTION"
+    fragment: "of Absorption"
+    modifiers:
+      - modifier_code: "absorption_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "energy_pool_bonus"
+        value_tier_fixed: 2
+
+  OF_BARRIER:
+    group: "SHIELDING"
+    fragment: "of Barrier"
+    modifiers:
+      - modifier_code: "shield_value"
+        value_tier_fixed: 3
+      - modifier_code: "shield_regeneration"
+        value_tier_fixed: 2
+
+  OF_THE_BULWARK:
+    group: "GENERAL_DEFENSE" # <-- Та же группа, что и у OF_THE_KNIGHT, но с другими бонусами
+    fragment: "of the Bulwark"
+    modifiers:
+      - modifier_code: "physical_resistance_percent"
+        value_tier_fixed: 3
+      - modifier_code: "magic_resistance_percent"
+        value_tier_fixed: 3
+      - modifier_code: "max_health_bonus"
+        value_tier_fixed: 4
+
+  OF_THE_GUARD:
+    group: "ACTIVE_DEFENSE"
+    fragment: "of the Guard"
+    modifiers:
+      - modifier_code: "parry_chance"
+        value_tier_fixed: 3
+      - modifier_code: "block_chance"
+        value_tier_fixed: 2
+      - modifier_code: "dodge_chance_bonus"
+        value_tier_fixed: 1
+
+  OF_THE_REVENGE:
+    group: "ACTIVE_DEFENSE" # <-- Та же группа, но с уклоном в контратаку
+    fragment: "of Vengeance"
+    modifiers:
+      - modifier_code: "dodge_chance_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "counter_attack_chance"
+        value_tier_fixed: 3
+      - modifier_code: "anti_crit_chance_bonus"
+        value_tier_fixed: 2
+
+  OF_RESILIENCE:
+    group: "CRITICAL_DEFENSE"
+    fragment: "of Resilience"
+    modifiers:
+      - modifier_code: "anti_crit_chance_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "anti_crit_damage_bonus"
+        value_tier_fixed: 3

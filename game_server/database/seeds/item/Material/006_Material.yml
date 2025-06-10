@@ -1,0 +1,87 @@
+# 006_Leathers_Rift.yml
+version: "1.0"
+schema: "materials"
+metadata:
+  author: "System"
+  description: "Defines rift leather materials."
+
+data:
+  - material_code: "RIFT_RAW_HIDE"
+    name: "Rift Raw Hide"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 1
+    adjective: "Rift Raw Hide"
+    color: "#FFD700" # Golden/Yellow - rarity 1 color
+    is_fragile: false # Rift materials are generally less fragile
+    strength_percentage: 0.05
+
+  - material_code: "RIFT_LEATHER"
+    name: "Rift Leather"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 2
+    adjective: "Rift Leather"
+    color: "#ADD8E6" # Light Blue - rarity 2 color
+    is_fragile: false
+    strength_percentage: 0.10
+
+  - material_code: "RIFT_THICK_LEATHER"
+    name: "Rift Thick Leather"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 3
+    adjective: "Rift Thick Leather"
+    color: "#90EE90" # Light Green - rarity 3 color
+    is_fragile: false
+    strength_percentage: 0.15
+
+  - material_code: "SERPENTINE_HIDE"
+    name: "Serpentine Hide"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 4
+    adjective: "Serpentine Hide"
+    color: "#FFDAB9" # Peach/Pink - rarity 4 color
+    is_fragile: false
+    strength_percentage: 0.20
+
+  - material_code: "GRIFFIN_PELT"
+    name: "Griffin Pelt"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 5
+    adjective: "Griffin Pelt"
+    color: "#FFA07A" # Salmon/Orange - rarity 5 color
+    is_fragile: false
+    strength_percentage: 0.30
+
+  - material_code: "WYVERN_SCALES"
+    name: "Wyvern Scales"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 6
+    adjective: "Wyvern Scales"
+    color: "#BA55D3" # Medium Purple - rarity 6 color
+    is_fragile: false
+    strength_percentage: 0.50
+
+  - material_code: "DRAGON_HIDE"
+    name: "Dragon Hide"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 7
+    adjective: "Dragon Hide"
+    color: "#FF4500" # Orange-Red - rarity 7 color
+    is_fragile: false
+    strength_percentage: 0.75
+
+  - material_code: "PRIMORDIAL_HIDE"
+    name: "Primordial Hide"
+    type: "LEATHER"
+    material_category: "RIFT"
+    rarity_level: 8
+    adjective: "Primordial Hide"
+    color: "#800080" # Dark Purple/Indigo - rarity 8 color
+    is_fragile: false
+    strength_percentage: 1.00

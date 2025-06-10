@@ -1,0 +1,18 @@
+version: "1.0"  # Начальная версия, пока не загружено и не изменено
+schema: "flag_templates"  # Чёткое указание типа данных
+metadata:
+  author: "System"
+  description: "Квесты шаги уникальных квестов"
+
+data:
+  - flag_key: "step_accepted"
+    flag_category: "progress"
+    flag_description: "Шаг квеста принят"
+
+  - flag_key: "name_entered"
+    flag_category: "progress"
+    flag_description: "Имя введено"
+
+  - flag_key: "surname_entered"
+    flag_category: "progress"
+    flag_description: "Фамилия введена"

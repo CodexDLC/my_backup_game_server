@@ -1,0 +1,512 @@
+version: "1.0"  # Начальная версия, пока не загружено и не изменено
+schema: "skills"  # Чёткое указание типа данных
+metadata:
+  author: "System"
+  description: "Квесты шаги уникальных квестов"
+
+
+data:
+  # 🗡 Боевые навыки
+  PIERCING_WEAPONS:
+    name: "Прокалывающее Оружие"
+    description: "Мастерство владения колющим оружием, эффективное против слабобронированных целей. Позволяет наносить быстрые и точные удары, пробивая уязвимые места."
+    stat_influence:
+      AGILITY: 2
+      STRENGTH: 1
+    is_magic: False
+    rarity_weight: 100
+    category_tag: "combat"
+    role_preference_tag: "piercing_weapon_user"
+    limit_group_tag: "combat_weapon"
+    max_level: 10 # Пример
+
+  
+  BLUNT_WEAPONS:
+    name: "Дробящее Оружие"
+    description: "Навык владения тупым и дробящим оружием, хорошо пробивает броню и оглушает противников. Позволяет наносить мощные удары, игнорируя защиту."
+    stat_influence:
+      STRENGTH: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 100
+    category_tag: "combat"
+    role_preference_tag: "blunt_weapon_user"
+    limit_group_tag: "combat_weapon"
+    max_level: 10
+
+  SLASHING_WEAPONS:
+    name: "Режущее Оружие"
+    description: "Навык владения режущим оружием (мечи, топоры), наносит широкие, рассекающие удары по нескольким целям. Эффективно против толп противников."
+    stat_influence:
+      STRENGTH: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 100
+    category_tag: "combat"
+    role_preference_tag: "slashing_weapon_user"
+    limit_group_tag: "combat_weapon"
+    max_level: 10
+  RANGED_WEAPONS:
+    name: "Дальнобойное Оружие"
+    description: "Мастерство стрельбы из луков, арбалетов и метательного оружия. Позволяет наносить урон с безопасного расстояния и контролировать поле боя."
+    stat_influence:
+      AGILITY: 2
+      PERCEPTION: 1
+    is_magic: False
+    rarity_weight: 110
+    category_tag: "combat"
+    role_preference_tag: "ranged_master"
+    limit_group_tag: "combat_weapon"
+    max_level: 10
+
+  INTUITION:
+    name: "Интуиция"
+    description: "Способность быстро принимать решения в сложных ситуациях и предвидеть действия противника или окружающих. Позволяет обнаруживать скрытые угрозы и возможности."
+    stat_influence:
+      LUCK: 2
+      PERCEPTION: 1
+    is_magic: False
+    rarity_weight: 90
+    category_tag: "tactical"
+    role_preference_tag: "critical_thinker"
+    limit_group_tag: "tactical_core_combat"
+    max_level: 10
+  REFLEXES:
+    name: "Рефлексы"
+    description: "Повышенная скорость реакции, позволяющая уклоняться от атак и быстро реагировать на изменения в бою. Улучшает инициативу и маневренность."
+    stat_influence:
+      AGILITY: 2
+      PERCEPTION: 1
+    is_magic: False
+    rarity_weight: 110
+    category_tag: "tactical"
+    role_preference_tag: "evasion_specialist"
+    limit_group_tag: "tactical_core_combat"
+    max_level: 10
+  ENDURANCE_SKILL:
+    name: "Выносливость"
+    description: "Навык, определяющий способность персонажа переносить физические нагрузки, боль и усталость. Увеличивает запас здоровья и сопротивляемость негативным эффектам."
+    stat_influence:
+      ENDURANCE: 2
+      STRENGTH: 1
+    is_magic: False
+    rarity_weight: 100
+    category_tag: "tactical"
+    role_preference_tag: "resilience_expert"
+    limit_group_tag: "tactical_resilience"
+    max_level: 10
+  TENACITY:
+    name: "Упорство"
+    description: "Сила воли и решимость, позволяющие игнорировать страх, боль и продолжать борьбу даже в безнадежных ситуациях. Увеличивает ментальную устойчивость."
+    stat_influence:
+      STRENGTH: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 95
+    category_tag: "tactical"
+    role_preference_tag: "willpower_master"
+    limit_group_tag: "tactical_resilience"
+    max_level: 10
+  LIGHT_ARMOR:
+    name: "Легкая Броня"
+    description: "Мастерство ношения легкой брони, обеспечивающей максимальную подвижность и уклонение. Идеально для быстрых и ловких бойцов."
+    stat_influence:
+      ENDURANCE: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 105
+    category_tag: "defense"
+    role_preference_tag: "light_armor_user"
+    limit_group_tag: "armor_type_proficiency"
+    max_level: 10
+  MEDIUM_ARMOR:
+    name: "Средняя Броня"
+    description: "Навык ношения средней брони, обеспечивающей хороший баланс между защитой и подвижностью. Подходит для большинства бойцов."
+    stat_influence:
+      ENDURANCE: 2
+      STRENGTH: 1
+    is_magic: False
+    rarity_weight: 100
+    category_tag: "defense"
+    role_preference_tag: "medium_armor_user"
+    limit_group_tag: "armor_type_proficiency"
+    max_level: 10
+  HEAVY_ARMOR:
+    name: "Тяжелая Броня"
+    description: "Мастерство ношения тяжелой брони, обеспечивающей максимальную защиту ценой подвижности. Для тех, кто предпочитает выдерживать удары."
+    stat_influence:
+      STRENGTH: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 95
+    category_tag: "defense"
+    role_preference_tag: "heavy_armor_user"
+    limit_group_tag: "armor_type_proficiency"
+    max_level: 10
+  SHIELD_USE:
+    name: "Использование Щитов"
+    description: "Навык эффективного использования щитов для блокирования атак и защиты от урона. Увеличивает выживаемость в ближнем бою."
+    stat_influence:
+      STRENGTH: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 90
+    category_tag: "defense"
+    role_preference_tag: "shield_bearer"
+    limit_group_tag: "shield_proficiency"
+    max_level: 10
+
+  FIRE_MAGIC:
+    name: "Магия Огня"
+    description: "Управление элементальной магией огня для нанесения урона, создания барьеров и освещения. Позволяет вызывать огненные шары, стены пламени и усиливать союзников."
+    stat_influence:
+      INTELLIGENCE: 2
+      PERCEPTION: 1
+    is_magic: True
+    rarity_weight: 30
+    category_tag: "magic"
+    role_preference_tag: "pyromancer"
+    limit_group_tag: "magic_elemental"
+    max_level: 10
+  AIR_MAGIC:
+    name: "Магия Воздуха"
+    description: "Управление элементальной магией воздуха для контроля над полем боя, создания вихрей и увеличения скорости. Позволяет призывать порывы ветра, создавать воздушные потоки и повышать ловкость."
+    stat_influence:
+      INTELLIGENCE: 2
+      PERCEPTION: 1
+    is_magic: True
+    rarity_weight: 30
+    category_tag: "magic"
+    role_preference_tag: "aeromancer"
+    limit_group_tag: "magic_elemental"
+    max_level: 10
+  WATER_MAGIC:
+    name: "Магия Воды"
+    description: "Управление элементальной магией воды для исцеления, контроля и защиты. Позволяет создавать водяные щиты, лечить раны и замедлять противников."
+    stat_influence:
+      INTELLIGENCE: 2
+      PERCEPTION: 1
+    is_magic: True
+    rarity_weight: 30
+    category_tag: "magic"
+    role_preference_tag: "hydromancer"
+    limit_group_tag: "magic_elemental"
+    max_level: 10
+  EARTH_MAGIC:
+    name: "Магия Земли"
+    description: "Управление элементальной магией земли для защиты, усиления и нанесения урона. Позволяет создавать земляные барьеры, призывать каменных големов и усиливать физическую силу."
+    stat_influence:
+      INTELLIGENCE: 2
+      PERCEPTION: 1
+    is_magic: True
+    rarity_weight: 30
+    category_tag: "magic"
+    role_preference_tag: "geomancer"
+    limit_group_tag: "magic_elemental"
+    max_level: 10
+  DARK_MAGIC:
+    name: "Темная Магия"
+    description: "Владение запретной магией, использующей силы тени и разложения. Позволяет накладывать проклятия, высасывать жизненную силу и призывать существ тьмы."
+    stat_influence:
+      PERCEPTION: 2
+      INTELLIGENCE: 1
+    is_magic: True
+    rarity_weight: 25
+    category_tag: "magic"
+    role_preference_tag: "dark_mage"
+    limit_group_tag: "magic_special"
+    max_level: 10
+  LIGHT_MAGIC:
+    name: "Магия Света"
+    description: "Владение священной магией, использующей силы света для исцеления, защиты и изгнания зла. Позволяет лечить раны, накладывать благословения и изгонять нежить."
+    stat_influence:
+      PERCEPTION: 2
+      INTELLIGENCE: 1
+    is_magic: True
+    rarity_weight: 25
+    category_tag: "magic"
+    role_preference_tag: "light_mage"
+    limit_group_tag: "magic_special"
+    max_level: 10
+  ARCANE_MAGIC:
+    name: "Тайная Магия"
+    description: "Владение чистой арканной энергией, позволяющей манипулировать реальностью, телепортироваться и создавать мощные заклинания. Требует глубокого понимания магии."
+    stat_influence:
+      PERCEPTION: 2
+      INTELLIGENCE: 1
+    is_magic: True
+    rarity_weight: 20
+    category_tag: "magic"
+    role_preference_tag: "arcane_scholar"
+    limit_group_tag: "magic_special"
+    max_level: 10
+
+  HEALING:
+    name: "Исцеление"
+    description: "Навык оказания первой помощи и лечения ран, как магических, так и физических. Позволяет быстро восстанавливать здоровье союзников на поле боя."
+    stat_influence:
+      CHARISMA: 2
+      INTELLIGENCE: 1
+    is_magic: False
+    rarity_weight: 40
+    category_tag: "support"
+    role_preference_tag: "healer"
+    limit_group_tag: "none_limited_group" # Нет строгих взаимоисключающих групп для целителя
+    max_level: 10
+  ALCHEMY:
+    name: "Алхимия"
+    description: "Искусство создания зелий, эликсиров и других химических реагентов из природных компонентов. Позволяет создавать полезные расходники и усиливать эффекты."
+    stat_influence:
+      INTELLIGENCE: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 75
+    category_tag: "crafting"
+    role_preference_tag: "alchemist"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+  SCIENCE:
+    name: "Наука"
+    description: "Общие знания о мире, его законах и технологиях. Позволяет понимать принципы работы устройств, анализировать артефакты и находить слабые места врагов."
+    stat_influence:
+      INTELLIGENCE: 2
+      PERCEPTION: 1
+    is_magic: False
+    rarity_weight: 85
+    category_tag: "knowledge"
+    role_preference_tag: "scientist"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+
+  MINING:
+    name: "Горное Дело"
+    description: "Навык добычи руды и минералов из земных недр. Позволяет находить ценные ресурсы для кузнечного дела и других ремесел."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 80
+    category_tag: "gathering"
+    role_preference_tag: "miner"
+    limit_group_tag: "gathering_utility"
+    max_level: 10
+  HERBALISM:
+    name: "Травничество"
+    description: "Навык сбора лечебных трав, грибов и других растений. Основа для алхимии и создания целебных средств."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 85
+    category_tag: "gathering"
+    role_preference_tag: "herbalist"
+    limit_group_tag: "gathering_utility"
+    max_level: 10
+  LEATHERWORKING_GATHERING:
+    name: "Добыча Кожи"
+    description: "Навык снятия шкур с животных и их первичной обработки. Позволяет добывать материалы для кожевенного дела."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 75
+    category_tag: "gathering"
+    role_preference_tag: "leather_gatherer"
+    limit_group_tag: "gathering_utility"
+    max_level: 10
+  LUMBERING:
+    name: "Лесозаготовка"
+    description: "Навык рубки деревьев и обработки древесины. Источник материалов для плотничества и создания деревянных изделий."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 80
+    category_tag: "gathering"
+    role_preference_tag: "lumberjack"
+    limit_group_tag: "gathering_utility"
+    max_level: 10
+  HUNTING:
+    name: "Охота"
+    description: "Навык выслеживания, поимки и разделки диких животных. Позволяет добывать мясо, шкуры и другие ресурсы."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 90
+    category_tag: "gathering"
+    role_preference_tag: "hunter"
+    limit_group_tag: "gathering_combat"
+    max_level: 10
+  ARCHAEOLOGY:
+    name: "Археология"
+    description: "Навык поиска и изучения древних артефактов и руин. Позволяет находить сокровища и раскрывать тайны прошлого."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 60
+    category_tag: "gathering"
+    role_preference_tag: "archaeologist"
+    limit_group_tag: "gathering_utility"
+    max_level: 10
+  FORAGING:
+    name: "Собирательство"
+    description: "Навык поиска съедобных растений, ягод и других диких продуктов. Позволяет выживать в дикой природе и пополнять запасы еды."
+    stat_influence:
+      PERCEPTION: 2
+      ENDURANCE: 1
+    is_magic: False
+    rarity_weight: 95
+    category_tag: "gathering"
+    role_preference_tag: "forager"
+    limit_group_tag: "gathering_utility"
+    max_level: 10
+
+  WEAPONSMITHING:
+    name: "Кузнечное Дело (Оружие)"
+    description: "Искусство создания и ремонта оружия. Позволяет ковать мечи, топоры, кинжалы и другое боевое снаряжение из различных материалов."
+    stat_influence:
+      INTELLIGENCE: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 85
+    category_tag: "crafting"
+    role_preference_tag: "weaponsmith"
+    limit_group_tag: "crafting_production"
+    max_level: 10
+  ARMORSMITHING:
+    name: "Кузнечное Дело (Броня)"
+    description: "Навык создания и ремонта всех типов брони - от легкой до тяжелой. Позволяет ковать защитные доспехи, шлемы и щиты."
+    stat_influence:
+      INTELLIGENCE: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 80
+    category_tag: "crafting"
+    role_preference_tag: "armorsmith"
+    limit_group_tag: "crafting_production"
+    max_level: 10
+  JEWELRY_MAKING:
+    name: "Ювелирное Дело"
+    description: "Искусство создания украшений, амулетов и других предметов из драгоценных металлов и камней. Позволяет создавать предметы с магическими свойствами."
+    stat_influence:
+      INTELLIGENCE: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 70
+    category_tag: "crafting"
+    role_preference_tag: "jeweler"
+    limit_group_tag: "crafting_production"
+    max_level: 10
+  ARTIFACT_FORGING:
+    name: "Ковка Артефактов"
+    description: "Древнее искусство создания могущественных артефактов и магических предметов. Требует редких материалов и глубоких знаний в магии и инженерии."
+    stat_influence:
+      INTELLIGENCE: 2
+      AGILITY: 1
+    is_magic: False
+    rarity_weight: 50
+    category_tag: "crafting"
+    role_preference_tag: "artifact_forger"
+    limit_group_tag: "crafting_production"
+    max_level: 10
+
+  ACCOUNTING:
+    name: "Бухгалтерия"
+    description: "Навык ведения учета, анализа финансовых потоков и оптимизации расходов. Позволяет эффективно управлять ресурсами и обнаруживать финансовые махинации."
+    stat_influence:
+      LUCK: 2
+      CHARISMA: 1
+    is_magic: False
+    rarity_weight: 65
+    category_tag: "barter"
+    role_preference_tag: "accountant"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+  BROKERING:
+    name: "Посредничество"
+    description: "Навык заключения выгодных сделок и поиска оптимальных торговых путей. Позволяет выступать посредником между сторонами и получать прибыль от сделок."
+    stat_influence:
+      LUCK: 2
+      CHARISMA: 1
+    is_magic: False
+    rarity_weight: 70
+    category_tag: "barter"
+    role_preference_tag: "broker"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+  CONTRACT_NEGOTIATION:
+    name: "Ведение Переговоров (Контракты)"
+    description: "Навык составления и анализа контрактов, а также ведения сложных переговоров. Позволяет заключать юридически выгодные соглашения и избегать ловушек."
+    stat_influence:
+      LUCK: 2
+      CHARISMA: 1
+    is_magic: False
+    rarity_weight: 80
+    category_tag: "barter"
+    role_preference_tag: "negotiator"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+  TRADE_RELATIONS:
+    name: "Торговые Отношения"
+    description: "Навык установления и поддержания связей с торговыми партнерами, гильдиями и фракциями. Позволяет получать скидки, эксклюзивные товары и доступ к закрытым рынкам."
+    stat_influence:
+      LUCK: 2
+      CHARISMA: 1
+    is_magic: False
+    rarity_weight: 90
+    category_tag: "barter"
+    role_preference_tag: "trader"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+
+  # 🤝 Социальные навыки (Social)
+  LEADERSHIP:
+    name: "Лидерство"
+    description: "Навык вдохновлять, мотивировать и координировать действия группы. Позволяет эффективно командовать союзниками в бою и вне его."
+    stat_influence:
+      CHARISMA: 2
+      LUCK: 1
+    is_magic: False
+    rarity_weight: 120
+    category_tag: "social"
+    role_preference_tag: "leader"
+    limit_group_tag: "social_cooperation_orientation"
+    max_level: 10
+  ORGANIZATION:
+    name: "Организация"
+    description: "Навык планирования, структурирования и эффективного выполнения задач. Позволяет управлять ресурсами, логистикой и проектами."
+    stat_influence:
+      LUCK: 2
+      CHARISMA: 1
+    is_magic: False
+    rarity_weight: 100
+    category_tag: "social"
+    role_preference_tag: "organizer"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+  TEAMWORK:
+    name: "Командная Работа"
+    description: "Навык эффективного взаимодействия с другими членами группы. Позволяет усиливать синергию в команде и выполнять сложные коллективные задачи."
+    stat_influence:
+      CHARISMA: 2
+      LUCK: 1
+    is_magic: False
+    rarity_weight: 110
+    category_tag: "social"
+    role_preference_tag: "team_player"
+    limit_group_tag: "none_limited_group"
+    max_level: 10
+  SELFISHNESS:
+    name: "Эгоизм"
+    description: "Навык сосредоточения на собственных нуждах и выгоде, иногда в ущерб коллективу. Позволяет персонажу действовать независимо и принимать решения без оглядки на других."
+    stat_influence:
+      LUCK: 2
+      CHARISMA: 1
+    is_magic: False
+    rarity_weight: 50
+    category_tag: "social"
+    role_preference_tag: "individualist"
+    limit_group_tag: "social_cooperation_orientation"
+    max_level: 10

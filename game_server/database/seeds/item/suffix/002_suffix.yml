@@ -1,0 +1,50 @@
+# 002_suffix.yml
+version: "1.0"
+schema: "suffixes"
+metadata:
+  author: "System"
+  description: "Suffixes specifically designed for weapons."
+
+data:
+  OF_VAMPIRISM:
+    group: "VAMPIRIC"
+    fragment: "of Vampirism"
+    modifiers:
+      - modifier_code: "hp_steal_percent"
+        value_tier_fixed: 3
+
+  OF_ARMOR_BREAKING:
+    group: "DEBUFF"
+    fragment: "of Armor Breaking"
+    modifiers:
+      - modifier_code: "armor_penetration"
+        value_tier_fixed: 3
+
+  OF_THE_MAGE:
+    group: "MAGIC_OFFENSE"
+    fragment: "of the Mage"
+    modifiers:
+      - modifier_code: "magical_attack_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "mana_cost_reduction"
+        value_tier_fixed: 2
+
+  OF_RAGE:
+    group: "PHYSICAL_OFFENSE"
+    fragment: "of Rage"
+    modifiers:
+      - modifier_code: "physical_attack_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "crit_chance_bonus"
+        value_tier_fixed: 2
+
+  OF_THE_SLAYER:
+    group: "PHYSICAL_OFFENSE"
+    fragment: "of the Slayer"
+    modifiers:
+      - modifier_code: "piercing_damage_bonus"
+        value_tier_fixed: 2
+      - modifier_code: "slashing_damage_bonus"
+        value_tier_fixed: 2
+      - modifier_code: "blunt_damage_bonus"
+        value_tier_fixed: 2

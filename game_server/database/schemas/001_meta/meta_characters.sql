@@ -1,14 +1,10 @@
--- Файл: meta_characters.sql
--- Основные параметры рас и родословных персонажей
+CREATE TABLE IF NOT EXISTS skill_unlocks (
+    skill_key VARCHAR(50) NOT NULL, -- Строковый ключ навыка, соответствует skills.skill_key
+    level SMALLINT NOT NULL,        -- ✅ ИЗМЕНЕНО: Уровень навыка (например, 1, 2, 3, 4, 5)
+    xp_threshold BIGINT NOT NULL,   -- Общее количество XP, необходимое для достижения этого уровня
+    level_name VARCHAR(100) NOT NULL,-- ✅ ИЗМЕНЕНО: Название этого уровня (например, "Новичок", "Подмастерье")
 
-CREATE TABLE IF NOT EXISTS bloodlines (
-    bloodline_id integer NOT NULL,
-    bloodline_name character varying(100) DEFAULT 'human'::character varying NOT NULL
-);
+    PRIMARY KEY (skill_key, level), -- Композитный PRIMARY KEY теперь включает skill_key и level
 
-CREATE TABLE IF NOT EXISTS races (
-    race_id integer NOT NULL,
-    name character varying(100) DEFAULT ''::character varying NOT NULL,
-    founder_id integer DEFAULT 0 NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    CONSTRAINT fk_skill_key FOREIGN KEY (skill_key) REFERENCES skills(skill_key) ON DELETE CASCADE
 );

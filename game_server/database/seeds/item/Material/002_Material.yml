@@ -1,0 +1,87 @@
+# 002_Metals_Rift.yml
+version: "1.0"
+schema: "materials"
+metadata:
+  author: "System"
+  description: "Defines rift metal materials."
+
+data:
+  - material_code: "RIFT_COPPER"
+    name: "Rift Copper"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 1
+    adjective: "Rift Copper" # Internal, for reference
+    color: "#FFD700" # Golden/Yellow - rarity 1 color
+    is_fragile: false
+    strength_percentage: 0.05
+
+  - material_code: "RIFT_BRONZE"
+    name: "Rift Bronze"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 2
+    adjective: "Rift Bronze"
+    color: "#ADD8E6" # Light Blue - rarity 2 color
+    is_fragile: false
+    strength_percentage: 0.10
+
+  - material_code: "RIFT_IRON"
+    name: "Rift Iron"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 3
+    adjective: "Rift Iron"
+    color: "#90EE90" # Light Green - rarity 3 color
+    is_fragile: false
+    strength_percentage: 0.15
+
+  - material_code: "RIFT_SILVER"
+    name: "Rift Silver"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 4
+    adjective: "Rift Silver"
+    color: "#FFDAB9" # Peach/Pink - rarity 4 color
+    is_fragile: false
+    strength_percentage: 0.20
+
+  - material_code: "RIFT_GOLD"
+    name: "Rift Gold"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 5
+    adjective: "Rift Gold"
+    color: "#FFA07A" # Salmon/Orange - rarity 5 color
+    is_fragile: false
+    strength_percentage: 0.30
+
+  - material_code: "RIFT_MITHRIL"
+    name: "Rift Mithril"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 6
+    adjective: "Rift Mithril"
+    color: "#BA55D3" # Medium Purple - rarity 6 color
+    is_fragile: false
+    strength_percentage: 0.50
+
+  - material_code: "RIFT_ADAMANTITE"
+    name: "Rift Adamantite"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 7
+    adjective: "Rift Adamantite"
+    color: "#FF4500" # Orange-Red - rarity 7 color
+    is_fragile: false
+    strength_percentage: 0.75
+
+  - material_code: "DIVINE_METAL"
+    name: "Divine Metal"
+    type: "METAL"
+    material_category: "RIFT"
+    rarity_level: 8
+    adjective: "Divine Metal"
+    color: "#800080" # Dark Purple/Indigo - rarity 8 color (closer to mythical)
+    is_fragile: false
+    strength_percentage: 1.00

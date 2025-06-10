@@ -1,0 +1,97 @@
+version: "1.0"  # Начальная версия, пока не загружено и не изменено
+schema: "state_entities"  # Чёткое указание типа данных
+metadata:
+  author: "System"
+  description: "Статусы"
+
+data: # Это ваш корневой элемент 'data'
+  - access_code: 1
+    code_name: "Admin"
+    ui_type: "access_level"
+    description: "Administrator role"
+    is_active: true
+    # role_id здесь не указывается
+
+  - access_code: 2
+    code_name: "Moderator"
+    ui_type: "access_level"
+    description: "Moderator role"
+    is_active: true
+    # role_id здесь не указывается
+
+  - access_code: 3
+    code_name: "Тестер"
+    ui_type: "access_level"
+    description: "Tester role"
+    is_active: true
+    # role_id здесь не указывается
+
+  - access_code: 4 # ✨ НОВЫЙ ACCESS_CODE для новой роли "Character Selection"
+    code_name: "Character_Selection" # Название системного кода для внутренней логики
+    ui_type: "access_level" # Или "status_flag", как посчитаете нужным
+    description: "Player in character selection phase"
+    is_active: true
+    # role_id здесь не указывается, он будет найден ботом по role_name!
+
+
+  - access_code: 101 
+    code_name: "online"
+    ui_type: "status_flag"
+    description: "Online player"
+    is_active: true
+
+  - access_code: 102
+    code_name: "offline"
+    ui_type: "status_flag"
+    description: "Offline player"
+    is_active: true
+
+  # 🏙️ Город
+  - access_code: 1000
+    code_name: "Город"
+    ui_type: "location_access"
+    description: "Доступ к городу"
+    is_active: true
+    
+  # 🏛️ Центральная площадь
+  - access_code: 2000
+    code_name: "Центральная площадь"
+    ui_type: "location_access"
+    description: "Доступ к Центральной площади"
+    is_active: true
+
+  # 🏪 Торговый квартал
+  - access_code: 3000
+    code_name: "Торговый квартал"
+    ui_type: "location_access"
+    description: "Доступ к Торговому кварталу"
+    is_active: true
+
+  # 🏰 Квартал гильдий
+  - access_code: 4000
+    code_name: "Квартал гильдий"
+    ui_type: "location_access"
+    description: "Доступ к Кварталу гильдий"
+    is_active: true
+
+  # 🚪 Городские ворота
+  - access_code: 5000
+    code_name: "Городские ворота"
+    ui_type: "location_access"
+    description: "Доступ к Городским воротам"
+    is_active: true
+
+  # 🌍 Северные земли
+  - access_code: 10000
+    code_name: "Северные земли"
+    ui_type: "location_access"
+    description: "Доступ к Северным землям"
+    is_active: true
+
+  # 🔥 Южный эпицентр
+  - access_code: 20000
+    code_name: "Южный эпицентр"
+    ui_type: "location_access"
+    description: "Доступ к Южному эпицентру"
+    is_active: true
+

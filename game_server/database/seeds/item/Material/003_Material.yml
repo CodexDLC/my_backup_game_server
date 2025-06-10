@@ -1,0 +1,34 @@
+# 003_Fabrics_Base.yml
+version: "1.0"
+schema: "materials"
+metadata:
+  author: "System"
+  description: "Defines base fabric materials."
+
+data:
+  - material_code: "LINEN"
+    name: "Linen"
+    type: "FABRIC"
+    material_category: "BASE"
+    adjective: "Linen"
+    color: "#F0F0F0" # Светлый, нейтральный цвет для льна
+    is_fragile: false
+    strength_percentage: 0
+
+  - material_code: "COTTON"
+    name: "Cotton"
+    type: "FABRIC"
+    material_category: "BASE"
+    adjective: "Cotton"
+    color: "#F5F5DC" # Цвет хлопка
+    is_fragile: false
+    strength_percentage: 0
+
+  - material_code: "WOOL"
+    name: "Wool"
+    type: "FABRIC"
+    material_category: "BASE"
+    adjective: "Wool"
+    color: "#DCDCDC" # Серый цвет шерсти
+    is_fragile: false
+    strength_percentage: 0

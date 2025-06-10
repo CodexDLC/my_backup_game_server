@@ -1,0 +1,30 @@
+
+version: "1.0"  # Начальная версия, пока не загружено и не изменено
+schema: "state_entities"  # Чёткое указание типа данных
+metadata:
+  author: "System"
+  description: "Статусы локаций городских ворот"
+
+data:
+
+
+# 🧭 Северные ворота
+- access_code: 5001
+  code_name: "Северные ворота"
+  ui_type: "location_access"
+  description: "Доступ к северным воротам"
+  is_active: true
+
+# 🌅 Южные ворота
+- access_code: 5002
+  code_name: "Южные ворота"
+  ui_type: "location_access"
+  description: "Доступ к южным воротам"
+  is_active: true
+
+# 🏰 Тюрьма
+- access_code: 5003
+  code_name: "Тюрьма"
+  ui_type: "location_access"
+  description: "Доступ к тюрьме"
+  is_active: true

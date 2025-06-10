@@ -1,0 +1,10 @@
+version: "1.0"  # Начальная версия, пока не загружено и не изменено
+schema: "world"  # Чёткое указание типа данных
+metadata:
+  author: "System"
+  description: "Основные миры системы"
+
+data:
+  - world_id: "a1b2c3d4-e5f6-4789-90ab-cdef01234567" # UUID версии 4
+    world_name: "Запечатанный мир"
+    is_static: false

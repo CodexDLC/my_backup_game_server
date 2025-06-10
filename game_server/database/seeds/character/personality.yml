@@ -1,0 +1,13 @@
+data:
+  - personality_id: 1 # 🔥 ИСПОЛЬЗУЕМ ДЕФОЛТНЫЙ ID, который равен DEFAULT_PERSONALITY_ID
+    name: "Default Personality"
+    description: "A placeholder personality for new characters. Used when no specific personality is generated or available."
+    personality_group: "Neutral" # ✅ НОВОЕ: Базовая группа
+    behavior_tags: [] # Пустой JSONB массив
+    dialogue_modifiers: {} # Пустой JSONB объект
+    combat_ai_directives: {} # Пустой JSONB объект
+    quest_interaction_preferences: {} # Пустой JSONB объект
+    trait_associations: {} # ✅ НОВОЕ: Пустой JSONB объект
+    applicable_game_roles: [] # Пустой JSONB массив
+    rarity_weight: 100 # Стандартный вес
+    ai_priority_level: 50 # ✅ НОВОЕ: Средний приоритет AI

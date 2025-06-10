@@ -1,0 +1,202 @@
+version: "1.0"
+schema: "item_base"
+metadata:
+  author: "System"
+  description: "Defines base data for weapon archetypes."
+data:
+  DAGGER:
+    category: "WEAPON"
+    properties:
+      damage_type: "Piercing"
+      base_roll_dice: "1d4"
+      inventory_size: "1x1"
+      equip_slot: "MAIN_HAND"
+      can_be_off_hand: true
+    names:
+      Dagger:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF, VITALITY]
+      Stiletto:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, STEALTH, VAMPIRIC, DEBUFF]
+      Knife:
+        allowed_suffix_groups: [SYSTEM, UTILITY]
+      Dirk:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, VITALITY]
+
+  SHORT_SWORD:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "1d6"
+      inventory_size: "1x2"
+      equip_slot: "MAIN_HAND"
+    names:
+      Shortsword:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, VITALITY]
+      Gladius:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, DEBUFF]
+      Wakizashi:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE]
+
+  ONE_HANDED_SWORD:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "1d8"
+      inventory_size: "1x3"
+      equip_slot: "MAIN_HAND"
+    names:
+      Sword:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, MAGIC_OFFENSE, VITALITY]
+      Blade:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, MAGIC_OFFENSE, VAMPIRIC]
+      Scimitar:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE]
+      Rapier:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF, ACTIVE_DEFENSE]
+      Broadsword:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, GENERAL_DEFENSE]
+
+  LONG_SWORD_ONE_HANDED:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "1d10"
+      inventory_size: "1x4"
+      equip_slot: "MAIN_HAND"
+    names:
+      Longsword:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, MAGIC_OFFENSE, VITALITY]
+      "Bastard Sword":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, DEBUFF]
+
+  TWO_HANDED_SWORD:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "2d6"
+      inventory_size: "2x4"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED"
+    names:
+      Greatsword:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, DEBUFF]
+      Claymore:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, MAGIC_OFFENSE]
+      "Zweihänder":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF]
+
+  ONE_HANDED_AXE:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "1d6"
+      inventory_size: "1x2"
+      equip_slot: "MAIN_HAND" # <--- Добавлено
+    names:
+      Axe:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF]
+      Hatchet:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE]
+      Tomahawk:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE]
+      Battleaxe:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, DEBUFF]
+
+  TWO_HANDED_AXE:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "2d8"
+      inventory_size: "2x3"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED"
+    names:
+      Greataxe:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, DEBUFF]
+      "Executioner's Axe":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF, CRITICAL_DEFENSE] # Анти-крит может быть здесь как защитный бонус
+      Labrys:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, MAGIC_OFFENSE]
+
+  SPEAR:
+    category: "WEAPON"
+    properties:
+      damage_type: "Piercing"
+      base_roll_dice: "1d10"
+      inventory_size: "1x5"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED"
+    names:
+      Spear:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE, DEBUFF]
+      Lance:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF]
+      Javelin:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE]
+
+  POLEARM:
+    category: "WEAPON"
+    properties:
+      damage_type: "Slashing"
+      base_roll_dice: "2d10"
+      inventory_size: "2x5"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED"
+    names:
+      Halberd:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT, DEBUFF]
+      Glaive:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE]
+      Bardiche:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF]
+      Scythe:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, VAMPIRIC, MAGIC_OFFENSE]
+
+  SHORTBOW:
+    category: "WEAPON"
+    properties:
+      damage_type: "Piercing"
+      base_roll_dice: "1d6"
+      inventory_size: "2x2"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED_RANGED"
+    names:
+      "Short Bow":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE, DEBUFF]
+      "Hunting Bow":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE]
+
+  LONGBOW:
+    category: "WEAPON"
+    properties:
+      damage_type: "Piercing"
+      base_roll_dice: "1d8"
+      inventory_size: "2x4"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED_RANGED"
+    names:
+      "Long Bow":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, MAGIC_OFFENSE]
+      "War Bow":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, DEBUFF]
+      "Great Bow":
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, GENERAL_COMBAT]
+
+  STAFF:
+    category: "WEAPON"
+    properties:
+      damage_type: "Blunt"
+      base_roll_dice: "1d4"
+      inventory_size: "1x4"
+      equip_slot: "MAIN_HAND"
+      special_property: "TWO_HANDED"
+      magic_power_type: "None"
+    names:
+      Staff:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ARCANE, SHIELDING, ENVIRONMENTAL]
+      Quarterstaff:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_OFFENSE, ACTIVE_DEFENSE]
+      "Wizard Staff":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ARCANE, MAGIC_OFFENSE, SHIELDING]
+      "Gnarled Staff":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ARCANE, VITALITY, ENVIRONMENTAL]

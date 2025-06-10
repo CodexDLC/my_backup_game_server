@@ -1,0 +1,65 @@
+version: "1.0"
+schema: "item_base"
+metadata:
+  author: "System"
+  description: "Defines base data for accessory archetypes."
+data:
+  RING_BASIC:
+    category: "ACCESSORY"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "RING"
+      base_roll_dice: "1d2"
+    names:
+      Ring:
+        allowed_suffix_groups: [SYSTEM, UTILITY, VITALITY, ARCANE, MAGIC_OFFENSE, GENERAL_DEFENSE, SHIELDING]
+      Band:
+        allowed_suffix_groups: [SYSTEM, UTILITY, VITALITY, PHYSICAL_DEFENSE, CRITICAL_DEFENSE]
+      Signet:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ARCANE]
+
+  AMULET_BASIC:
+    category: "ACCESSORY"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "NECK"
+      base_roll_dice: "1d2"
+    names:
+      Amulet:
+        allowed_suffix_groups: [SYSTEM, UTILITY, VITALITY, ARCANE, MAGIC_OFFENSE, GENERAL_DEFENSE, SHIELDING]
+      Talisman:
+        allowed_suffix_groups: [SYSTEM, UTILITY, VITALITY, ENVIRONMENTAL, DEBUFF]
+      Pendant:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, VITALITY]
+      Charm:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ACTIVE_DEFENSE, STEALTH]
+
+  EARRING_BASIC:
+    category: "ACCESSORY"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "EARRING"
+      base_roll_dice: "1d1"
+    names:
+      Earring:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ACTIVE_DEFENSE]
+      Stud:
+        allowed_suffix_groups: [SYSTEM, UTILITY, CRITICAL_DEFENSE, PHYSICAL_DEFENSE]
+      Hoop:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL]
+      Jewel:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ARCANE, MAGIC_OFFENSE]
+
+  BRACELET_BASIC:
+    category: "ACCESSORY"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "WRIST"
+      base_roll_dice: "1d2"
+    names:
+      Bracelet:
+        allowed_suffix_groups: [SYSTEM, UTILITY, VITALITY, SHIELDING]
+      Armlet:
+        allowed_suffix_groups: [SYSTEM, UTILITY, GENERAL_DEFENSE, PHYSICAL_OFFENSE]
+      Cuff:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, DEBUFF]

@@ -1,3 +1,3 @@
-__all__ = ['models']
 
-from .models import *
+
+from game_server.database.models import *

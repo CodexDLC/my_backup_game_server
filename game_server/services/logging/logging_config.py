@@ -11,8 +11,7 @@ def success(self, message, *args, **kwargs):
 
 logging.Logger.success = success  # добавить метод здесь
 
-logger = logging.getLogger("game_server")
-logger.setLevel(logging.DEBUG)
+
 
 class loggerConfig:
     def __init__(self):
@@ -42,7 +41,7 @@ class loggerConfig:
         
         self.sql_echo = os.getenv("SQL_ECHO", "False").lower() == "true"
         self.logger = logging.getLogger("game_server")  # ✅ Теперь `self.logger` сохранён
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
         # ✅ Отключаем лишние логи SQLAlchemy
         self._disable_sqlalchemy_logs()
 

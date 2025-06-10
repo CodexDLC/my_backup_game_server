@@ -1,0 +1,180 @@
+version: "1.0"
+schema: "item_base"
+metadata:
+  author: "System"
+  description: "Defines base data for apparel archetypes."
+data:
+  # Common Apparel Archetypes
+  APPAREL_HEAD_COMMON:
+    category: "APPAREL"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "HEAD_APPAREL"
+      quality_tier_options: ["NEW", "WORN", "OLD"]
+    names:
+      "Simple Hood":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, STEALTH]
+      Cap:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL]
+      Bandana:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL]
+
+  APPAREL_TORSO_COMMON:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "TORSO_APPAREL"
+      quality_tier_options: ["NEW", "WORN", "OLD"]
+    names:
+      Shirt:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, SOCIAL]
+      "Simple Tunic":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, VITALITY]
+      "Basic Robe":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, ARCANE]
+
+  APPAREL_HANDS_COMMON:
+    category: "APPAREL"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "HANDS_APPAREL"
+      quality_tier_options: ["NEW", "WORN", "OLD"]
+    names:
+      Gloves:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL]
+      Mitts:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, PHYSICAL_DEFENSE]
+      "Simple Wraps":
+        allowed_suffix_groups: [SYSTEM, UTILITY, STEALTH]
+
+  APPAREL_PANTS_COMMON:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "LEGS_APPAREL"
+      quality_tier_options: ["NEW", "WORN", "OLD"]
+    names:
+      "Simple Pants":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL]
+      Trousers:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, SOCIAL]
+      Breeches:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, ACTIVE_DEFENSE]
+
+  APPAREL_FEET_COMMON:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "FEET_APPAREL"
+      quality_tier_options: ["NEW", "WORN", "OLD"]
+    names:
+      "Simple Boots":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, PHYSICAL_DEFENSE]
+      Shoes:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL]
+      Sandals:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, ACTIVE_DEFENSE]
+
+  # Noble/Special Apparel Archetypes
+  APPAREL_HEAD_NOBLE:
+    category: "APPAREL"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "HEAD_APPAREL"
+      quality_tier_options: ["NEW", "RICH"]
+    names:
+      "Fine Headband":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ARCANE]
+      "Ornate Cap":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL]
+      "Silk Hood":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, STEALTH]
+
+  APPAREL_TORSO_NOBLE:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "TORSO_APPAREL"
+      quality_tier_options: ["NEW", "RICH"]
+    names:
+      "Fine Tunic":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, VITALITY]
+      "Silken Robe":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ARCANE, SHIELDING]
+      "Noble's Vest":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, CRITICAL_DEFENSE]
+
+  APPAREL_HANDS_NOBLE:
+    category: "APPAREL"
+    properties:
+      inventory_size: "1x1"
+      equip_slot: "HANDS_APPAREL"
+      quality_tier_options: ["NEW", "RICH"]
+    names:
+      "Fine Gloves":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, UTILITY]
+      "Silk Mitts":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ARCANE]
+
+  APPAREL_PANTS_NOBLE:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "LEGS_APPAREL"
+      quality_tier_options: ["NEW", "RICH"]
+    names:
+      "Fine Trousers":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL]
+      "Silken Leggings":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ACTIVE_DEFENSE]
+
+  APPAREL_FEET_NOBLE:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "FEET_APPAREL"
+      quality_tier_options: ["NEW", "RICH"]
+    names:
+      "Fine Boots":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ACTIVE_DEFENSE]
+      "Embroidered Slippers":
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL]
+
+  # Specialized Apparel Archetypes
+  APPAREL_BELT:
+    category: "APPAREL"
+    properties:
+      inventory_size: "1x2"
+      equip_slot: "BELT"
+    names:
+      Belt:
+        allowed_suffix_groups: [SYSTEM, UTILITY, VITALITY, GENERAL_DEFENSE]
+      Sash:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ARCANE, SOCIAL]
+      Girdle:
+        allowed_suffix_groups: [SYSTEM, UTILITY, PHYSICAL_DEFENSE, VITALITY]
+
+  APPAREL_CLOAK:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x3"
+      equip_slot: "CLOAK"
+    names:
+      Cloak:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, STEALTH, GENERAL_DEFENSE]
+      Cape:
+        allowed_suffix_groups: [SYSTEM, UTILITY, SOCIAL, ACTIVE_DEFENSE]
+      Mantle:
+        allowed_suffix_groups: [SYSTEM, UTILITY, ARCANE, SHIELDING]
+
+  APPAREL_TORSO_FUR_LINED:
+    category: "APPAREL"
+    properties:
+      inventory_size: "2x2"
+      equip_slot: "TORSO_APPAREL"
+      quality_tier_options: ["NEW", "WORN"]
+    names:
+      "Fur-lined Tunic":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, VITALITY]
+      "Warm Jerkin":
+        allowed_suffix_groups: [SYSTEM, UTILITY, ENVIRONMENTAL, PHYSICAL_DEFENSE]

@@ -1,5 +1,7 @@
+
+from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
 from game_server.services.logging.logging_setup import logger
-from game_server.app_cache.redis_client import RedisClient
+
 
 import json
 
@@ -9,7 +11,7 @@ class RedisListener:
     """Менеджер подписки на Redis-каналы и обработку сообщений."""
 
     def __init__(self):
-        self.redis_client = RedisClient().redis  # ✅ Используем объект Redis напрямую
+        self.redis_client = CentralRedisClient().redis  # ✅ Используем объект Redis напрямую
         
 
     async def start_listening(self):

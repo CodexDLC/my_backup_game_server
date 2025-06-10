@@ -1,5 +1,4 @@
-__all__ = ['listener', 'RandomGenerator', 'socket_manager']
+__all__ = ['listener', 'socket_manager']
 
-from .listener import *
-from .RandomGenerator import *
-from .socket_manager import *
+from . import listener
+from . import socket_manager

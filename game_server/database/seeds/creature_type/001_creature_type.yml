@@ -1,0 +1,20 @@
+# game_server\database\seeds\creature_type\001_сreature_тype.yml
+
+version: "1.0"
+schema: "creature_type" # Указываем, что это данные для таблицы creature_types
+metadata:
+  author: "System"
+  description: "Базовые типы существ (расы) для инициализации системы."
+  
+data:
+  - creature_type_id: 1
+    name: Человек
+    description: Универсальный и адаптивный вид, не обладающий выдающимися природными преимуществами или слабостями, но способный к быстрому обучению и развитию в любой области.
+    category: RACE # Важно: используем "RACE" в верхнем регистре
+    subcategory: human
+    visual_tags:
+      skin_colors: ["light", "tan", "dark"]
+      hair_colors: ["black", "brown", "blonde", "red"]
+      body_types: ["average", "athletic"]
+    rarity_weight: 150
+    is_playable: true

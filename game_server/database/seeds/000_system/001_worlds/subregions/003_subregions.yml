@@ -1,0 +1,39 @@
+version: "1.001"
+schema: "subregions"
+metadata:
+  author: "System"
+  description: "Внутренние районы и гильдии орденов"
+
+data:
+# Каналы внутри категории "Торговый квартал" (parent_access_key: "30")
+  - access_key: "3001"
+    access_code: "3001"
+    subregion_name: "🏬 Центральный рынок"
+    description: "Главное место торговли товарами, еда, снаряжение и редкие предметы"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "30"
+
+  - access_key: "3002"
+    access_code: "3002"
+    subregion_name: "🔨 Аукцион 'Золотой Молот'"
+    description: "Специальная торговая площадка для редких и ценных предметов"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "30"
+
+  - access_key: "3003"
+    access_code: "3003"
+    subregion_name: "🛒 Барахолка 'Старьёвщик'"
+    description: "Место для продажи подержанных вещей, артефактов и случайных находок"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "30"
+
+  - access_key: "3004"
+    access_code: "3004"
+    subregion_name: "🏦 Банк Гильдий"
+    description: "Финансовый центр, где хранятся средства и активы гильдий"
+    is_peaceful: true
+    visibility: "private"
+    parent_access_key: "30"

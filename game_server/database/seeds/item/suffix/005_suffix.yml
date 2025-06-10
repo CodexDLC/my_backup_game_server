@@ -1,0 +1,66 @@
+# 005_suffix.yml
+version: "1.0"
+schema: "suffixes"
+metadata:
+  author: "System"
+  description: "Suffixes specifically designed for accessories."
+
+data:
+  OF_VAMPIRISM_ACC:
+    group: "VAMPIRIC" # Та же группа, что и у оружейного аналога
+    fragment: "of Vampirism"
+    modifiers:
+      - modifier_code: "hp_steal_percent"
+        value_tier_fixed: 2
+
+  OF_THE_WIND_ACC:
+    group: "ACTIVE_DEFENSE" # Та же группа, что и у брони на уворот
+    fragment: "of the Wind"
+    modifiers:
+      - modifier_code: "dodge_chance_bonus"
+        value_tier_fixed: 2
+
+  OF_LIFE_ACC:
+    group: "VITALITY" # Та же группа, что и у общего суффикса на жизнь
+    fragment: "of Life"
+    modifiers:
+      - modifier_code: "regen_health_rate"
+        value_tier_fixed: 2
+      - modifier_code: "max_health_bonus"
+        value_tier_fixed: 1
+
+  OF_PROSPERITY_ACC:
+    group: "UTILITY" # Та же группа, что и у общего суффикса на процветание
+    fragment: "of Prosperity"
+    modifiers:
+      - modifier_code: "gold_bonus_percent"
+        value_tier_fixed: 3
+      - modifier_code: "drop_chance_boost"
+        value_tier_fixed: 3
+
+  OF_THE_MAGE_ACC:
+    group: "MAGIC_OFFENSE" # Та же группа, что и у оружейного аналога
+    fragment: "of the Mage"
+    modifiers:
+      - modifier_code: "magical_attack_bonus"
+        value_tier_fixed: 2
+      - modifier_code: "mana_cost_reduction"
+        value_tier_fixed: 3
+
+  OF_BARRIER_ACC:
+    group: "SHIELDING" # Та же группа, что и у брони на барьер
+    fragment: "of Barrier"
+    modifiers:
+      - modifier_code: "shield_value"
+        value_tier_fixed: 2
+      - modifier_code: "shield_regeneration"
+        value_tier_fixed: 2
+
+  OF_ENERGY:
+    group: "ARCANE" # Та же группа, что и у OF_MAGIC_FLOW
+    fragment: "of Energy"
+    modifiers:
+      - modifier_code: "energy_pool_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "energy_regeneration_bonus"
+        value_tier_fixed: 3

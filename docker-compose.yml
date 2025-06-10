@@ -1,81 +1,215 @@
+# docker-compose.yml
+
+# ===================================================================
+# volumes & networks: Определяем их на верхнем уровне
+# ===================================================================
+volumes:
+  pg_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  # НОВЫЙ ТОМ: Для персистентности локального Redis бота
+  redis_bot_local_data:
+    driver: local
+  # 🔥 ИСПРАВЛЕНИЕ: Объявляем том для центрального Redis здесь
+  redis_central_data:
+    driver: local
+
 networks:
-  backend_network: {}  # ✅ Исправлено
+  backend_network:
+    driver: bridge
 
+# ===================================================================
+# x-templates: Используем якоря для переиспользования общих блоков
+# ===================================================================
+x-common-env: &common-env
+  # Все сервисы будут использовать один и тот же .env файл
+  env_file: .env
 
+x-common-restart-policy: &common-restart-policy
+  # Единая политика перезапуска для всех долгоживущих сервисов
+  restart: always
+
+x-common-build: &common-build-python
+  # Единая конфигурация сборки для всех Python-сервисов
+  build:
+    context: .
+    # Dockerfile будет указан в каждом сервисе отдельно
+
+# ===================================================================
+# 💾 ИНФРАСТРУКТУРНЫЕ СЕРВИСЫ
+# ===================================================================
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_service
+    hostname: postgres
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-  redis:
-      container_name: redis_service
-      image: redis
-      ports:
-        - "6379:6379"
-      restart: always
-      networks:
-        - backend_network
-      env_file: .env  # Подключаем файл с паролем
-      volumes:
-        - C:/install/Stream/server/new_order_rpg/redis.conf:/usr/local/etc/redis/redis.conf  # 📌 Передаём конфиг
-      command: redis-server /usr/local/etc/redis/redis.conf --requirepass "${REDIS_PASSWORD}"
-      healthcheck:
-        test: ["CMD", "redis-cli", "-a", "$${REDIS_PASSWORD}", "ping"]
-        interval: 5s
-        timeout: 3s
-        retries: 3
+  redis: # ЭТО ВАШ ЦЕНТРАЛЬНЫЙ REDIS (для Backend)
+    image: redis:7.2-alpine
+    container_name: redis_cache_service
+    hostname: redis
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    command: redis-server --requirepass "${REDIS_PASSWORD}" --appendonly yes # Добавил appendonly yes для персистентности
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Том для персистентности центрального Redis
+    volumes:
+      - redis_central_data:/data
 
+  # НОВЫЙ СЕРВИС: ЛОКАЛЬНЫЙ REDIS ДЛЯ DISCORD-БОТА
+  redis_bot_local:
+    image: redis:7.2-alpine # Тот же образ Redis
+    container_name: redis_bot_local_cache # Уникальное имя контейнера
+    hostname: redis_bot_local # Уникальное имя хоста для внутренней сети
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network] # В той же сети, что и Discord-бот
+    # Порт 6379 внутри контейнера. Не пробрасываем на хост, если не нужен внешний доступ.
+    command: redis-server --appendonly yes # Включаем AOF для персистентности
+    volumes:
+      - redis_bot_local_data:/data # Отдельный том для персистентности локального Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"] # Пароль не нужен, если он не установлен
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq_broker_service
+    hostname: rabbitmq
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+# ===================================================================
+# 🚀 ПРИЛОЖЕНИЯ И КООРДИНАТОРЫ
+# ===================================================================
   rest_api:
-    container_name: rest_api_service
-    env_file: .env 
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
     build:
-      context: .
-      dockerfile: Dockerfile
+      dockerfile: services_config/rest_api/Dockerfile
+    container_name: rest_api_service
+    command: gunicorn -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:8000 game_server.api_rest.main:app
     ports:
       - "8000:8000"
-    restart: always
-    networks:
-      - backend_network
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - CONTAINER_ID=rest_api_service
+    environment: # Убедимся, что Backend смотрит на правильный Redis
+      - REDIS_URL=redis://redis:6379/0 # Это ваш текущий "redis" сервис
+      - REDIS_PASSWORD=${REDIS_PASSWORD} # Если Redis требует пароль
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy } # Зависимость от центрального Redis
+      rabbitmq: { condition: service_healthy }
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./logs/game_server:/app/logs/game_server_service
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-    command: uvicorn game_server.api.main:app --host 0.0.0.0 --port 8000
+      - ./logs/rest_api_output:/app/game_server/logs # Логи REST API будут здесь
 
-  tick_coordinator:
-    container_name: tick_coordinator_service
+  discord_bot:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network] # Бот в той же сети, что и Backend, и его локальный Redis
     build:
-      context: .
-      dockerfile: Dockerfile
-    command: python -m game_server.Logic.InfrastructureLogic.tick_infra.tick_coordinator
-    restart: always
-    networks:
-      - backend_network
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - CONTAINER_ID=tick_coordinator_service
+      dockerfile: services_config/Discord_API/Dockerfile # Ваш текущий Dockerfile для бота
+    container_name: discord_bot_service
+    command: python -m Discord_API.main # Ваша команда запуска бота
+    environment: # Только то, что нужно непосредственно боту
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN} # Токен Discord бота
+      - REDIS_LOCAL_URL=redis://redis_bot_local:6379/0 # URL для подключения к его ЛОКАЛЬНОМУ Redis
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/ # URL RabbitMQ (если бот напрямую использует RabbitMQ для своих задач)
+      - REST_API_URL=http://rest_api:8000 # URL для подключения к FastAPI Backend
+    depends_on:
+      rest_api: { condition: service_started } # Зависимость от Backend
+      redis_bot_local: { condition: service_healthy } # Зависимость от локального Redis бота
+      rabbitmq: { condition: service_healthy } # Оставляем, если бот напрямую работает с RabbitMQ
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - ./logs/game_server:/app/logs/tick_coordinator_service
+      - ./logs/discord_bot_output:/app/game_server/logs # Логи Discord бота будут здесь
 
-  prometheus:
-    container_name: prometheus_monitoring
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    restart: always
-    networks:
-      - backend_network
+
+  # --- КООРДИНАТОРЫ КАК ОТДЕЛЬНЫЕ СЕРВИСЫ ---
+  tick_coordinator:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile
+    container_name: tick_coordinator_service
+    command: python -m game_server.Logic.ApplicationLogic.coordinator_tick.tick_coordinator
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    environment:
-      - CONTAINER_ID=prometheus_monitoring
+      - ./logs/tick_coordinator_output:/app/game_server/logs # Логи Tick Coordinator будут здесь
+
+
+  generator_coordinator:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile
+    container_name: generator_coordinator_service
+    command: python -m game_server.Logic.ApplicationLogic.coordinator_generator.coordinator_generator
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/generator_coordinator_output:/app/game_server/logs # Логи Generator Coordinator будут здесь
+
+
+# ===================================================================
+# 🧑‍🔧 ВОРКЕРЫ (Рабочие)
+# ===================================================================
+
+  celery_worker:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/celery_worker/Dockerfile
+    container_name: celery_worker_service
+    command:
+      - "celery"
+      - "-A"
+      - "game_server.Logic.InfrastructureLogic.celery.celery_app"
+      - "worker"
+      - "--loglevel=info" # Или debug, как тебе удобнее info
+      - "-P"
+      - "threads"
+      - "--concurrency=50"
+      - "-Q"
+      - "character_generation_worker_queue,item_generation_worker_queue"
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/celery_worker_output:/app/game_server/logs

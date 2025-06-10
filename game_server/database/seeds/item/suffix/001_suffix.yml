@@ -1,0 +1,48 @@
+# 001_suffix.yml
+version: "1.0"
+schema: "suffixes"
+metadata:
+  author: "System"
+  description: "General suffixes applicable to multiple item types."
+
+data:
+  BASIC_EMPTY: # <- Преобразовано из списка в словарь
+    group: "SYSTEM" # <- Новое поле "group"
+    fragment: ""
+    modifiers: []
+
+  OF_LIFE:
+    group: "VITALITY"
+    fragment: "of Life"
+    modifiers:
+      - modifier_code: "regen_health_rate"
+        value_tier_fixed: 2
+
+  OF_PROSPERITY:
+    group: "UTILITY"
+    fragment: "of Prosperity"
+    modifiers:
+      - modifier_code: "gold_bonus_percent"
+        value_tier_fixed: 2
+      - modifier_code: "drop_chance_boost"
+        value_tier_fixed: 2
+
+  OF_THE_HERO:
+    group: "GENERAL_COMBAT"
+    fragment: "of the Hero"
+    modifiers:
+      - modifier_code: "max_health_bonus"
+        value_tier_fixed: 3
+      - modifier_code: "physical_attack_bonus"
+        value_tier_fixed: 1
+      - modifier_code: "magical_attack_bonus"
+        value_tier_fixed: 1
+
+  OF_MAGIC_FLOW:
+    group: "ARCANE"
+    fragment: "of Magic Flow"
+    modifiers:
+      - modifier_code: "mana_cost_reduction"
+        value_tier_fixed: 2
+      - modifier_code: "energy_regeneration_bonus"
+        value_tier_fixed: 2
