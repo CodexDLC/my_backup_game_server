@@ -2,7 +2,7 @@
 # ЭТАП 1: "СБОРЩИК" (Builder)
 # Устанавливаем зависимости, включая те, что требуют компиляции.
 # ===================================================================
-FROM python:3.11-slim-bookworm AS builder
+FROM python:3.13-slim-bookworm AS builder
 
 # Устанавливаем системные зависимости, необходимые для компиляции C-расширений
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ЭТАП 2: "ФИНАЛЬНЫЙ ОБРАЗ" (Final)
 # Создаем чистый, легковесный и безопасный образ для запуска API.
 # ===================================================================
-FROM python:3.11-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 WORKDIR /app
 

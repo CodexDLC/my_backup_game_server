@@ -1,0 +1,78 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Детализация Квартала Торговли и Ремёсел. Все локации являются дочерними для Квартала (access_key: '300')."
+
+data:
+  # =================================================================
+  # 1. Основные под-зоны Квартала (parent: 300)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "310"
+    parent_access_key: "300"
+    location_type: "PLAZA"
+    name: "Торговая площадь"
+    description: "Центральная, самая цивилизованная и оживленная часть квартала. Здесь заключаются крупные сделки и продаются лучшие товары."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "320"
+    parent_access_key: "300"
+    location_type: "NEIGHBORHOOD"
+    name: "Ремесленные улицы"
+    description: "Лабиринт улочек, где воздух наполнен стуком молотов и запахом реагентов. Здесь производят, а не только продают."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "330"
+    parent_access_key: "300"
+    location_type: "GATEWAY_AREA"
+    name: "Вход в Портовый район"
+    description: "Массивные ворота, ведущие в доки, сейчас наглухо заперты по приказу городской стражи. Дальнейший проход невозможен."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 2. Здания на Торговой площади (parent: 310)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "311"
+    parent_access_key: "310"
+    location_type: "BUILDING"
+    name: "Аукционный Дом 'Золотой Молот'"
+    description: "Престижное заведение для торговли редкими и легендарными предметами."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "312"
+    parent_access_key: "310"
+    location_type: "BUILDING"
+    name: "Городской Банк"
+    description: "Надежное хранилище активов для игроков и гильдий."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "313"
+    parent_access_key: "310"
+    location_type: "MARKETPLACE"
+    name: "Центральный Рынок"
+    description: "Открытая рыночная площадь с множеством прилавков, где торгуют едой, обычным снаряжением и материалами."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 3. Здания на Ремесленных улицах (parent: 320)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "321"
+    parent_access_key: "320"
+    location_type: "GUILD_HALL"
+    name: "Гильдия Ремесленников"
+    description: "Центральное здание, объединяющее мастеров разных профессий. Место для получения ремесленных заказов и покупки редких чертежей."
+    is_peaceful: true
+    visibility: "public"

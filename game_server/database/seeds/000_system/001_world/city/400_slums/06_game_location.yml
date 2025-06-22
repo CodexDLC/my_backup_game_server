@@ -1,0 +1,78 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Детализация Квартала Теней и Бедности. Все локации являются дочерними для Квартала (access_key: '400')."
+
+data:
+  # =================================================================
+  # 1. Основные под-зоны Квартала (parent: 400)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "410"
+    parent_access_key: "400"
+    location_type: "SLUMS_AREA"
+    name: "Запутанные Переулки"
+    description: "Лабиринт узких, грязных улочек, ветхих домов и нависающих друг над другом верхних этажей. Здесь легко заблудиться и еще легче найти неприятности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "420"
+    parent_access_key: "400"
+    location_type: "BLACK_MARKET"
+    name: "Теневой Рынок"
+    description: "Скрытая от глаз стражи площадь, где торгуют всем, что запрещено в остальном городе: контрабандными товарами, редкими ядами, ворованными вещами."
+    is_peaceful: false
+    visibility: "public"
+
+  # =================================================================
+  # 2. Локации в Запутанных Переулках (parent: 410)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "411"
+    parent_access_key: "410"
+    location_type: "BUILDING"
+    name: "Таверна 'Дырявый Котелок'"
+    description: "Дешевое пиво, сомнительная еда, опасная публика. Идеальное место, чтобы услышать слухи, которые не обсуждают в приличном обществе."
+    is_peaceful: true # Внутри таверны драки запрещены... официально.
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "412"
+    parent_access_key: "410"
+    location_type: "ARENA"
+    name: "Подпольная Арена 'Кровавый Песок'"
+    description: "Скрытая арена для нелегальных боев без правил. Место, где можно заработать или потерять все."
+    is_peaceful: false
+    visibility: "private"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "413"
+    parent_access_key: "410"
+    location_type: "BUILDING"
+    name: "Приют 'Последняя Надежда'"
+    description: "Островок света в этом мрачном месте. Управляется старым жрецом, который пытается помочь обездоленным."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 3. Локации на Теневом Рынке (parent: 420)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "421"
+    parent_access_key: "420"
+    location_type: "GUILD_HALL"
+    name: "Логово Гильдии Воров 'Ночные Тени'"
+    description: "Штаб-квартира местной преступной организации. Вход может быть замаскирован под непримечательную лавку."
+    is_peaceful: true
+    visibility: "private"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "422"
+    parent_access_key: "420"
+    location_type: "BUILDING"
+    name: "Лавка скупщика 'Все Пригодится'"
+    description: "Единственное место в городе, где игрок может продать краденые вещи без лишних вопросов."
+    is_peaceful: true
+    visibility: "public"

@@ -1,5 +1,3 @@
--- Файл: character_base.sql
--- Основные атрибуты и данные персонажа
 
 -- 🔹 Основная таблица персонажей
 CREATE TABLE IF NOT EXISTS characters (
@@ -39,16 +37,15 @@ CREATE TABLE IF NOT EXISTS characters_special (
 );
 
 
-
+-- Таблица: character_skills
 CREATE TABLE IF NOT EXISTS character_skills (
     character_id INTEGER NOT NULL,
     skill_key VARCHAR(50) NOT NULL,
     level INTEGER DEFAULT 0 NOT NULL,
     xp BIGINT DEFAULT 0 NOT NULL,
     progress_state VARCHAR(10) DEFAULT 'PAUSE' NOT NULL,
+    -- player_max_level_override INTEGER, -- ✅ УДАЛЕНО: Соответствует модели, где этого поля нет
     
-    player_max_level_override INTEGER, -- ✅ НОВОЕ ПОЛЕ: Максимальный уровень, установленный игроком для этого навыка. NULL, если нет override.
-
     CONSTRAINT character_skills_progress_state_check CHECK (
         progress_state IN ('PLUS', 'PAUSE', 'MINUS')
     ),

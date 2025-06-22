@@ -2,7 +2,7 @@ import yaml
 import asyncio
 import os
 
-from game_server.Logic.InfrastructureLogic.DataAccessLogic.db_instance import AsyncSessionLocal
+from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
 from game_server.database import models
 
 async def export_to_yaml(schema: str):

@@ -123,32 +123,40 @@ CREATE TABLE IF NOT EXISTS character_inventory_rules (
 );
 
 
-
-CREATE TABLE inventory_rule_generator (
-    -- 1. Первичный ключ, который увеличивается автоматически
-    rule_id SERIAL PRIMARY KEY,
-
-    -- 2. Уникальное имя-идентификатор для удобных ссылок
-    name VARCHAR(150) NOT NULL UNIQUE,
-    
-    -- 3. Описание для удобства
+-- Таблица: inventory_rule_generator
+CREATE TABLE IF NOT EXISTS inventory_rule_generator (
+    rule_key VARCHAR(150) PRIMARY KEY, -- ✅ ИЗМЕНЕНО: rule_key теперь PRIMARY KEY (соответствует модели)
+    rule_id INTEGER NOT NULL UNIQUE,   -- ✅ ИЗМЕНЕНО: rule_id теперь просто UNIQUE (соответствует модели Identity)
     description TEXT,
-
-    -- 4. Отдельное поле для качества (для быстрой фильтрации)
     quality_level INTEGER NOT NULL,
-
-    -- 5. Вес для вероятностного выбора
     weight INTEGER NOT NULL DEFAULT 100,
-
-    -- 6. Гибкие JSONB-поля для условий и правил
     activation_conditions JSONB NOT NULL,
     generation_rules JSONB NOT NULL
 );
 
 -- Обычный B-Tree индекс для быстрого поиска по уровню качества
-CREATE INDEX idx_inventory_rule_generator_quality_level 
+CREATE INDEX IF NOT EXISTS idx_inventory_rule_generator_quality_level
 ON inventory_rule_generator(quality_level);
 
 -- Специальный GIN-индекс для быстрого поиска внутри JSON-поля с условиями
-CREATE INDEX idx_inventory_rule_generator_activation_conditions_gin 
+CREATE INDEX IF NOT EXISTS idx_inventory_rule_generator_activation_conditions_gin
 ON inventory_rule_generator USING GIN(activation_conditions);
+
+
+CREATE TABLE IF NOT EXISTS used_characters_archive (
+    archive_id SERIAL PRIMARY KEY,
+    original_pool_id INTEGER NOT NULL UNIQUE,     -- ID из таблицы character_pool
+    
+    -- УНИВЕРСАЛЬНЫЕ ПОЛЯ
+    linked_entity_id INTEGER NOT NULL,            -- ID сущности, которой выдан шаблон (игрок, NPC, компаньон)
+    activation_type VARCHAR(50) NOT NULL,         -- Тип активации: 'PLAYER', 'NPC_COMPANION', 'NPC_ENEMY', etc.
+    
+    -- Статус жизненного цикла
+    lifecycle_status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE', -- 'ACTIVE', 'DEAD', 'INACTIVE', 'DESTROYED'
+    
+    -- Опциональные данные
+    linked_account_id INTEGER,                    -- ID аккаунта, если это персонаж игрока (NULL для NPC)
+    simplified_pool_data JSONB,                   -- JSON с некритичными данными из пула для истории
+    
+    archived_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

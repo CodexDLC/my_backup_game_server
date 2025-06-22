@@ -1,0 +1,81 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Детализация Квартала Власти и Богатства. Все локации являются дочерними для Квартала (access_key: '100')."
+
+data:
+  # =================================================================
+  # 1. Основные под-зоны Квартала (parent: 100)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "110"
+    parent_access_key: "100"
+    location_type: "NEIGHBORHOOD"
+    name: "Дворянский район"
+    description: "Широкие, чистые проспекты, ухоженные парки и фасады великолепных особняков. Воздух здесь кажется более чистым."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "120"
+    parent_access_key: "100"
+    location_type: "PLAZA"
+    name: "Административная площадь"
+    description: "Центральная площадь квартала, вымощенная белым камнем. В центре — большой фонтан."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "130"
+    parent_access_key: "100"
+    location_type: "AVENUE"
+    name: "Храмовая аллея"
+    description: "Величественная аллея, ведущая к главному храму города."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 2. Декоративные здания в Дворянском районе (parent: 110)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "111"
+    parent_access_key: "110"
+    location_type: "BUILDING"
+    name: "Особняк рода 'Серебряный Грифон'"
+    description: "Величественное здание за высокой оградой. Двери закрыты для посторонних."
+    is_peaceful: true
+    visibility: "private" # Игроки видят, но войти не могут
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "112"
+    parent_access_key: "110"
+    location_type: "BUILDING"
+    name: "Элитный клуб 'Тихая Беседа'"
+    description: "Место, где знать ведет дела. Вход только по специальным приглашениям."
+    is_peaceful: true
+    visibility: "private"
+
+  # =================================================================
+  # 3. Декоративные здания на Административной площади (parent: 120)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "121"
+    parent_access_key: "120"
+    location_type: "BUILDING"
+    name: "Городская Ратуша"
+    description: "Центр власти города. Пока что игроки смогут войти только в приемную."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 4. Декоративные здания на Храмовой аллее (parent: 130)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "131"
+    parent_access_key: "130"
+    location_type: "BUILDING"
+    name: "Главный Храм"
+    description: "Огромный храм, посвященный пока еще безымянному главному божеству. Двери открыты для всех верующих."
+    is_peaceful: true
+    visibility: "public"

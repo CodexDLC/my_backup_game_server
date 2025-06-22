@@ -2,11 +2,11 @@
 # ЭТАП 1: "СБОРЩИК" (Builder)
 # Устанавливаем зависимости в изолированной, чистой среде.
 # ===================================================================
-# Используем стабильную и легковесную версию Python
-FROM python:3.11-slim-bookworm AS builder
+# Рекомендуется использовать одинаковую версию Python на обоих этапах
+# для избежания потенциальных проблем с C-расширениями.
+FROM python:3.13-slim-bookworm AS builder
 
 # Устанавливаем системные зависимости, необходимые для компиляции
-# gcc и python3-dev нужны для сборки C-расширений, таких как librabbitmq
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -24,15 +24,16 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install --upgrade pip wheel
 
 # Копируем файл с зависимостями и устанавливаем их.
+# Убедитесь, что arq[redis] есть в requirements.txt
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
 # ===================================================================
 # ЭТАП 2: "ФИНАЛЬНЫЙ ОБРАЗ" (Final)
-# Создаем чистый, легковесный и безопасный образ для запуска воркера.
+# Создаем чистый, легковесный и безопасный образ для запуска сервисов.
 # ===================================================================
-FROM python:3.11-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 WORKDIR /app
 
@@ -43,7 +44,7 @@ RUN groupadd --gid 1001 appuser && \
 # Копируем ТОЛЬКО готовое виртуальное окружение из этапа "Сборщик"
 COPY --from=builder /opt/venv /opt/venv
 
-# Воркеру нужен доступ к коду, где определены задачи (в вашем случае, в 'game_server').
+# Копируем код нашего приложения
 COPY --chown=appuser:appuser ./game_server /app/game_server
 
 # Переключаемся на непривилегированного пользователя
@@ -52,5 +53,8 @@ USER appuser
 # Активируем виртуальное окружение для всех последующих команд
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Указываем команду для запуска сервиса по умолчанию.
-CMD ["celery", "-A", "game_server.Logic.InfrastructureLogic.celery.celery_app", "worker", "--loglevel=info", "-P", "gevent"]
+# Указываем команду по умолчанию.
+# Она все равно будет переопределена в docker-compose.yml для каждого сервиса,
+# но это хорошая практика для отладки.
+# Пример для ARQ воркера:
+# CMD ["arq", "game_server.worker.WorkerSettings"]

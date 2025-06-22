@@ -6,13 +6,11 @@
 volumes:
   pg_data:
     driver: local
-  rabbitmq_data:
-    driver: local
-  # НОВЫЙ ТОМ: Для персистентности локального Redis бота
   redis_bot_local_data:
     driver: local
-  # 🔥 ИСПРАВЛЕНИЕ: Объявляем том для центрального Redis здесь
   redis_central_data:
+    driver: local
+  mongo_data: # ✅ НОВОЕ: Том для персистентных данных MongoDB
     driver: local
 
 networks:
@@ -23,21 +21,18 @@ networks:
 # x-templates: Используем якоря для переиспользования общих блоков
 # ===================================================================
 x-common-env: &common-env
-  # Все сервисы будут использовать один и тот же .env файл
   env_file: .env
 
 x-common-restart-policy: &common-restart-policy
-  # Единая политика перезапуска для всех долгоживущих сервисов
   restart: always
 
-x-common-build: &common-build-python
-  # Единая конфигурация сборки для всех Python-сервисов
+x-common-build-python: &common-build-python
   build:
     context: .
     # Dockerfile будет указан в каждом сервисе отдельно
 
 # ===================================================================
-# 💾 ИНФРАСТРУКТУРНЫЕ СЕРВИСЫ
+# 🏗️ ИНФРАСТРУКТУРНЫЕ СЕРВИСЫ
 # ===================================================================
 services:
   postgres:
@@ -61,13 +56,34 @@ services:
       retries: 5
       start_period: 10s
 
-  redis: # ЭТО ВАШ ЦЕНТРАЛЬНЫЙ REDIS (для Backend)
+  mongo_db: # ✅ НОВОЕ: Сервис MongoDB
+    image: mongo:6.0 # Рекомендуется указывать конкретную версию
+    container_name: mongo_service # Имя контейнера для MongoDB
+    hostname: mongo # Имя хоста для внутренней сети Docker
+    <<: [*common-env, *common-restart-policy] # Используем общие настройки окружения и перезапуска
+    networks: [backend_network]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} # Читаем из .env
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} # Читаем из .env
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME} # Опционально: создаст базу данных при первом запуске
+    ports:
+      - "27017:27017" # Пробрасываем стандартный порт MongoDB на хост
+    volumes:
+      - mongo_data:/data/db # Сохранение данных в именованный том
+    healthcheck: # Проверка состояния MongoDB
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet # Простая команда для проверки работоспособности
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # Добавлено для консистентности с healthcheck postgres
+
+  redis: # Центральный REDIS (для Backend)
     image: redis:7.2-alpine
     container_name: redis_cache_service
     hostname: redis
     <<: [*common-env, *common-restart-policy]
     networks: [backend_network]
-    command: redis-server --requirepass "${REDIS_PASSWORD}" --appendonly yes # Добавил appendonly yes для персистентности
+    command: redis-server --requirepass "${REDIS_PASSWORD}" --appendonly yes
     ports:
       - "6379:6379"
     healthcheck:
@@ -75,141 +91,141 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    # Том для персистентности центрального Redis
     volumes:
       - redis_central_data:/data
 
-  # НОВЫЙ СЕРВИС: ЛОКАЛЬНЫЙ REDIS ДЛЯ DISCORD-БОТА
-  redis_bot_local:
-    image: redis:7.2-alpine # Тот же образ Redis
-    container_name: redis_bot_local_cache # Уникальное имя контейнера
-    hostname: redis_bot_local # Уникальное имя хоста для внутренней сети
-    <<: [*common-env, *common-restart-policy]
-    networks: [backend_network] # В той же сети, что и Discord-бот
-    # Порт 6379 внутри контейнера. Не пробрасываем на хост, если не нужен внешний доступ.
-    command: redis-server --appendonly yes # Включаем AOF для персистентности
-    volumes:
-      - redis_bot_local_data:/data # Отдельный том для персистентности локального Redis
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"] # Пароль не нужен, если он не установлен
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: rabbitmq_broker_service
-    hostname: rabbitmq
+  redis_bot_local: # ЛОКАЛЬНЫЙ REDIS ДЛЯ DISCORD-БОТА
+    image: redis:7.2-alpine
+    container_name: redis_bot_local_cache
+    hostname: redis_bot_local
     <<: [*common-env, *common-restart-policy]
     networks: [backend_network]
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
-    ports:
-      - "${RABBITMQ_PORT:-5672}:5672"
-      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    command: redis-server --appendonly yes
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - redis_bot_local_data:/data
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
 
 # ===================================================================
 # 🚀 ПРИЛОЖЕНИЯ И КООРДИНАТОРЫ
 # ===================================================================
-  rest_api:
+  fast_api:
     <<: [*common-env, *common-restart-policy, *common-build-python]
     networks: [backend_network]
     build:
       dockerfile: services_config/rest_api/Dockerfile
-    container_name: rest_api_service
-    command: gunicorn -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:8000 game_server.api_rest.main:app
+    container_name: fast_api_service
+    command: gunicorn -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:8000 game_server.api_fast.main:app
     ports:
       - "8000:8000"
-    environment: # Убедимся, что Backend смотрит на правильный Redis
-      - REDIS_URL=redis://redis:6379/0 # Это ваш текущий "redis" сервис
-      - REDIS_PASSWORD=${REDIS_PASSWORD} # Если Redis требует пароль
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      # ✅ НОВЫЕ: Передача переменных MongoDB в контейнер fast_api
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_HOST=${MONGO_HOST_CONTAINER}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - CONTAINER_ID=fast_api_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
     depends_on:
       postgres: { condition: service_healthy }
-      redis: { condition: service_healthy } # Зависимость от центрального Redis
-      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      mongo_db: { condition: service_healthy } # ✅ НОВАЯ ЗАВИСИМОСТЬ
     volumes:
-      - ./logs/rest_api_output:/app/game_server/logs # Логи REST API будут здесь
+      - ./logs/fast_api_output:/app/game_server/logs
+    healthcheck: # ДОБАВЬТЕ ЭТОТ БЛОК, ЕСЛИ ЕГО НЕТ
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"] # Убедитесь, что эндпоинт /health есть
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s # Дать время на запуск FastAPI
 
   discord_bot:
     <<: [*common-env, *common-restart-policy, *common-build-python]
-    networks: [backend_network] # Бот в той же сети, что и Backend, и его локальный Redis
+    networks: [backend_network]
     build:
-      dockerfile: services_config/Discord_API/Dockerfile # Ваш текущий Dockerfile для бота
+      dockerfile: services_config/Discord_API/Dockerfile
     container_name: discord_bot_service
-    command: python -m Discord_API.main # Ваша команда запуска бота
-    environment: # Только то, что нужно непосредственно боту
-      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN} # Токен Discord бота
-      - REDIS_LOCAL_URL=redis://redis_bot_local:6379/0 # URL для подключения к его ЛОКАЛЬНОМУ Redis
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/ # URL RabbitMQ (если бот напрямую использует RabbitMQ для своих задач)
-      - REST_API_URL=http://rest_api:8000 # URL для подключения к FastAPI Backend
+    command: python -m Discord_API.main
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - REDIS_LOCAL_URL=redis://redis_bot_local:6379/0
+      - GAME_SERVER_API=http://fast_api:8000 # Используем имя сервиса fast_api
+      - CONTAINER_ID=discord_bot_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
     depends_on:
-      rest_api: { condition: service_started } # Зависимость от Backend
-      redis_bot_local: { condition: service_healthy } # Зависимость от локального Redis бота
-      rabbitmq: { condition: service_healthy } # Оставляем, если бот напрямую работает с RabbitMQ
+      fast_api: { condition: service_started }
+      redis_bot_local: { condition: service_healthy }
     volumes:
-      - ./logs/discord_bot_output:/app/game_server/logs # Логи Discord бота будут здесь
+      - ./logs/discord_bot_output:/app/game_server/logs
 
-
-  # --- КООРДИНАТОРЫ КАК ОТДЕЛЬНЫЕ СЕРВИСЫ ---
-  tick_coordinator:
+  start_orchestrator:
     <<: [*common-env, *common-restart-policy, *common-build-python]
     networks: [backend_network]
     build:
       dockerfile: services_config/game_server/Dockerfile
-    container_name: tick_coordinator_service
-    command: python -m game_server.Logic.ApplicationLogic.coordinator_tick.tick_coordinator
+    container_name: start_orchestrator_service
+    command: uvicorn game_server.game_services.game_world_state_orchestrator:app --host 0.0.0.0 --port 8000
+    
+    # 🔥 ДОБАВЛЕНО: Переменные окружения для подключения к зависимостям
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      # ✅ НОВЫЕ: Передача переменных MongoDB
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_HOST=${MONGO_HOST_CONTAINER}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - CONTAINER_ID=start_orchestrator_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
+    
+    # 🔥 ДОБАВЛЕНО: Зависимость от Redis и MongoDB
     depends_on:
       postgres: { condition: service_healthy }
-      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      mongo_db: { condition: service_healthy } # ✅ НОВАЯ ЗАВИСИМОСТЬ
+      
     volumes:
-      - ./logs/tick_coordinator_output:/app/game_server/logs # Логи Tick Coordinator будут здесь
+      - ./logs/start_orchestrator_output:/app/game_server/logs # Обновлен путь для консистентности
 
 
-  generator_coordinator:
+# ===================================================================
+# 🔥 НОВЫЙ СЕРВИС: ARQ ВОРКЕР 🔥
+# ===================================================================
+
+  arq_worker:
     <<: [*common-env, *common-restart-policy, *common-build-python]
     networks: [backend_network]
     build:
       dockerfile: services_config/game_server/Dockerfile
-    container_name: generator_coordinator_service
-    command: python -m game_server.Logic.ApplicationLogic.coordinator_generator.coordinator_generator
+    container_name: arq_worker_service
+    
+    # ИСПРАВЛЕНИЕ: УДАЛЕНА ОПЦИЯ --watch
+    command: arq game_server.Logic.InfrastructureLogic.arq_worker.arq_worker_settings.WorkerSettings
+    
+    # Воркеру нужны те же переменные окружения для подключения к БД и Redis
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      # ✅ НОВЫЕ: Передача переменных MongoDB
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_HOST=${MONGO_HOST_CONTAINER}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - CONTAINER_ID=arq_worker_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
+      
+    # Воркер должен стартовать только после того, как БД, Redis и MongoDB готовы
     depends_on:
       postgres: { condition: service_healthy }
-      rabbitmq: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      mongo_db: { condition: service_healthy } # ✅ НОВАЯ ЗАВИСИМОСТЬ      
     volumes:
-      - ./logs/generator_coordinator_output:/app/game_server/logs # Логи Generator Coordinator будут здесь
-
-
-# ===================================================================
-# 🧑‍🔧 ВОРКЕРЫ (Рабочие)
-# ===================================================================
-
-  celery_worker:
-    <<: [*common-env, *common-restart-policy, *common-build-python]
-    networks: [backend_network]
-    build:
-      dockerfile: services_config/celery_worker/Dockerfile
-    container_name: celery_worker_service
-    command:
-      - "celery"
-      - "-A"
-      - "game_server.Logic.InfrastructureLogic.celery.celery_app"
-      - "worker"
-      - "--loglevel=info" # Или debug, как тебе удобнее info
-      - "-P"
-      - "threads"
-      - "--concurrency=50"
-      - "-Q"
-      - "character_generation_worker_queue,item_generation_worker_queue"
-    depends_on:
-      postgres: { condition: service_healthy }
-      rabbitmq: { condition: service_healthy }
-    volumes:
-      - ./logs/celery_worker_output:/app/game_server/logs
+      - ./logs/arq_worker_output:/app/game_server/logs

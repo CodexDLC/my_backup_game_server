@@ -1,99 +1,88 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
 import logging
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Dict, Any # Добавляем для типизации
+
+# Утилиты и хелперы
+from game_server.Logic.DomainLogic.CharacterLogic.character_utils.character_creation_helpers import precalculate_skill_xp_data, select_template_from_pool
+from game_server.Logic.DomainLogic.dom_utils.account_identifiers import AccountIdentifiers
 
 
-from game_server.Logic.DomainLogic.CharacterLogic.utils.character_database_utils import fetch_starting_skills
+# Репозитории
 
+# Кэш
+from game_server.Logic.InfrastructureLogic.app_cache.services.character.character_cache_manager import CharacterCacheManager
 
-from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
-from game_server.database.models.models import CharacterSkills, Character
-
-
-
+# Модели
+from game_server.database.models.models import Character
 
 logger = logging.getLogger(__name__)
 
-async def insert_character_metadata(character_id: int, metadata: dict, db_session: AsyncSession):
-    """
-    Записывает основные параметры персонажа (`characters`).
-    :param character_id: ID персонажа.
-    :param metadata: Словарь с параметрами (name, race_id, bloodline_id).
-    :param db_session: Асинхронная сессия базы данных.
-    """
-    if not metadata:
-        logger.warning(f"⚠ Пустые метаданные для персонажа {character_id}, пропускаем запись.")
-        return
 
-    new_character = Character(
-        character_id=character_id,
-        account_id=metadata.get("account_id"),
-        name=metadata.get("name", "Безымянный"),
-        surname=metadata.get("surname"),
-        bloodline_id=metadata.get("bloodline_id"),
-        race_id=metadata.get("race_id"),
-        is_deleted=False
-    )
+# Основной класс для создания персонажа
+class CharacterCreationOrchestrator:
+    def __init__(self, session: AsyncSession, cache_manager: CharacterCacheManager):
+        self.session = session
+        self.character_cache_manager = cache_manager
+        self.account_finder = AccountIdentifiers(session)
+        self.pool_repo = CharacterPoolRepository(session)
+        self.character_repo = CharacterMetaRepository(session)
+        self.stats_manager = CharacterSpecialManager(session)
+        self.skills_manager = CharacterSkillsManager(session)
+        self.xp_tick_repo = XpTickDataRepository(session)
+        self.skills_repo = SkillsRepository(session)
 
-    db_session.add(new_character)
-    try:
-        await db_session.commit()
-        logger.info(f"✅ Метаданные персонажа {character_id} записаны!")
-    except Exception as e:
-        logger.error(f"❌ Ошибка записи метаданных персонажа {character_id}: {e}")
-        raise
+    async def execute(self, character_creation_data: Dict[str, Any]) -> Character: # <--- Принимает словарь
+        # Извлекаем discord_id из словаря
+        discord_id = character_creation_data.get("discord_id")
 
+        if not discord_id:
+            logger.warning("Отсутствует 'discord_id' в данных для создания персонажа.")
+            raise ValueError("Отсутствует обязательное поле 'discord_id'.")
 
-async def insert_character_base_skills(character_id: int, db_session: AsyncSession):
-    """
-    Записывает стартовые навыки персонажа (`character_skills`) и ставит их в состояние 'PAUSE'.
-    :param character_id: ID персонажа.
-    :param db_session: Асинхронная сессия базы данных.
-    """
-    skills = await fetch_starting_skills()
+        try:
+            # Управляем транзакцией внутри оркестратора
+            async with self.session.begin():
+                account_id = await self.account_finder.get_account_id('discord_id', discord_id)
+                if not account_id: 
+                    logger.warning(f"Аккаунт для Discord ID {discord_id} не найден.")
+                    raise ValueError(f"Account for Discord ID {discord_id} not found.")
+                
+                pool_character = await select_template_from_pool(self.pool_repo)
+                if not pool_character: 
+                    logger.warning("Нет доступных персонажей в пуле для создания.")
+                    raise ValueError("No available characters in the pool.")
+                
+                char_data = {
+                    "account_id": account_id, "name": pool_character.name,
+                    "surname": pool_character.surname, "creature_type_id": pool_character.creature_type_id,
+                    "personality_id": pool_character.personality_id, "background_story_id": pool_character.background_story_id,
+                    "status": 'offline'
+                }
+                new_character = await self.character_repo.create_character(char_data)
+                
+                await self.stats_manager.create_special_stats(new_character.character_id, pool_character.base_stats)
+                
+                for skill_key, level in pool_character.initial_skill_levels.items():
+                    await self.skills_manager.create_skill(new_character.character_id, {"skill_key": skill_key, "level": level})
 
-    if not skills:
-        logger.warning(f"⚠ Нет стартовых навыков для персонажа {character_id}, пропускаем запись.")
-        return
+                all_skills = await self.skills_repo.get_all_skills()
+                xp_data = precalculate_skill_xp_data(new_character.character_id, pool_character.base_stats, all_skills)
+                await self.xp_tick_repo.bulk_create_xp_data(xp_data)
 
-    character_skills = [
-        CharacterSkills(
-            character_id=character_id,
-            skill_key=skill["skill_key"],
-            level=0,
-            xp=0,
-            progress_state="PAUSE"
-        )
-        for skill in skills
-    ]
+                # UsedCharacterArchiveManager.create_entry принимает session как аргумент
+                await UsedCharacterArchiveRepositoryImpl.create_entry(
+                    session=self.session, # <--- session передается явно
+                    original_pool_id=pool_character.character_pool_id,
+                    linked_entity_id=new_character.character_id, activation_type='PLAYER',
+                    linked_account_id=account_id, simplified_pool_data={"name": pool_character.name}
+                )
+                await self.pool_repo.delete_character(pool_character)
+            
+            logger.info(f"Персонаж {new_character.character_id} успешно создан для аккаунта {account_id}.")
+            return new_character # Возвращаем ORM-объект, который роут затем преобразует в Pydantic
 
-    db_session.add_all(character_skills)
-    try:
-        await db_session.commit()
-        logger.info(f"✅ Стартовые навыки записаны для персонажа {character_id}")
-    except Exception as e:
-        logger.error(f"❌ Ошибка записи навыков персонажа {character_id}: {e}")
-        raise
-
-
-
-async def finalize_character_creation(character_id: int, db_session: AsyncSession, redis_client: CentralRedisClient):
-    """
-    Финализирует создание персонажа, забирая данные из Redis и записывая их в БД.
-    :param character_id: ID персонажа.
-    :param db_session: Асинхронная сессия базы данных.
-    :param redis_client: Асинхронный Redis-клиент.
-    """
-    character_data = await redis_client.get_json(f"character:{character_id}")
-    
-    if not character_data:
-        logger.error(f"❌ Данные персонажа {character_id} отсутствуют в Redis! Финализация отменена.")
-        return
-
-    try:
-        await insert_character_metadata(character_id, character_data.get("metadata", {}), db_session)
-        await insert_character_base_skills(character_id, db_session)
-        logger.info(f"🎉 Персонаж {character_id} успешно финализирован и записан в БД!")
-    except Exception as e:
-        logger.error(f"❌ Ошибка финализации персонажа {character_id}: {e}")
-        raise
+        except ValueError: # Ловим ожидаемые ошибки и перебрасываем их
+            raise
+        except Exception as e:
+            logger.error(f"Непредвиденная ошибка при выполнении CharacterCreationOrchestrator: {e}", exc_info=True)
+            raise # Пробрасываем для обработки в роуте

@@ -1,0 +1,84 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Унифицированная 4-уровневая структура Эпицентров."
+
+data:
+  # =================================================================
+  # Детализация: Южный Эпицентр (parent: 20)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "21"
+    parent_access_key: "20"
+    location_type: "EPICENTER_ZONE"
+    name: "Окраины"
+    description: "Первое кольцо опасности. Здесь появляются разломы 1-2 уровня сложности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "22"
+    parent_access_key: "20"
+    location_type: "EPICENTER_ZONE"
+    name: "Искаженные земли"
+    description: "Второе кольцо опасности. Повышенная концентрация энергии. Появляются разломы 3-4 уровня сложности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "23"
+    parent_access_key: "20"
+    location_type: "EPICENTER_ZONE"
+    name: "Преддверие Ядра"
+    description: "Третье кольцо опасности. Экстремальные условия. Появляются разломы 5-6 уровня сложности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "24"
+    parent_access_key: "20"
+    location_type: "EPICENTER_CORE"
+    name: "Ядро Эпицентра"
+    description: "Четвертое, самое опасное кольцо. Сердце эпицентра. Здесь появляются разломы 7-8 уровня сложности и могут находиться рейдовые боссы."
+    is_peaceful: false
+    visibility: "public"
+
+  # =================================================================
+  # Детализация: Северный Эпицентр (parent: 30)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "31"
+    parent_access_key: "30"
+    location_type: "EPICENTER_ZONE"
+    name: "Окраины"
+    description: "Первое кольцо опасности. Здесь появляются разломы 1-2 уровня сложности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "32"
+    parent_access_key: "30"
+    location_type: "EPICENTER_ZONE"
+    name: "Искаженные земли"
+    description: "Второе кольцо опасности. Повышенная концентрация энергии. Появляются разломы 3-4 уровня сложности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "33"
+    parent_access_key: "30"
+    location_type: "EPICENTER_ZONE"
+    name: "Преддверие Ядра"
+    description: "Третье кольцо опасности. Экстремальные условия. Появляются разломы 5-6 уровня сложности."
+    is_peaceful: false
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "34"
+    parent_access_key: "30"
+    location_type: "EPICENTER_CORE"
+    name: "Ядро Эпицентра"
+    description: "Четвертое, самое опасное кольцо. Сердце эпицентра. Здесь появляются разломы 7-8 уровня сложности и могут находиться рейдовые боссы."
+    is_peaceful: false
+    visibility: "public"

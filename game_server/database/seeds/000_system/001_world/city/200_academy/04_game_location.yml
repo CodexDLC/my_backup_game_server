@@ -1,0 +1,64 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Внутренняя структура Академии Охотников (высокоуровневая). Все локации являются дочерними для Академии (access_key: '200')."
+
+data:
+  # =================================================================
+  # Основные зоны и здания Академии (parent: 200)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "201"
+    parent_access_key: "200"
+    location_type: "PLAZA"
+    name: "Площадь Созыва"
+    description: "Центральная площадь Академии, откуда открывается вид на все основные корпуса. Место встреч и сбора отрядов."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "210"
+    parent_access_key: "200"
+    location_type: "GUILD_HALL"
+    name: "Главный Зал Гильдии Охотников"
+    description: "Сердце Академии. Здесь Охотники получают ранги, берут контракты с доски заданий и отчитываются о выполненных миссиях."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "220"
+    parent_access_key: "200"
+    location_type: "TRAINING_WING"
+    name: "Крыло Боевых Искусств"
+    description: "Комплекс зданий и тренировочных площадок, посвященный физическому совершенствованию. Вход в залы для тренировки боевых навыков."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "230"
+    parent_access_key: "200"
+    location_type: "TRAINING_WING"
+    name: "Крыло Тайных Знаний"
+    description: "Место, где изучают магию и древние тайны мира. Вход в залы для изучения магических искусств."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "240"
+    parent_access_key: "200"
+    location_type: "WORKSHOP_AREA"
+    name: "Ремесленные Мастерские"
+    description: "Комплекс мастерских, где Охотники могут отточить свои ремесленные навыки. Вход в кузницы и лаборатории."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "250"
+    parent_access_key: "200"
+    location_type: "TRAINING_WING"
+    name: "Корпус Экономики и Торговли"
+    description: "Факультет, посвященный искусству управления ресурсами, финансами и торговыми операциями. Вход в лектории."
+    is_peaceful: true
+    visibility: "public"
+

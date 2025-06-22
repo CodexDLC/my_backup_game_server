@@ -1,7 +1,7 @@
 import os
 import sys
 
-from Discord_API.config.logging.logging_setup import logger
+from Discord_API.config.logging.logging_setup_discod import logger
 
 # Добавляем корень проекта в sys.path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))

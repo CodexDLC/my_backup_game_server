@@ -75,14 +75,23 @@ CREATE TABLE IF NOT EXISTS skill_exclusions (
 );
 
 
-
--- 🔹 Основной список навыков
 CREATE TABLE IF NOT EXISTS skills (
-    skill_id SERIAL PRIMARY KEY,            -- Уникальный внутренний ID навыка, автоинкремент
-    skill_key VARCHAR(50) NOT NULL UNIQUE,  -- ✅ ПОДТВЕРЖДЕНО: Строковый ключ (например, 'SWORD_MASTERY', 'MON_ACID_BREATH')
-    name VARCHAR(255),                      -- Отображаемое имя навыка
-    skill_group VARCHAR(50),                -- Категория навыка (например, 'Combat', 'Crafting')
-    main_special VARCHAR(50),               -- Название основного стата (например, 'Strength', 'Perception')
-    secondary_special VARCHAR(50),          -- Название второстепенного стата (например, 'Agility', 'Intelligence')
-    max_level INTEGER NOT NULL DEFAULT 5    -- Максимальный уровень навыка (сейчас 5)
+    skill_key VARCHAR(50) PRIMARY KEY,
+    skill_id INTEGER UNIQUE, -- Убрали автоинкремент из DDL, т.к. он управляется ORM
+
+    -- --- Поля, приведенные в соответствие с моделью ---
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    stat_influence JSON NOT NULL, -- Тип изменен на JSON и добавлен NOT NULL
+    is_magic BOOLEAN NOT NULL DEFAULT FALSE,
+    rarity_weight INTEGER NOT NULL DEFAULT 100,
+    category_tag VARCHAR(50) NOT NULL,
+    role_preference_tag VARCHAR(100),
+    limit_group_tag VARCHAR(100),
+    max_level INTEGER NOT NULL DEFAULT 1, -- DEFAULT изменен на 1
+
+    -- --- Удаленные поля, которых нет в модели ---
+    -- skill_group VARCHAR(50),
+    -- main_special VARCHAR(50),
+    -- secondary_special VARCHAR(50)
 );

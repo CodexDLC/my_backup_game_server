@@ -11,96 +11,96 @@ data:
     name: "Elemental Power Bonus"
     effect_description: "Increases all elemental magic power."
     value_tiers:
-      1: 0.01 # 1%
-      2: 0.02 # 2%
-      3: 0.03 # 3%
-      4: 0.05 # 5%
-      5: 0.07 # 7%
-      6: 0.10 # 10%
+      "1": 0.01 # 1%
+      "2": 0.02 # 2%
+      "3": 0.03 # 3%
+      "4": 0.05 # 5%
+      "5": 0.07 # 7%
+      "6": 0.10 # 10%
     randomization_range: 0.20 # +/- 20%
 
   - modifier_code: "fire_power_bonus"
     name: "Fire Power Bonus"
     effect_description: "Increases the effectiveness of Fire magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "water_power_bonus"
     name: "Water Power Bonus"
     effect_description: "Increases the effectiveness of Water magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "air_power_bonus"
     name: "Air Power Bonus"
     effect_description: "Increases the effectiveness of Air magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "earth_power_bonus"
     name: "Earth Power Bonus"
     effect_description: "Increases the effectiveness of Earth magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "light_power_bonus"
     name: "Light Power Bonus"
     effect_description: "Increases the effectiveness of Light magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "dark_power_bonus"
     name: "Dark Power Bonus"
     effect_description: "Increases the effectiveness of Dark magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "gray_magic_power_bonus"
     name: "Gray Magic Power Bonus"
     effect_description: "Increases the effectiveness of Gray magic."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   # 🔹 Магическая защита персонажа (из character_combat.sql)
@@ -108,24 +108,24 @@ data:
     name: "Fire Resistance"
     effect_description: "Reduces incoming fire damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "water_resistance"
     name: "Water Resistance"
     effect_description: "Reduces incoming water damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   # 🔹 Магическая защита персонажа (продолжение из character_combat.sql)
@@ -133,72 +133,72 @@ data:
     name: "Air Resistance"
     effect_description: "Reduces incoming air damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "earth_resistance"
     name: "Earth Resistance"
     effect_description: "Reduces incoming earth damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "light_resistance"
     name: "Light Resistance"
     effect_description: "Reduces incoming light damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "dark_resistance"
     name: "Dark Resistance"
     effect_description: "Reduces incoming dark damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "gray_magic_resistance"
     name: "Gray Magic Resistance"
     effect_description: "Reduces incoming gray magic damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "magic_resistance_percent"
     name: "Magic Resistance Percent"
     effect_description: "Reduces all incoming magic damage by a percentage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   # 🔹 Физическая атака персонажа (из character_combat.sql)
@@ -206,48 +206,48 @@ data:
     name: "Piercing Damage Bonus"
     effect_description: "Increases piercing attack damage."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "slashing_damage_bonus"
     name: "Slashing Damage Bonus"
     effect_description: "Increases slashing attack damage."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "blunt_damage_bonus"
     name: "Blunt Damage Bonus"
     effect_description: "Increases blunt attack damage."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "cutting_damage_bonus"
     name: "Cutting Damage Bonus"
     effect_description: "Increases cutting attack damage."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   # 🔹 Физическая защита персонажа (из character_combat.sql)
@@ -255,60 +255,60 @@ data:
     name: "Piercing Resistance"
     effect_description: "Reduces incoming piercing damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "slashing_resistance"
     name: "Slashing Resistance"
     effect_description: "Reduces incoming slashing damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "blunt_resistance"
     name: "Blunt Resistance"
     effect_description: "Reduces incoming blunt damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "cutting_resistance"
     name: "Cutting Resistance"
     effect_description: "Reduces incoming cutting damage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "physical_resistance_percent"
     name: "Physical Resistance Percent"
     effect_description: "Reduces all incoming physical damage by a percentage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   # 🔹 Статус персонажа (из character_status.sql)
@@ -316,60 +316,60 @@ data:
     name: "Max Health Bonus"
     effect_description: "Increases maximum health."
     value_tiers:
-      1: 10.0
-      2: 20.0
-      3: 35.0
-      4: 60.0
-      5: 90.0
-      6: 120.0
+      "1": 10.0
+      "2": 20.0
+      "3": 35.0
+      "4": 60.0
+      "5": 90.0
+      "6": 120.0
     randomization_range: 0.15
 
   - modifier_code: "max_energy_bonus"
     name: "Max Energy Bonus"
     effect_description: "Increases maximum energy capacity."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "crit_chance_bonus"
     name: "Critical Chance Bonus"
     effect_description: "Increases chance to land a critical hit."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "crit_damage_bonus"
     name: "Critical Damage Bonus"
     effect_description: "Increases bonus damage from critical hits."
     value_tiers:
-      1: 0.05
-      2: 0.10
-      3: 0.15
-      4: 0.25
-      5: 0.40
-      6: 0.60
+      "1": 0.05
+      "2": 0.10
+      "3": 0.15
+      "4": 0.25
+      "5": 0.40
+      "6": 0.60
     randomization_range: 0.15
 
   - modifier_code: "anti_crit_chance_bonus"
     name: "Anti-Critical Chance Bonus"
     effect_description: "Reduces chance for enemies to land a critical hit on you."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
 
@@ -378,120 +378,120 @@ data:
     name: "Anti-Critical Damage Bonus"
     effect_description: "Reduces bonus damage from critical hits on you."
     value_tiers:
-      1: 0.05
-      2: 0.10
-      3: 0.15
-      4: 0.25
-      5: 0.40
-      6: 0.60
+      "1": 0.05
+      "2": 0.10
+      "3": 0.15
+      "4": 0.25
+      "5": 0.40
+      "6": 0.60
     randomization_range: 0.15
 
   - modifier_code: "dodge_chance_bonus"
     name: "Dodge Chance Bonus"
     effect_description: "Increases chance to dodge incoming attacks."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "anti_dodge_chance_bonus"
     name: "Anti-Dodge Chance Bonus"
     effect_description: "Reduces enemy's chance to dodge your attacks."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "counter_attack_chance"
     name: "Counter Attack Chance"
     effect_description: "Chance to perform a counter attack when hit."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "parry_chance"
     name: "Parry Chance"
     effect_description: "Chance to parry an incoming melee attack."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "block_chance"
     name: "Block Chance"
     effect_description: "Chance to block an incoming attack."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "armor_penetration"
     name: "Armor Penetration"
     effect_description: "Ignores a percentage of enemy's physical defense."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "physical_attack_bonus" # Дублируется, но оставлю на случай если разные контексты
     name: "Physical Attack Bonus"
     effect_description: "Increases overall physical attack."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "magical_attack_bonus" # Дублируется, но оставлю на случай если разные контексты
     name: "Magical Attack Bonus"
     effect_description: "Increases overall magical attack."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "magic_resistance" # В character_status.sql это Magic Resistance, не процент
     name: "Magic Resistance"
     effect_description: "Reduces incoming magic damage (flat value)."
     value_tiers:
-      1: 3.0
-      2: 6.0
-      3: 10.0
-      4: 15.0
-      5: 25.0
-      6: 40.0
+      "1": 3.0
+      "2": 6.0
+      "3": 10.0
+      "4": 15.0
+      "5": 25.0
+      "6": 40.0
     randomization_range: 0.15
 
   # 🔹 Статус персонажа (продолжение из character_status.sql)
@@ -499,96 +499,96 @@ data:
     name: "Physical Resistance"
     effect_description: "Reduces incoming physical damage (flat value)."
     value_tiers:
-      1: 3.0
-      2: 6.0
-      3: 10.0
-      4: 15.0
-      5: 25.0
-      6: 40.0
+      "1": 3.0
+      "2": 6.0
+      "3": 10.0
+      "4": 15.0
+      "5": 25.0
+      "6": 40.0
     randomization_range: 0.15
 
   - modifier_code: "mana_cost_reduction" # Дублируется, но оставлю на случай если разные контексты
     name: "Mana Cost Reduction"
     effect_description: "Reduces mana cost of spells."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.25
 
   - modifier_code: "regen_health_rate" # Дублируется, но оставлю на случай если разные контексты
     name: "Health Regeneration Rate"
     effect_description: "Increases health regeneration per second."
     value_tiers:
-      1: 0.5
-      2: 1.0
-      3: 1.5
-      4: 2.5
-      5: 4.0
-      6: 6.0
+      "1": 0.5
+      "2": 1.0
+      "3": 1.5
+      "4": 2.5
+      "5": 4.0
+      "6": 6.0
     randomization_range: 0.20
 
   - modifier_code: "energy_regeneration_bonus" # Дублируется, но оставлю на случай если разные контексты
     name: "Energy Regeneration Bonus"
     effect_description: "Increases energy regeneration per second."
     value_tiers:
-      1: 0.5
-      2: 1.0
-      3: 1.5
-      4: 2.5
-      5: 4.0
-      6: 6.0
+      "1": 0.5
+      "2": 1.0
+      "3": 1.5
+      "4": 2.5
+      "5": 4.0
+      "6": 6.0
     randomization_range: 0.20
 
   - modifier_code: "energy_pool_bonus" # Дублируется, но оставлю на случай если разные контексты
     name: "Energy Pool Bonus"
     effect_description: "Increases maximum energy capacity."
     value_tiers:
-      1: 5
-      2: 10
-      3: 15
-      4: 25
-      5: 40
-      6: 60
+      "1": 5
+      "2": 10
+      "3": 15
+      "4": 25
+      "5": 40
+      "6": 60
     randomization_range: 0.15
 
   - modifier_code: "absorption_bonus"
     name: "Absorption Bonus"
     effect_description: "Increases damage absorption capacity."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "shield_value"
     name: "Shield Value"
     effect_description: "Provides a temporary shield protecting from damage."
     value_tiers:
-      1: 10.0
-      2: 20.0
-      3: 35.0
-      4: 60.0
-      5: 90.0
-      6: 120.0
+      "1": 10.0
+      "2": 20.0
+      "3": 35.0
+      "4": 60.0
+      "5": 90.0
+      "6": 120.0
     randomization_range: 0.15
 
   - modifier_code: "shield_regeneration"
     name: "Shield Regeneration"
     effect_description: "Increases shield regeneration rate."
     value_tiers:
-      1: 0.5
-      2: 1.0
-      3: 1.5
-      4: 2.5
-      5: 4.0
-      6: 6.0
+      "1": 0.5
+      "2": 1.0
+      "3": 1.5
+      "4": 2.5
+      "5": 4.0
+      "6": 6.0
     randomization_range: 0.20
 
   # Модификаторы из старого Modifier_Library.yml, которые не были в character_combat.sql
@@ -596,24 +596,24 @@ data:
     name: "Armor Flat Bonus"
     effect_description: "Provides a flat bonus to armor rating."
     value_tiers:
-      1: 5.0
-      2: 10.0
-      3: 15.0
-      4: 25.0
-      5: 40.0
-      6: 60.0
+      "1": 5.0
+      "2": 10.0
+      "3": 15.0
+      "4": 25.0
+      "5": 40.0
+      "6": 60.0
     randomization_range: 0.15
 
   - modifier_code: "drop_chance_boost" # id: 33 из старого Modifier_Library.yml
     name: "Drop Chance Boost"
     effect_description: "Increases the chance of items dropping from enemies."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.25
 
 
@@ -621,72 +621,72 @@ data:
     name: "Physical Defense Bonus"
     effect_description: "Provides a bonus to physical defense with randomization."
     value_tiers:
-      1: 1
-      2: 2
-      3: 3
-      4: 4
-      5: 5
-      6: 6
+      "1": 1
+      "2": 2
+      "3": 3
+      "4": 4
+      "5": 5
+      "6": 6
     randomization_range: 0.50 # +/- 50%
 
   - modifier_code: "cold_comfort_bonus"
     name: "Cold Comfort Bonus"
     effect_description: "Increases comfort in cold environments."
     value_tiers:
-      1: 0.01 # 1%
-      2: 0.02 # 2%
-      3: 0.03 # 3%
-      4: 0.05 # 5%
-      5: 0.07 # 7%
-      6: 0.10 # 10%
+      "1": 0.01 # 1%
+      "2": 0.02 # 2%
+      "3": 0.03 # 3%
+      "4": 0.05 # 5%
+      "5": 0.07 # 7%
+      "6": 0.10 # 10%
     randomization_range: 0.20
 
   - modifier_code: "heat_comfort_bonus"
     name: "Heat Comfort Bonus"
     effect_description: "Increases comfort in hot environments."
     value_tiers:
-      1: 0.01 # 1%
-      2: 0.02 # 2%
-      3: 0.03 # 3%
-      4: 0.05 # 5%
-      5: 0.07 # 7%
-      6: 0.10 # 10%
+      "1": 0.01 # 1%
+      "2": 0.02 # 2%
+      "3": 0.03 # 3%
+      "4": 0.05 # 5%
+      "5": 0.07 # 7%
+      "6": 0.10 # 10%
     randomization_range: 0.20
 
   - modifier_code: "wind_comfort_bonus"
     name: "Wind Comfort Bonus"
     effect_description: "Increases comfort in windy environments."
     value_tiers:
-      1: 0.01 # 1%
-      2: 0.02 # 2%
-      3: 0.03 # 4%
-      4: 0.05 # 5%
-      5: 0.07 # 7%
-      6: 0.10 # 10%
+      "1": 0.01 # 1%
+      "2": 0.02 # 2%
+      "3": 0.03 # 4%
+      "4": 0.05 # 5%
+      "5": 0.07 # 7%
+      "6": 0.10 # 10%
     randomization_range: 0.20
 
   - modifier_code: "gold_bonus_percent"
     name: "Gold Bonus Percent"
     effect_description: "Increases gold acquired by a percentage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "charisma_bonus"
     name: "Charisma Bonus"
     effect_description: "Increases Charisma."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0 # Без рандомизации
 
   # Добавляем остальные SPECIAL-статы с аналогичными параметрами (от 1 до 3, без рандомизации)
@@ -694,94 +694,94 @@ data:
     name: "Strength Bonus"
     effect_description: "Increases Strength."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0
 
   - modifier_code: "perception_bonus"
     name: "Perception Bonus"
     effect_description: "Increases Perception."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0
 
   - modifier_code: "endurance_bonus"
     name: "Endurance Bonus"
     effect_description: "Increases Endurance."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0
 
   - modifier_code: "intelligence_bonus"
     name: "Intelligence Bonus"
     effect_description: "Increases Intelligence."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0
 
   - modifier_code: "agility_bonus"
     name: "Agility Bonus"
     effect_description: "Increases Agility."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0
 
   - modifier_code: "luck_bonus"
     name: "Luck Bonus"
     effect_description: "Increases Luck."
     value_tiers:
-      1: 1
-      2: 1
-      3: 2
-      4: 2
-      5: 3
-      6: 3
+      "1": 1
+      "2": 1
+      "3": 2
+      "4": 2
+      "5": 3
+      "6": 3
     randomization_range: 0.0
 
   - modifier_code: "stealth_bonus" # НОВЫЙ МОДИФИКАТОР (процентный)
     name: "Stealth Bonus"
     effect_description: "Increases stealth effectiveness by a percentage."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20
 
   - modifier_code: "hp_steal_percent" # НОВЫЙ МОДИФИКАТОР (процентный вампиризм)
     name: "HP Steal Percent"
     effect_description: "Grants a percentage of damage dealt as health."
     value_tiers:
-      1: 0.01
-      2: 0.02
-      3: 0.03
-      4: 0.05
-      5: 0.07
-      6: 0.10
+      "1": 0.01
+      "2": 0.02
+      "3": 0.03
+      "4": 0.05
+      "5": 0.07
+      "6": 0.10
     randomization_range: 0.20

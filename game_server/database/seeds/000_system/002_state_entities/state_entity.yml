@@ -1,97 +1,42 @@
-version: "1.0"  # Начальная версия, пока не загружено и не изменено
-schema: "state_entities"  # Чёткое указание типа данных
+version: "1.0"
+schema: "state_entities"
 metadata:
   author: "System"
-  description: "Статусы"
+  description: "Статусы и Уровни Доступа для игрового сервера"
 
-data: # Это ваш корневой элемент 'data'
-  - access_code: 1
-    code_name: "Admin"
+data:
+  - access_code: "ROLE_ADMIN_CODE"       # <--- ИЗМЕНЕНО: Теперь это строка
+    code_name: "ROLE_ADMIN"
     ui_type: "access_level"
-    description: "Administrator role"
+    description: "Администратор"
     is_active: true
-    # role_id здесь не указывается
 
-  - access_code: 2
-    code_name: "Moderator"
+  - access_code: "ROLE_MODERATOR_CODE"   # <--- ИЗМЕНЕНО: Теперь это строка
+    code_name: "ROLE_MODERATOR"
     ui_type: "access_level"
-    description: "Moderator role"
+    description: "Модератор"
     is_active: true
-    # role_id здесь не указывается
 
-  - access_code: 3
-    code_name: "Тестер"
+  - access_code: "ROLE_TESTER_CODE"      # <--- ИЗМЕНЕНО: Теперь это строка
+    code_name: "ROLE_TESTER"
     ui_type: "access_level"
-    description: "Tester role"
+    description: "Тестер"
     is_active: true
-    # role_id здесь не указывается
 
-  - access_code: 4 # ✨ НОВЫЙ ACCESS_CODE для новой роли "Character Selection"
-    code_name: "Character_Selection" # Название системного кода для внутренней логики
-    ui_type: "access_level" # Или "status_flag", как посчитаете нужным
-    description: "Player in character selection phase"
+  - access_code: "ROLE_PLAYER_CODE"      # <--- ИЗМЕНЕНО: Теперь это строка
+    code_name: "ROLE_PLAYER"
+    ui_type: "access_level"
+    description: "Игрок"
     is_active: true
-    # role_id здесь не указывается, он будет найден ботом по role_name!
 
-
-  - access_code: 101 
-    code_name: "online"
+  - access_code: "STATUS_ONLINE_CODE"    # <--- ИЗМЕНЕНО: Теперь это строка
+    code_name: "STATUS_ONLINE"
     ui_type: "status_flag"
-    description: "Online player"
+    description: "Online player status"
     is_active: true
 
-  - access_code: 102
-    code_name: "offline"
+  - access_code: "STATUS_OFFLINE_CODE"   # <--- ИЗМЕНЕНО: Теперь это строка
+    code_name: "STATUS_OFFLINE"
     ui_type: "status_flag"
-    description: "Offline player"
+    description: "Offline player status"
     is_active: true
-
-  # 🏙️ Город
-  - access_code: 1000
-    code_name: "Город"
-    ui_type: "location_access"
-    description: "Доступ к городу"
-    is_active: true
-    
-  # 🏛️ Центральная площадь
-  - access_code: 2000
-    code_name: "Центральная площадь"
-    ui_type: "location_access"
-    description: "Доступ к Центральной площади"
-    is_active: true
-
-  # 🏪 Торговый квартал
-  - access_code: 3000
-    code_name: "Торговый квартал"
-    ui_type: "location_access"
-    description: "Доступ к Торговому кварталу"
-    is_active: true
-
-  # 🏰 Квартал гильдий
-  - access_code: 4000
-    code_name: "Квартал гильдий"
-    ui_type: "location_access"
-    description: "Доступ к Кварталу гильдий"
-    is_active: true
-
-  # 🚪 Городские ворота
-  - access_code: 5000
-    code_name: "Городские ворота"
-    ui_type: "location_access"
-    description: "Доступ к Городским воротам"
-    is_active: true
-
-  # 🌍 Северные земли
-  - access_code: 10000
-    code_name: "Северные земли"
-    ui_type: "location_access"
-    description: "Доступ к Северным землям"
-    is_active: true
-
-  # 🔥 Южный эпицентр
-  - access_code: 20000
-    code_name: "Южный эпицентр"
-    ui_type: "location_access"
-    description: "Доступ к Южному эпицентру"
-    is_active: true
-

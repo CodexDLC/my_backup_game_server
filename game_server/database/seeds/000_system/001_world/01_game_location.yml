@@ -1,0 +1,44 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Корневые сущности игрового мира, не имеющие родительских локаций."
+
+data:
+  # ===============================================
+  # 1. Город - главный хаб (access_key в диапазоне 1-99)
+  # ===============================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "10"
+    parent_access_key: null
+    location_type: "CITY"
+    name: "Город"
+    description: "Центральный город, основной хаб для игроков."
+    is_peaceful: true
+    visibility: "public"
+
+  # ===============================================
+  # 2. Южный Эпицентр - зона хаоса (access_key в диапазоне 1-99)
+  # ===============================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "20"
+    parent_access_key: null
+    location_type: "REGION"
+    name: "Южный эпицентр"
+    description: "Разломы миров, нестабильные пространства и аномальные явления. Опасная зона для высокоуровневых игроков."
+    is_peaceful: false
+    visibility: "public"
+
+  # ===============================================
+  # 3. Северный Эпицентр - задел на будущее (access_key в диапазоне 1-99)
+  # ===============================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "30"
+    parent_access_key: null
+    location_type: "REGION"
+    name: "Северный эпицентр"
+    description: "Неизведанные ледяные пустоши, хранящие древние тайны. (Контент для будущих обновлений)."
+    is_peaceful: false
+    visibility: "public"
+
+

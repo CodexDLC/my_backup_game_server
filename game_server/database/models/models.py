@@ -68,7 +68,28 @@ from sqlalchemy.dialects.postgresql import (
 # import sqlalchemy as sa
 
 class Base(DeclarativeBase):
+    """
+    Базовый класс для всех ORM-моделей, предоставляющий общий функционал.
+    """
     pass
+
+    def to_dict(self) -> Dict[str, Any]: # <--- ДОБАВЬТЕ ЭТОТ МЕТОД
+        """
+        Преобразует объект ORM-модели в словарь Python.
+        Автоматически преобразует UUID и datetime в строки для MsgPack/JSON сериализации.
+        """
+        data = {}
+        # Проходим по всем колонкам таблицы, ассоциированной с этой моделью
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if isinstance(value, uuid.UUID):
+                data[column.name] = str(value)
+            elif isinstance(value, datetime):
+                # datetime можно преобразовать в ISO-формат для совместимости
+                data[column.name] = value.isoformat()
+            else:
+                data[column.name] = value
+        return data
 
 
 class Ability(Base):
@@ -102,37 +123,32 @@ class Ability(Base):
     # character_abilities: Mapped[List['CharacterAbility']] = relationship('CharacterAbility', back_populates='ability_definition')
 
     def __repr__(self):
-        return f"<Ability(id={self.ability_id}, key='{self.ability_key}', name='{self.name}', type='{self.ability_type}')>"
+        return f"<Ability(id={self.ability_id}, key='{self.ability_key}', name='{self.name}', type='{self.ability_type}')>"   
     
 
-class AccessoryTemplate(Base):
-    __tablename__ = 'accessory_templates'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='accessory_templates_pkey'),
-    )
+class AccountGameData(Base):
+    __tablename__ = 'account_game_data'
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    base_item_code: Mapped[int] = mapped_column(Integer)
-    suffix_code: Mapped[int] = mapped_column(Integer)
-    accessory_name: Mapped[str] = mapped_column(TEXT) # Используем TEXT из SQLAlchemy
-    rarity: Mapped[int] = mapped_column(Integer)
-    color: Mapped[str] = mapped_column(TEXT) # Используем TEXT из SQLAlchemy
-    durability: Mapped[int] = mapped_column(Integer, server_default=text('0'))
-    is_fragile: Mapped[bool] = mapped_column(Boolean, server_default=text('false'))
-    strength_percentage: Mapped[float] = mapped_column(Double(53), server_default=text('0'))
-    energy_pool_bonus: Mapped[Optional[int]] = mapped_column(Integer)
-    regen_energy_rate: Mapped[Optional[float]] = mapped_column(Double(53))
-    magic_defense_bonus: Mapped[Optional[int]] = mapped_column(Integer)
-    absorption_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    reflect_damage: Mapped[Optional[float]] = mapped_column(Double(53))
-    damage_boost: Mapped[Optional[float]] = mapped_column(Double(53))
-    excluded_bonus_type: Mapped[Optional[str]] = mapped_column(TEXT) # Используем TEXT из SQLAlchemy
-    effect_description: Mapped[Optional[str]] = mapped_column(TEXT) # Используем TEXT из SQLAlchemy
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey('account_info.account_id', ondelete='CASCADE'), primary_key=True)
+    
+    # ✅ ИЗМЕНЕНО: Теперь внешний ключ ссылается на fragment_key (VARCHAR)
+    past_life_fragment_key: Mapped[Optional[str]] = mapped_column(ForeignKey('past_life_fragments.fragment_key', ondelete='SET NULL'))
+    
+    characters_json: Mapped[dict] = mapped_column(JSONB, default=lambda: [])
+    account_cards_data: Mapped[dict] = mapped_column(JSONB, default=lambda: {})
+    shard_id: Mapped[Optional[str]] = mapped_column(String(50))
+    
+    last_login_game: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    total_playtime_seconds: Mapped[int] = mapped_column(BigInteger, default=0)
+
+    # Отношение один-к-одному с AccountInfo
+    account_info: Mapped['AccountInfo'] = relationship('AccountInfo', back_populates='game_data', uselist=False)
+    
+    # ✅ ИЗМЕНЕНО: Отношение к PastLifeFragment, привязанное к новому ключу
+    past_life_fragment: Mapped[Optional['PastLifeFragment']] = relationship('PastLifeFragment', back_populates='accounts_game_data')
 
     def __repr__(self):
-        return f"<AccessoryTemplate(id={self.id}, name='{self.accessory_name}', rarity={self.rarity})>"
-
-
+        return f"<AccountGameData(account_id={self.account_id}, shard_id='{self.shard_id}', fragment_key='{self.past_life_fragment_key}')>"
 
 
 class AccountInfo(Base):
@@ -140,23 +156,23 @@ class AccountInfo(Base):
 
     account_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=True) # nullable=True, если email не обязателен
-    avatar: Mapped[Optional[str]] = mapped_column(TEXT) # Используем TEXT из SQLAlchemy
+    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=True)
+    avatar: Mapped[Optional[str]] = mapped_column(TEXT)
     locale: Mapped[Optional[str]] = mapped_column(String(10))
     region: Mapped[Optional[str]] = mapped_column(String(20))
-    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False) # nullable=False, т.к. есть default
-    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False) # nullable=False, т.к. есть default
-    twofa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False) # nullable=False, т.к. есть default
-    linked_platforms: Mapped[Optional[dict]] = mapped_column(JSON, default={}, nullable=False) # Default {} для JSONB всегда должен быть not nullable
-    auth_token: Mapped[Optional[str]] = mapped_column(TEXT) # Используем TEXT из SQLAlchemy
-    
-    # ✅ ИСПРАВЛЕНО: Используем datetime.now(timezone.utc) для времени с часовым поясом
+    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
+    twofa_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    linked_platforms: Mapped[Optional[dict]] = mapped_column(JSON, default={}, nullable=False)
+    auth_token: Mapped[Optional[str]] = mapped_column(TEXT)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # 🔹 Связь с персонажами (один аккаунт → несколько персонажей)
-    # ✅ ИСПРАВЛЕНО: Имя класса "Character" (как ваша ORM-модель), back_populates="account_info"
     characters: Mapped[List["Character"]] = relationship("Character", back_populates="account_info")
+
+    # Связь один-к-одному с AccountGameData
+    game_data: Mapped[Optional['AccountGameData']] = relationship('AccountGameData', back_populates='account_info', uselist=False)
 
     def __repr__(self):
         return f"<AccountInfo(account_id={self.account_id}, username={self.username}, status={self.status})>"
@@ -180,76 +196,7 @@ class ActiveQuests(Base):
     completion_time: Mapped[Optional[datetime]] = mapped_column(DateTime)
     failure_reason: Mapped[Optional[str]] = mapped_column(String(255))
 
-
-
-class ArmorTemplate(Base):
-    __tablename__ = 'armor_templates'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='armor_templates_pkey'),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    base_item_code: Mapped[int] = mapped_column(Integer, nullable=False) # Assuming these codes are always present
-    suffix_code: Mapped[int] = mapped_column(Integer, nullable=False)
-    armor_name: Mapped[str] = mapped_column(TEXT, nullable=False) # Use TEXT for long strings, assume name is required
-    rarity: Mapped[int] = mapped_column(Integer, nullable=False)
-    color: Mapped[str] = mapped_column(TEXT, nullable=False)
-    physical_defense: Mapped[int] = mapped_column(Integer, nullable=False)
-    durability: Mapped[int] = mapped_column(Integer, nullable=False)
-    weight: Mapped[int] = mapped_column(Integer, nullable=False)
-    is_fragile: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False)
-    strength_percentage: Mapped[float] = mapped_column(Double(53), server_default=text('0'), nullable=False)
-    magical_defense: Mapped[Optional[int]] = mapped_column(Integer)
-    energy_regeneration_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    anti_crit: Mapped[Optional[float]] = mapped_column(Double(53))
-    dodge_chance: Mapped[Optional[float]] = mapped_column(Double(53))
-    hp_percent: Mapped[Optional[float]] = mapped_column(Double(53))
-    armor_boost: Mapped[Optional[int]] = mapped_column(Integer)
-    armor_percent_boost: Mapped[Optional[float]] = mapped_column(Double(53))
-    counter_attack: Mapped[Optional[float]] = mapped_column(Double(53))
-    anti_dodge: Mapped[Optional[float]] = mapped_column(Double(53))
-    effect_description: Mapped[Optional[str]] = mapped_column(TEXT)
-    allowed_for_class: Mapped[Optional[str]] = mapped_column(TEXT)
-    visual_asset: Mapped[Optional[str]] = mapped_column(TEXT)
-    
-    # Using Python's datetime for UTC and timezone awareness, consistent with other models
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    # Added updated_at for consistency, common in templates tables
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-
-    def __repr__(self):
-        return (f"<ArmorTemplate(id={self.id}, name='{self.armor_name}', "
-                f"rarity={self.rarity}, phys_def={self.physical_defense})>")
-
-
-
-class Bloodline(Base):
-    __tablename__ = 'bloodlines'
-
-    bloodline_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(TEXT)
-    inherent_bonuses: Mapped[dict] = mapped_column(JSONB, nullable=False) # JSONB маппится на Python dict
-    rarity_weight: Mapped[int] = mapped_column(Integer, default=100)
-    story_fragments: Mapped[Optional[dict]] = mapped_column(JSONB)
-
-    characters: Mapped[List['Character']] = relationship('Character', back_populates='bloodline')
-    def __repr__(self):
-        return f"<Bloodline(id={self.bloodline_id}, name='{self.name}')>"
-    
-
-class CharacterExplorationChances(Base):
-    __tablename__ = 'character_exploration_chances'
-    __table_args__ = (
-        PrimaryKeyConstraint('character_id', name='character_exploration_chances_pkey'),
-    )
-
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    combat_chance: Mapped[float] = mapped_column(Double(53))
-    magic_chance: Mapped[float] = mapped_column(Double(53))
-    gathering_chance: Mapped[float] = mapped_column(Double(53))
-    last_updated: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-    
+   
 
 
 
@@ -292,36 +239,6 @@ class EquippedItems(Base):
     durability: Mapped[int] = mapped_column(Integer, server_default=text('100'))
     slot: Mapped[Optional[str]] = mapped_column(String(50))
     enchantment_effect: Mapped[Optional[dict]] = mapped_column(JSON)
-
-
-
-class FinishHandler(Base):
-    __tablename__ = 'finish_handlers'
-    __table_args__ = (
-        PrimaryKeyConstraint('batch_id', name='finish_handlers_pkey'),
-        # Explicitly define indexes here
-        Index('idx_processed_coordinator', 'processed_by_coordinator'),
-        Index('idx_status', 'status'),
-        Index('idx_task_type', 'task_type'),
-        Index('idx_timestamp', 'timestamp'),
-    )
-
-    batch_id: Mapped[str] = mapped_column(String(255), primary_key=True)
-    task_type: Mapped[str] = mapped_column(String(100), nullable=False) # Assuming task_type is always present
-    status: Mapped[str] = mapped_column(String(50), nullable=False) # Assuming status is always present
-    completed_tasks: Mapped[int] = mapped_column(Integer, server_default=text('0'), nullable=False) # Not optional if default is 0
-    failed_tasks: Mapped[Optional[Dict]] = mapped_column(JSONB) # Use Dict for JSONB type hint
-    error_message: Mapped[Optional[str]] = mapped_column(TEXT) # Use TEXT for potentially long error messages
-    
-    # Using Python's datetime for UTC and timezone awareness
-    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    
-    processed_by_coordinator: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False)
-
-    def __repr__(self):
-        return (f"<FinishHandler(batch_id='{self.batch_id}', task_type='{self.task_type}', "
-                f"status='{self.status}', completed_tasks={self.completed_tasks})>")
-
 
 
 class Inventory(Base):
@@ -390,226 +307,6 @@ class ModifierLibrary(Base):
     def __repr__(self):
         return f"<ModifierLibrary(modifier_code='{self.modifier_code}', name='{self.name}')>"
     
-
-
-class PlayerMagicAttack(Base):
-    __tablename__ = 'player_magic_attack'
-    __table_args__ = (
-        PrimaryKeyConstraint('character_id', name='player_magic_attack_pkey'),
-    )
-
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    elemental_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    fire_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    water_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    air_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    earth_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    light_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    dark_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    gray_magic_power_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-
-
-class PlayerMagicDefense(Base):
-    __tablename__ = 'player_magic_defense'
-    __table_args__ = (
-        PrimaryKeyConstraint('character_id', name='player_magic_defense_pkey'),
-    )
-
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    fire_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    water_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    air_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    earth_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    light_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    dark_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    gray_magic_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    magic_resistance_percent: Mapped[Optional[float]] = mapped_column(Double(53))
-
-
-class PlayerPhysicalAttack(Base):
-    __tablename__ = 'player_physical_attack'
-    __table_args__ = (
-        PrimaryKeyConstraint('character_id', name='player_physical_attack_pkey'),
-    )
-
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    piercing_damage_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    slashing_damage_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    blunt_damage_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-    cutting_damage_bonus: Mapped[Optional[float]] = mapped_column(Double(53))
-
-
-class PlayerPhysicalDefense(Base):
-    __tablename__ = 'player_physical_defense'
-    __table_args__ = (
-        PrimaryKeyConstraint('character_id', name='player_physical_defense_pkey'),
-    )
-
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    piercing_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    slashing_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    blunt_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    cutting_resistance: Mapped[Optional[float]] = mapped_column(Double(53))
-    physical_resistance_percent: Mapped[Optional[float]] = mapped_column(Double(53))
-
-
-class QuestConditions(Base):
-    __tablename__ = 'quest_conditions'
-    __table_args__ = (
-        PrimaryKeyConstraint('condition_id', name='quest_conditions_pkey'),
-    )
-
-    condition_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    condition_key: Mapped[str] = mapped_column(String(100))
-    condition_name: Mapped[str] = mapped_column(String(255))
-
-
-class QuestFlag(Base):
-    __tablename__ = 'quest_flags'
-    __table_args__ = (
-        PrimaryKeyConstraint('flag_id', name='quest_flags_pkey'),
-    )
-
-    flag_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True) # Assuming auto-incrementing ID
-    flag_key: Mapped[str] = mapped_column(String(100), nullable=False) # flag_key is likely required
-    value: Mapped[str] = mapped_column(TEXT, nullable=False) # value is likely required, can be longer text
-    quest_key: Mapped[Optional[int]] = mapped_column(Integer)
-    step_key: Mapped[Optional[str]] = mapped_column(String(100))
-    flag_key_template: Mapped[Optional[str]] = mapped_column(String(100))
-
-    def __repr__(self):
-        return (f"<QuestFlag(flag_id={self.flag_id}, flag_key='{self.flag_key}', "
-                f"value='{self.value}', quest_key={self.quest_key})>")
-
-class QuestRequirements(Base):
-    __tablename__ = 'quest_requirements'
-    __table_args__ = (
-        PrimaryKeyConstraint('requirement_id', name='quest_requirements_pkey'),
-    )
-
-    requirement_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    requirement_key: Mapped[str] = mapped_column(String(100))
-    requirement_name: Mapped[str] = mapped_column(String(255))
-    requirement_value: Mapped[str] = mapped_column(String(255))
-
-
-class QuestReward(Base):
-    __tablename__ = 'quest_rewards'
-    __table_args__ = (
-        PrimaryKeyConstraint('id', name='quest_rewards_pkey'),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True) # Assuming auto-incrementing ID
-    reward_key: Mapped[str] = mapped_column(String(100), nullable=False) # Reward key is likely required
-    reward_name: Mapped[str] = mapped_column(TEXT, nullable=False) # Reward name is likely required, can be longer text
-    reward_value: Mapped[int] = mapped_column(Integer, nullable=False) # Reward value is likely required
-    reward_type: Mapped[str] = mapped_column(TEXT, nullable=False) # Reward type is likely required
-    reward_description: Mapped[Optional[str]] = mapped_column(TEXT) # Reward description can be optional
-
-    def __repr__(self):
-        return (f"<QuestReward(id={self.id}, key='{self.reward_key}', "
-                f"name='{self.reward_name}', value={self.reward_value}, type='{self.reward_type}')>")
-
-
-
-class QuestSteps(Base):
-    __tablename__ = 'quest_steps'
-
-    step_key: Mapped[str] = mapped_column(String(100), primary_key=True)  # ✅ step_key — Primary Key
-    quest_key: Mapped[int] = mapped_column(Integer)  # 🔄 ID квеста
-    step_order: Mapped[int] = mapped_column(Integer)  # 🔄 Порядок шага
-    description_key: Mapped[str] = mapped_column(String(100))  # 🔄 Ключ описания
-    status: Mapped[str] = mapped_column(String(50))  # 🔄 Статус (`pending`, `completed`, `failed`)
-    visibility_condition: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # 🔄 Условия видимости
-    reward_key: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)  # 🔄 Ключ награды
-
-
-
-
-class QuestTemplatesMaster(Base):
-    __tablename__ = 'quest_templates_master'
-    __table_args__ = (
-        PrimaryKeyConstraint('template_id', name='quest_templates_master_pkey'),
-    )
-
-    template_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    template_key: Mapped[str] = mapped_column(String(100))
-    type_key: Mapped[Optional[str]] = mapped_column(String(100))
-    condition_key: Mapped[Optional[str]] = mapped_column(String(100))
-    requirement_key: Mapped[Optional[str]] = mapped_column(String(100))
-    reward_key: Mapped[Optional[str]] = mapped_column(String(100))
-
-
-class QuestTypes(Base):
-    __tablename__ = 'quest_types'
-    __table_args__ = (
-        PrimaryKeyConstraint('type_id', name='quest_types_pkey'),
-    )
-
-    type_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    type_key: Mapped[str] = mapped_column(String(100))
-    type_name: Mapped[str] = mapped_column(String(255))
-    difficulty_level: Mapped[str] = mapped_column(String(50), server_default=text("'medium'::character varying"))
-
-
-class Quests(Base):
-    __tablename__ = 'quests'
-    __table_args__ = (
-        PrimaryKeyConstraint('quest_id', name='quests_pkey'),
-    )
-
-    quest_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    quest_key: Mapped[int] = mapped_column(Integer)
-    quest_name: Mapped[str] = mapped_column(String(255))
-    description_key: Mapped[str] = mapped_column(String(100))
-    reward_key: Mapped[str] = mapped_column(String(100))
-    status: Mapped[str] = mapped_column(String(50), server_default=text("'inactive'::character varying"))
-    progress_flag: Mapped[Optional[str]] = mapped_column(String(255), server_default=text('NULL::character varying'))
-
-
-class Races(Base):
-    __tablename__ = 'races'
-    __table_args__ = (
-        PrimaryKeyConstraint('race_id', name='races_pkey'),
-    )
-
-    race_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    race_name: Mapped[str] = mapped_column(String(100), server_default=text("''::character varying"))  # Было "name"
-    founder_id: Mapped[int] = mapped_column(Integer, server_default=text('0'))
-    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
-
-
-
-class Regions(Base):
-    __tablename__ = 'regions'
-
-    # Note: If 'access_key' is the primary key, 'id' might not strictly need to be a primary key
-    # or autoincrementing if it's generated by the server_default.
-    # If both are PKs, consider using PrimaryKeyConstraint as you did in other tables.
-    access_key: Mapped[str] = mapped_column(String(255), primary_key=True) # Assuming a reasonable string length
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), server_default=text('gen_random_uuid()'), nullable=False) # Use UUID from dialects
-    world_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False) # Use UUID from dialects
-    region_name: Mapped[str] = mapped_column(String(255), nullable=False) # Assuming a reasonable string length
-    description: Mapped[Optional[str]] = mapped_column(TEXT) # Use TEXT for potentially long descriptions
-
-    subregions: Mapped[List['Subregions']] = relationship(
-        'Subregions',
-        back_populates='parent_region',
-        # <-- ДОБАВЬТЕ ЭТО: Явное условие объединения
-        primaryjoin="Regions.access_key == Subregions.parent_access_key"
-    )
-    def to_dict(self):
-        """Сериализация ORM-объекта в словарь"""
-        # Improved serialization for UUIDs to convert them to strings
-        return {
-            column.name: str(getattr(self, column.name)) if isinstance(getattr(self, column.name), uuid.UUID) else getattr(self, column.name)
-            for column in self.__table__.columns
-        }
-
-    def __repr__(self):
-        return (f"<Region(access_key='{self.access_key}', id='{self.id}', "
-                f"name='{self.region_name}', world_id='{self.world_id}')>")
-
 
 
 
@@ -688,105 +385,53 @@ class SpecialStatEffect(Base):
 
 class StateEntity(Base):
     __tablename__ = 'state_entities'
-    __table_args__ = (
-        PrimaryKeyConstraint('access_code', name='state_entities_pkey'),
-    )
-
-    access_code: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True) # Assuming auto-incrementing
-    code_name: Mapped[str] = mapped_column(TEXT, nullable=False) # Likely a required name
-    ui_type: Mapped[str] = mapped_column(TEXT, nullable=False) # Likely a required UI type
-    description: Mapped[Optional[str]] = mapped_column(TEXT, server_default=text("''::text"))
-    is_active: Mapped[bool] = mapped_column(Boolean, server_default=text('true'), nullable=False) # Not optional if default is true
-
-    discord_configs: Mapped[List['StateEntityDiscord']] = relationship('StateEntityDiscord', back_populates='state_entity')
-
+    access_code: Mapped[str] = mapped_column(String(50), primary_key=True, unique=True, nullable=False, index=True)
+    code_name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    ui_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    description: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(True), default=lambda: datetime.now(timezone.utc))
     def __repr__(self):
-        return (f"<StateEntity(access_code={self.access_code}, code_name='{self.code_name}', "
-                f"ui_type='{self.ui_type}', is_active={self.is_active})>")
+        return (f"<StateEntity(access_code='{self.access_code}', "
+                f"code_name='{self.code_name}', ui_type='{self.ui_type}', "
+                f"is_active={self.is_active})>")
+
+
 
 class StateEntityDiscord(Base):
     __tablename__ = 'state_entities_discord'
     __table_args__ = (
-        PrimaryKeyConstraint('guild_id', 'world_id', 'access_code', name='state_entities_discord_pkey'),
-        # Adding explicit foreign key constraint to StateEntity
-        # Assuming 'access_code' in StateEntityDiscord references 'access_code' in StateEntities
+        PrimaryKeyConstraint('guild_id', 'role_id', name='state_entities_discord_pkey'),
+        # <--- ForeignKeyConstraint ОСТАЕТСЯ, так как это связь на уровне БД
         ForeignKeyConstraint(
             ['access_code'],
             ['state_entities.access_code'],
             name='fk_state_entities_discord_access_code',
-            ondelete='CASCADE' # Or 'RESTRICT', 'SET NULL' based on your logic
+            ondelete='CASCADE'
         )
     )
 
     guild_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    world_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    access_code: Mapped[int] = mapped_column(Integer, primary_key=True) # Part of composite PK and FK
+    role_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
 
-    role_name: Mapped[str] = mapped_column(TEXT, nullable=False) # Role name is likely required
-    role_id: Mapped[int] = mapped_column(BigInteger, nullable=False) # Role ID is likely required
-    permissions: Mapped[int] = mapped_column(Integer, server_default=text('0'), nullable=False) # Not optional if default is 0
+    access_code: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
-    # Using Python's datetime for UTC and timezone awareness, consistent with other models
+    role_name: Mapped[str] = mapped_column(TEXT, nullable=False)
+    permissions: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
-    # Relationships
-    # Many-to-One relationship to StateEntity
-    state_entity: Mapped['StateEntity'] = relationship(
-        'StateEntity',
-        primaryjoin="StateEntityDiscord.access_code == StateEntity.access_code",
-        back_populates='discord_configs' # Add this back_populates to StateEntity if needed
-    )
+    # --- УДАЛЕНО: relationship для state_entity ---
+    # state_entity: Mapped[Optional['StateEntity']] = relationship(...)
 
     def __repr__(self):
-        return (f"<StateEntityDiscord(guild_id={self.guild_id}, world_id='{self.world_id}', "
-                f"access_code={self.access_code}, role_name='{self.role_name}')>")
+        return (f"<StateEntityDiscord(guild_id={self.guild_id}, role_id={self.role_id}, "
+                f"access_code='{self.access_code}', role_name='{self.role_name}')>")
 
 
 
-class Subregions(Base):
-    __tablename__ = 'subregions'
-    __table_args__ = (
-        PrimaryKeyConstraint('access_key', name='subregions_pkey'),
-        # Add a ForeignKeyConstraint if parent_access_key refers to Region.access_key
-        ForeignKeyConstraint(
-            ['parent_access_key'],
-            ['regions.access_key'],
-            name='fk_subregions_parent_region_access_key',
-            ondelete='CASCADE' # Or 'RESTRICT', 'SET NULL' based on your desired behavior
-        )
-    )
 
-    subregion_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        server_default=text('gen_random_uuid()'),
-        nullable=False # Assuming UUID is always generated
-    )
-    access_key: Mapped[str] = mapped_column(String(255), primary_key=True) # Assuming a reasonable string length
-    access_code: Mapped[str] = mapped_column(String(255), nullable=False) # Marked as nullable=False per your note
-    parent_access_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True) # Can be NULL per your note
-    subregion_name: Mapped[str] = mapped_column(String(255), nullable=False) # Assuming name is required
-    is_peaceful: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False) # Not optional if default is false
-    visibility: Mapped[str] = mapped_column(String(50), nullable=False) # Marked as nullable=False per your note, assuming reasonable length
-    description: Mapped[Optional[str]] = mapped_column(TEXT) # For potentially long descriptions
-
-    # Relationships (if you want to link to Region model)
-    parent_region: Mapped[Optional['Regions']] = relationship('Regions', primaryjoin="Subregions.parent_access_key == Regions.access_key", back_populates='subregions')
-
-    # ЭТА СТРОКА БЫЛА ИСТОЧНИКОМ ПРОБЛЕМЫ И ДОЛЖНА БЫТЬ УДАЛЕНА.
-    # Она ошибочно создавала самоссылающееся отношение, которое вам не нужно.
-    # subregions: Mapped[List['Subregions']] = relationship('Subregions', back_populates='parent_region')
-
-    def to_dict(self):
-        """Serializes the ORM object to a dictionary, converting UUIDs to strings."""
-        return {
-            column.name: str(getattr(self, column.name)) if isinstance(getattr(self, column.name), uuid.UUID) else getattr(self, column.name)
-            for column in self.__table__.columns
-        }
-
-    def __repr__(self):
-        return (f"<Subregion(access_key='{self.access_key}', name='{self.subregion_name}', "
-                f"parent_key='{self.parent_access_key}', peaceful={self.is_peaceful})>")
 
 
 
@@ -856,19 +501,7 @@ class WeaponTemplate(Base):
         return (f"<WeaponTemplate(id={self.id}, name='{self.weapon_name}', "
                 f"rarity={self.rarity}, p_atk={self.p_atk}, m_atk={self.m_atk})>")
 
-
-class Worlds(Base):
-    __tablename__ = 'worlds'
-    __table_args__ = (
-        PrimaryKeyConstraint('world_id', name='worlds_pkey'),  # ✅ Теперь PK — world_id
-    )
-
-    world_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, server_default=text('gen_random_uuid()'))  # 🔄 Переименованный ID
-    world_name: Mapped[str] = mapped_column(String)  # 🔄 Название мира
-    is_static: Mapped[bool] = mapped_column(Boolean, server_default=text('true'))  # 🔄 Статичный мир?
-    created_at: Mapped[datetime] = mapped_column(DateTime(True), server_default=text('now()'))  # 🔄 Дата создания
-
-        
+     
 
 class XpTickData(Base):
     __tablename__ = 'xp_tick_data'
@@ -892,8 +525,8 @@ class Character(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     surname: Mapped[Optional[str]] = mapped_column(String(100))
 
-    bloodline_id: Mapped[Optional[int]] = mapped_column(ForeignKey('bloodlines.bloodline_id', ondelete='SET NULL'))
-    # creature_type_id остается как внешний ключ, но без ORM-отношения
+    # ✅ НОВОЕ: Внешний ключ для связи с Clan (Clan.clan_id)
+    clan_id: Mapped[Optional[int]] = mapped_column(ForeignKey('bloodlines_clan.clan_id', ondelete='SET NULL'))
     creature_type_id: Mapped[int] = mapped_column(ForeignKey('creature_types.creature_type_id', ondelete='RESTRICT'), nullable=False)
     personality_id: Mapped[Optional[int]] = mapped_column(ForeignKey('personalities.personality_id', ondelete='SET NULL'))
     background_story_id: Mapped[Optional[int]] = mapped_column(ForeignKey('background_stories.story_id', ondelete='SET NULL'))
@@ -904,13 +537,11 @@ class Character(Base):
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default='offline', nullable=False)
 
-    # Связи (Relationship) - ВСЕ РАСКОММЕНТИРОВАНЫ ИЛИ ДОБАВЛЕНЫ
-
-    # Связь с AccountInfo (один аккаунт - много персонажей)
+    # Связи (Relationship)
     account_info: Mapped['AccountInfo'] = relationship('AccountInfo', back_populates='characters')
 
-    # Связь с Bloodline
-    bloodline: Mapped[Optional['Bloodline']] = relationship('Bloodline', back_populates='characters')
+    # ✅ НОВОЕ: Связь с Clan
+    clan: Mapped[Optional['Clan']] = relationship('Clan', back_populates='characters')
 
     # Связь с Personality
     personality: Mapped[Optional['Personality']] = relationship('Personality', back_populates='characters')
@@ -937,11 +568,6 @@ class Character(Base):
         primaryjoin="CharacterSpecial.character_id == Character.character_id"
     )
 
-    # Связь с TickEvents (один персонаж - много событий тиков)
-    tick_events: Mapped[List['TickEvents']] = relationship('TickEvents', back_populates='character')
-
-    # Связь с TickSummary (один персонаж - много сводок тиков)
-    tick_summaries: Mapped[List['TickSummary']] = relationship('TickSummary', back_populates='character')
 
     def __repr__(self):
         # Изменено __repr__ так, чтобы не обращаться к self.creature_type
@@ -1003,38 +629,6 @@ class CharacterSkills(Base):
     skills: Mapped['Skills'] = relationship('Skills', back_populates='character_skills')
 
 
-class CharacterStatus(Character):
-    __tablename__ = 'character_status'
-    __table_args__ = (
-        ForeignKeyConstraint(['character_id'], ['characters.character_id'], ondelete='CASCADE', name='fk_character'),
-        PrimaryKeyConstraint('character_id', name='character_status_pkey')
-    )
-
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    current_health: Mapped[Optional[int]] = mapped_column(Integer, server_default=text('0'))
-    max_health: Mapped[Optional[int]] = mapped_column(Integer, server_default=text('0'))
-    current_energy: Mapped[Optional[int]] = mapped_column(Integer, server_default=text('0'))
-    crit_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    crit_damage_bonus: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    anti_crit_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    anti_crit_damage: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    dodge_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    anti_dodge_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    counter_attack_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    parry_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    block_chance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    armor_penetration: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    physical_attack: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    magical_attack: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    magic_resistance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    physical_resistance: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    mana_cost_reduction: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    regen_health_rate: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    energy_regeneration_bonus: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    energy_pool_bonus: Mapped[Optional[int]] = mapped_column(Integer, server_default=text('0'))
-    absorption_bonus: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    shield_value: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
-    shield_regeneration: Mapped[Optional[float]] = mapped_column(Double(53), server_default=text('0'))
 
 
 class CharacterSpecial(Base):
@@ -1069,68 +663,7 @@ class CharacterSpecial(Base):
                 f"intelligence={self.intelligence}, luck={self.luck})>")
 
 
-class TickEvents(Base):
-    __tablename__ = 'tick_events'
-    __table_args__ = (
-        ForeignKeyConstraint(['character_id'], ['characters.character_id'], ondelete='CASCADE', name='fk_tick_events_character'),
-        PrimaryKeyConstraint('id', name='tick_events_pkey'),
-        Index('idx_tick_events_character', 'character_id'),
-        Index('idx_tick_events_time', 'event_time')
-    )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    character_id: Mapped[int] = mapped_column(Integer)
-    event_data: Mapped[dict] = mapped_column(JSONB)
-    event_time: Mapped[Optional[datetime]] = mapped_column(DateTime, server_default=text('now()'))
-
-    character: Mapped['Character'] = relationship('Character', back_populates='tick_events')
-
-
-class TickSummary(Base):
-    __tablename__ = 'tick_summary'
-    __table_args__ = (
-        ForeignKeyConstraint(['character_id'], ['characters.character_id'], ondelete='CASCADE', name='fk_tick_summary_character'),
-        PrimaryKeyConstraint('id', name='tick_summary_pkey'),
-        Index('idx_tick_summary_character_time', 'character_id', 'hour_block'),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True) # Assuming ID is auto-incrementing
-    character_id: Mapped[int] = mapped_column(Integer, nullable=False) # character_id is required
-    
-    # Using Python's datetime for UTC and timezone awareness, consistent with other models
-    # hour_block should likely be a fixed point in time (e.g., start of the hour)
-    hour_block: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    
-    tick_count: Mapped[int] = mapped_column(Integer, nullable=False)
-    mode: Mapped[str] = mapped_column(TEXT, nullable=False) # Mode is likely required, using TEXT for flexibility
-    summary_data: Mapped[Dict] = mapped_column(JSONB, nullable=False) # Summary data is likely required, using Dict for JSONB
-
-    # Define the Many-to-One relationship to Character
-    # Correct class name is 'Character', not 'Characters'
-    character: Mapped['Character'] = relationship(
-        'Character',
-        back_populates='tick_summaries', # This back_populates should be defined in Character
-        # Ensure it's a list on the Character side if one character has many summaries
-    )
-
-    def __repr__(self):
-        return (f"<TickSummary(id={self.id}, character_id={self.character_id}, "
-                f"hour_block={self.hour_block}, mode='{self.mode}')>")
-
-
-
-class FlagTemplate(Base):
-    __tablename__ = 'flag_templates'
-    __table_args__ = (
-        PrimaryKeyConstraint('flag_key', name='flag_templates_pkey'),
-    )
-
-    flag_key: Mapped[str] = mapped_column(String(50), primary_key=True) # Primary Key, unique flag key
-    flag_category: Mapped[str] = mapped_column(String(50), nullable=False) # Flag category is likely required
-    flag_description: Mapped[str] = mapped_column(TEXT, nullable=False) # Flag description is likely required, using TEXT for length
-
-    def __repr__(self):
-        return (f"<FlagTemplate(flag_key='{self.flag_key}', category='{self.flag_category}')>")
 
 
 
@@ -1254,12 +787,7 @@ class CharacterPool(Base):
             ondelete='RESTRICT',
             name='fk_cp_creature_type'
         ),
-        ForeignKeyConstraint(
-            ['bloodline_id'],
-            ['bloodlines.bloodline_id'],
-            ondelete='SET NULL',
-            name='fk_cp_bloodline'
-        ),
+        # ForeignKeyConstraint на bloodline_id УДАЛЕН отсюда
         ForeignKeyConstraint(
             ['personality_id'],
             ['personalities.personality_id'],
@@ -1281,7 +809,7 @@ class CharacterPool(Base):
     character_pool_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     creature_type_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    bloodline_id: Mapped[Optional[int]] = mapped_column(Integer)
+   
     personality_id: Mapped[Optional[int]] = mapped_column(Integer)
     background_story_id: Mapped[Optional[int]] = mapped_column(Integer)
 
@@ -1293,11 +821,7 @@ class CharacterPool(Base):
     
     initial_skill_levels: Mapped[Dict[str, Any]] = mapped_column(JSONB, nullable=False)   
     
-    initial_role_name: Mapped[Optional[str]] = mapped_column(String(100)) # Поле, добавленное в прошлый раз
-    # ▼▼▼ НОВОЕ ПОЛЕ ▼▼▼
-    # Сохраняем quality_level, использованный при генерации.
-    # Тип String, так как в логах у вас было 'BASIC_QUALITY'.
-    # Добавляем index=True, так как вы будете по нему фильтровать.
+    initial_role_name: Mapped[Optional[str]] = mapped_column(String(100))
     quality_level: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
 
     status: Mapped[str] = mapped_column(String(50), nullable=False, server_default=text("'available'"))
@@ -1392,14 +916,7 @@ class InventoryRuleGenerator(Base):
     
     
     
-class DiscordQuestDescription(Base): # Используем PascalCase для имени класса
-    __tablename__ = 'discord_quest_descriptions' # Имя таблицы, как в вашей схеме
 
-    description_key = Column(String(100), primary_key=True, unique=True, nullable=False) # Кей как Primary Key
-    text_ = Column(TEXT, nullable=False) # Текст описания, может быть многострочным
-
-    def __repr__(self):
-        return f"<DiscordQuestDescription(key='{self.description_key}', text_preview='{self.text_[:50]}...')>"
 
 
 
@@ -1519,4 +1036,190 @@ class EliteMonster(Base):
     
     
     
+class DataVersion(Base):
+    """
+    Модель для хранения хэш-сумм (версий) для различных наборов
+    справочных данных (например, для таблиц 'materials', 'skills' и т.д.).
+    """
+    __tablename__ = 'data_versions'
+
+    # Имя таблицы или логической группы данных, например 'materials' или 'item_base_templates'
+    table_name = Column(String, primary_key=True, comment="Имя таблицы или логической группы данных")
+
+    # Рассчитанная хэш-сумма данных (SHA256)
+    data_hash = Column(String, nullable=False, comment="Хэш-сумма данных (SHA256)")
+
+    def __repr__(self):
+        return f"<DataVersion(table_name='{self.table_name}', data_hash='{self.data_hash[:8]}...')>"
     
+    
+    
+class PastLifeFragment(Base):
+    __tablename__ = 'past_life_fragments'
+
+    # ✅ ИЗМЕНЕНО: fragment_key как строковый PK
+    fragment_key: Mapped[str] = mapped_column(String(100), primary_key=True, unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(TEXT)
+    inherent_bonuses: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    rarity_weight: Mapped[int] = mapped_column(Integer, default=100)
+    story_fragments: Mapped[Optional[dict]] = mapped_column(JSONB)
+
+    # Обратное отношение для AccountGameData
+    # Обновлено: 'AccountGameData' будет ссылаться через fragment_key
+    accounts_game_data: Mapped[List['AccountGameData']] = relationship('AccountGameData', back_populates='past_life_fragment')
+
+    def __repr__(self):
+        # Обновлен repr для использования fragment_key
+        return f"<PastLifeFragment(key='{self.fragment_key}', name='{self.name}')>"
+    
+    
+class Clan(Base): # Новое имя класса для "клановой" сущности
+    __tablename__ = 'bloodlines_clan' # Имя таблицы в БД
+
+    clan_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    clan_name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(TEXT)
+    leader_account_id: Mapped[Optional[int]] = mapped_column(ForeignKey('account_info.account_id', ondelete='SET NULL'))
+    founding_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default='active', nullable=False)
+    member_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reputation: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    assets_json: Mapped[dict] = mapped_column(JSONB, default=lambda: {}, nullable=False)
+    policies_json: Mapped[dict] = mapped_column(JSONB, default=lambda: {}, nullable=False)
+
+    # Отношение к лидеру аккаунта
+    leader_account: Mapped[Optional['AccountInfo']] = relationship('AccountInfo') # Если не нужно обратное отношение в AccountInfo
+
+    # Отношение к персонажам, принадлежащим этому клану
+    characters: Mapped[List['Character']] = relationship('Character', back_populates='clan')
+
+    def __repr__(self):
+        return f"<Clan(id={self.clan_id}, name='{self.clan_name}', leader_id={self.leader_account_id})>"
+    
+    
+class UsedCharacterArchive(Base):
+    """
+    Универсальная таблица для отслеживания шаблонов, выданных из пула
+    различным игровым сущностям (игрокам, NPC и т.д.).
+    """
+    __tablename__ = 'used_characters_archive'
+    
+    archive_id = Column(Integer, primary_key=True)
+    original_pool_id = Column(Integer, nullable=False, unique=True)
+    
+    # Универсальные поля для связи
+    linked_entity_id = Column(Integer, nullable=False, index=True)
+    activation_type = Column(String(50), nullable=False) # 'PLAYER', 'NPC_COMPANION', etc.
+    
+    # Статус жизненного цикла
+    lifecycle_status = Column(String(50), nullable=False, default='ACTIVE')
+    
+    # Опциональная ссылка на аккаунт (только для игроков)
+    linked_account_id = Column(Integer, nullable=True)
+    
+    simplified_pool_data = Column(JSON)
+    archived_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+
+
+
+class DiscordEntity(Base):
+    """
+    Универсальная таблица для хранения всех созданных ботом
+    сущностей Discord (категорий, каналов) на всех серверах (Хабе и Шардах).
+    """
+    __tablename__ = 'discord_entities'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    
+    guild_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    
+    discord_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
+    
+    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    
+    parent_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+
+    # --- НОВОЕ ПОЛЕ: permissions ---
+    permissions: Mapped[Optional[str]] = mapped_column(String(50), nullable=True) # Добавляем это поле
+
+    # --- НОВОЕ ПОЛЕ: description ---
+    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True) # Добавляем это поле (если оно должно храниться)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(True), server_default=text('now()'))
+
+    def __repr__(self):
+        return (f"<DiscordEntity(id={self.id}, guild_id={self.guild_id}, "
+                f"discord_id={self.discord_id}, name='{self.name}', "
+                f"entity_type='{self.entity_type}', parent_id={self.parent_id}, "
+                f"permissions='{self.permissions}', description='{self.description}')>")
+
+
+
+class GameShard(Base):
+    """
+    ORM-модель для хранения информации о игровых шарадах (Discord-серверах).
+    """
+    __tablename__ = 'game_shards'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    shard_name = Column(String(100), unique=True, nullable=False)
+    discord_guild_id = Column(BigInteger, unique=True, nullable=False)
+    current_players = Column(Integer, default=0, nullable=False)
+    is_admin_enabled = Column(Boolean, default=False, nullable=False) # Админский мастер-переключатель
+    is_system_active = Column(Boolean, default=False, nullable=False) # Серверный флаг активности/сна
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+
+    def __repr__(self):
+        return (
+            f"<GameShard(id={self.id}, name='{self.shard_name}', "
+            f"guild_id={self.discord_guild_id}, players={self.current_players}, "
+            f"admin_enabled={self.is_admin_enabled}, system_active={self.is_system_active})>"
+        )
+        
+
+class GameLocation(Base):
+    """
+    Универсальная модель для элементов скелета игрового мира (регионов, субрегионов, зон и т.д.),
+    поддерживающая произвольную вложенность и шаблонизацию.
+    """
+    __tablename__ = 'game_locations'
+
+    access_key: Mapped[str] = mapped_column(String(255), primary_key=True)
+    # ИЗМЕНЕНИЕ ЗДЕСЬ: Убрано primary_key=True из 'id'
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), server_default=text('gen_random_uuid()'), nullable=False, unique=True)    
+    skeleton_template_id: Mapped[str] = mapped_column(String(100), nullable=False)    
+    location_type: Mapped[str] = mapped_column(String(50), nullable=False)    
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(TEXT)
+    parent_access_key: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        ForeignKey('game_locations.access_key', ondelete='CASCADE'),
+        nullable=True
+    ) 
+    is_peaceful: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False)
+    visibility: Mapped[str] = mapped_column(String(50), nullable=False)    
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text('now()'))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=text('now()'))
+    
+    parent_location: Mapped[Optional['GameLocation']] = relationship(
+        'GameLocation', remote_side=[access_key], back_populates='child_locations'
+    )
+    child_locations: Mapped[List['GameLocation']] = relationship(
+        'GameLocation', back_populates='parent_location'
+    )    
+
+    def to_dict(self):
+        return {
+            column.name: str(getattr(self, column.name)) if isinstance(getattr(self, column.name), uuid.UUID) else getattr(self, column.name)
+            for column in self.__table__.columns
+        }
+
+    def __repr__(self):
+        return (f"<GameLocation(access_key='{self.access_key}', type='{self.location_type}', "
+                f"name='{self.name}', parent_key='{self.parent_access_key}', "
+                f"skeleton_id='{self.skeleton_template_id}')>")

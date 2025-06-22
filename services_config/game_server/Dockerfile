@@ -2,7 +2,7 @@
 # ЭТАП 1: "СБОРЩИК" (Builder)
 # Устанавливаем зависимости, включая те, что требуют компиляции.
 # ===================================================================
-FROM python:3.11-slim-bookworm AS builder
+FROM python:3.13-slim-bookworm AS builder
 
 # Устанавливаем системные зависимости, необходимые для компиляции C-расширений
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ЭТАП 2: "ФИНАЛЬНЫЙ ОБРАЗ" (Final)
 # Создаем чистый, легковесный и безопасный образ для запуска координаторов.
 # ===================================================================
-FROM python:3.11-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 WORKDIR /app
 
@@ -42,7 +42,17 @@ RUN groupadd --gid 1001 appuser && \
 COPY --from=builder /opt/venv /opt/venv
 
 # Копируем код, необходимый для работы координаторов
+# Здесь appuser становится владельцем всего /app/game_server
 COPY --chown=appuser:appuser ./game_server /app/game_server
+
+# --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Убедимся, что у пользователя appuser есть права на запись в папку логов ---
+# Создаем папку для логов, если она еще не создана.
+# И СРАЗУ ЖЕ меняем ее владельца на 'appuser', чтобы у него были полные права на запись.
+# Это абсолютно критично, так как /app/game_server/logs является точкой монтирования.
+RUN mkdir -p /app/game_server/logs && \
+    chown -R appuser:appuser /app/game_server/logs
+# --- КОНЕЦ КЛЮЧЕВОГО ИСПРАВЛЕНИЯ ---
+
 
 # Переключаемся на непривилегированного пользователя
 USER appuser

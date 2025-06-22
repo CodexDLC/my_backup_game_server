@@ -3,7 +3,7 @@
 # Устанавливаем зависимости в изолированной среде.
 # ===================================================================
 # Используем конкретную и стабильную версию Python
-FROM python:3.11-slim-bookworm AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -16,8 +16,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Обновляем pip и устанавливаем wheel для ускорения сборки
 RUN pip install --upgrade pip wheel
 
-# Копируем ТОЛЬКО файл с зависимостями для кэширования этого слоя
-COPY ./requirements.txt .
+# Копируем файл с зависимостями бота для кэширования этого слоя
+COPY ./Discord_API/requirements.txt .
 
 # Устанавливаем зависимости в виртуальное окружение
 RUN pip install --no-cache-dir -r requirements.txt
@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ЭТАП 2: "ФИНАЛЬНЫЙ ОБРАЗ" (Final)
 # Создаем чистый, легковесный и безопасный образ для запуска.
 # ===================================================================
-FROM python:3.11-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 

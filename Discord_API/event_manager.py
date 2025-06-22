@@ -1,21 +1,17 @@
+import discord # <--- Изменено
+from discord.ext import commands # <--- Изменено
+from Discord_API.config.logging.logging_setup_discod import logger # Используем ваш логгер
 
-
-
-
-import discord
-from discord.ext import commands
-
-async def load_events(bot):
-    """Загружает все события (ивенты)"""
+async def load_events(bot: commands.Bot):
+    """Загружает все события (ивенты) как расширения."""
     events = [
-        "Discord_API.events.discord_events.guild_welcome",  # ✅ Приветствие новых участников (если есть)
-        "Discord_API.events.discord_events.regestration",  # 
-        
+        "Discord_API.events.discord_events.guild_welcome",
+        "Discord_API.events.discord_events.regestration",
     ]
 
-    for event in events:
+    for event_module in events:
         try:
-            await bot.load_extension(event)
-            print(f"✅ Загружено событие: {event}")
+            await bot.load_extension(event_module)
+            logger.info(f"✅ Загружено событие: {event_module}")
         except Exception as e:
-            print(f"❌ Ошибка загрузки {event}: {e}")
+            logger.error(f"❌ Ошибка загрузки события {event_module}: {e}")

@@ -1,0 +1,108 @@
+version: "2.0"
+schema: "game_locations"
+metadata:
+  author: "System"
+  description: "Детализация Оборонительного периметра. Все локации являются дочерними для Периметра (access_key: '500')."
+
+data:
+  # =================================================================
+  # 1. Основные под-зоны Периметра (parent: 500)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "510"
+    parent_access_key: "500"
+    location_type: "GATE_AREA"
+    name: "Городские Врата"
+    description: "Общая зона, объединяющая все основные входы и выходы из города. Постоянно патрулируется стражей."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "520"
+    parent_access_key: "500"
+    location_type: "GARRISON"
+    name: "Гарнизон 'Железная Стена'"
+    description: "Военный центр города. Здесь базируется городская стража, находятся склады и тюрьма."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "530"
+    parent_access_key: "500"
+    location_type: "ARENA_COMPLEX"
+    name: "Арена 'Кровавый Пепел'"
+    description: "Большой комплекс для проведения публичных турниров и гладиаторских боев."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 2. Детализация: Городские Врата (parent: 510)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "511"
+    parent_access_key: "510"
+    location_type: "GATE"
+    name: "Северные Ворота"
+    description: "Массивные ворота, ведущие к холодным землям Северного Эпицентра."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "512"
+    parent_access_key: "510"
+    location_type: "GATE"
+    name: "Южные Ворота"
+    description: "Ворота, открывающие путь в опасные и нестабильные земли Южного Эпицентра."
+    is_peaceful: true
+    visibility: "public"
+  
+  - skeleton_template_id: "main_world_v1"
+    access_key: "513"
+    parent_access_key: "510"
+    location_type: "GATE"
+    name: "Восточные (Торговые) Ворота"
+    description: "Главный путь для торговых караванов и путешественников."
+    is_peaceful: true
+    visibility: "public"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "514"
+    parent_access_key: "510"
+    location_type: "GATE"
+    name: "Западные (Портовые) Ворота"
+    description: "Дорога, ведущая к портовому району. В данный момент закрыты на неопределенный срок."
+    is_peaceful: true
+    visibility: "public"
+
+  # =================================================================
+  # 3. Детализация: Гарнизон (parent: 520)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "521"
+    parent_access_key: "520"
+    location_type: "BUILDING"
+    name: "Главные Казармы"
+    description: "Место жительства, тренировок и сбора городской стражи. Источник квестов по защите города."
+    is_peaceful: true
+    visibility: "private"
+
+  - skeleton_template_id: "main_world_v1"
+    access_key: "522"
+    parent_access_key: "520"
+    location_type: "BUILDING"
+    name: "Городская Тюрьма"
+    description: "Хорошо охраняемое здание для содержания особо опасных преступников."
+    is_peaceful: true
+    visibility: "private"
+
+  # =================================================================
+  # 4. Детализация: Арена (parent: 530)
+  # =================================================================
+  - skeleton_template_id: "main_world_v1"
+    access_key: "531"
+    parent_access_key: "530"
+    location_type: "ARENA"
+    name: "Главная Арена"
+    description: "Сама боевая яма, где проливается кровь и рождаются легенды."
+    is_peaceful: false
+    visibility: "public"
