@@ -45,6 +45,7 @@ COPY --from=builder /opt/venv /opt/venv
 # Здесь appuser становится владельцем всего /app/game_server
 COPY --chown=appuser:appuser ./game_server /app/game_server
 
+
 # --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Убедимся, что у пользователя appuser есть права на запись в папку логов ---
 # Создаем папку для логов, если она еще не создана.
 # И СРАЗУ ЖЕ меняем ее владельца на 'appuser', чтобы у него были полные права на запись.

@@ -10,7 +10,9 @@ volumes:
     driver: local
   redis_central_data:
     driver: local
-  mongo_data: # ✅ НОВОЕ: Том для персистентных данных MongoDB
+  mongo_data: 
+    driver: local
+  rabbitmq_data: 
     driver: local
 
 networks:
@@ -56,28 +58,28 @@ services:
       retries: 5
       start_period: 10s
 
-  mongo_db: # ✅ НОВОЕ: Сервис MongoDB
-    image: mongo:6.0 # Рекомендуется указывать конкретную версию
-    container_name: mongo_service # Имя контейнера для MongoDB
-    hostname: mongo # Имя хоста для внутренней сети Docker
-    <<: [*common-env, *common-restart-policy] # Используем общие настройки окружения и перезапуска
+  mongo_db: 
+    image: mongo:6.0 
+    container_name: mongo_service 
+    hostname: mongo 
+    <<: [*common-env, *common-restart-policy] 
     networks: [backend_network]
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} # Читаем из .env
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} # Читаем из .env
-      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME} # Опционально: создаст базу данных при первом запуске
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME} 
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD} 
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME} 
     ports:
-      - "27017:27017" # Пробрасываем стандартный порт MongoDB на хост
+      - "27017:27017" 
     volumes:
-      - mongo_data:/data/db # Сохранение данных в именованный том
-    healthcheck: # Проверка состояния MongoDB
-      test: echo 'db.runCommand("ping").ok' | mongosh --quiet # Простая команда для проверки работоспособности
+      - mongo_data:/data/db 
+    healthcheck: 
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet 
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s # Добавлено для консистентности с healthcheck postgres
+      start_period: 10s 
 
-  redis: # Центральный REDIS (для Backend)
+  redis: 
     image: redis:7.2-alpine
     container_name: redis_cache_service
     hostname: redis
@@ -94,7 +96,7 @@ services:
     volumes:
       - redis_central_data:/data
 
-  redis_bot_local: # ЛОКАЛЬНЫЙ REDIS ДЛЯ DISCORD-БОТА
+  redis_bot_local: 
     image: redis:7.2-alpine
     container_name: redis_bot_local_cache
     hostname: redis_bot_local
@@ -109,6 +111,28 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq: 
+    image: rabbitmq:3-management-alpine 
+    container_name: rabbitmq_service
+    hostname: rabbitmq 
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    ports:
+      - "5672:5672" 
+      - "15672:15672" 
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq 
+    healthcheck: 
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity", "-q"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s 
+
 # ===================================================================
 # 🚀 ПРИЛОЖЕНИЯ И КООРДИНАТОРЫ
 # ===================================================================
@@ -116,34 +140,30 @@ services:
     <<: [*common-env, *common-restart-policy, *common-build-python]
     networks: [backend_network]
     build:
-      dockerfile: services_config/rest_api/Dockerfile
+      dockerfile: services_config/fast_api/Dockerfile
     container_name: fast_api_service
     command: gunicorn -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:8000 game_server.api_fast.main:app
     ports:
       - "8000:8000"
     environment:
+      - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      # ✅ НОВЫЕ: Передача переменных MongoDB в контейнер fast_api
-      - MONGO_URI=${MONGO_URI}
-      - MONGO_HOST=${MONGO_HOST_CONTAINER}
-      - MONGO_PORT=${MONGO_PORT}
-      - MONGO_DB_NAME=${MONGO_DB_NAME}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - CONTAINER_ID=fast_api_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin
+      - CONTAINER_ID=fast_api_service
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      mongo_db: { condition: service_healthy } # ✅ НОВАЯ ЗАВИСИМОСТЬ
+      mongo_db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy } 
     volumes:
       - ./logs/fast_api_output:/app/game_server/logs
-    healthcheck: # ДОБАВЬТЕ ЭТОТ БЛОК, ЕСЛИ ЕГО НЕТ
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"] # Убедитесь, что эндпоинт /health есть
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s # Дать время на запуск FastAPI
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s       
+      timeout: 5s         
+      retries: 5          
+      start_period: 10s   # Меньший start_period, если он работал раньше
 
   discord_bot:
     <<: [*common-env, *common-restart-policy, *common-build-python]
@@ -151,14 +171,16 @@ services:
     build:
       dockerfile: services_config/Discord_API/Dockerfile
     container_name: discord_bot_service
-    command: python -m Discord_API.main
+    command: python -u -m Discord_API.main # Добавляем -u для небуферизованного вывода
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - REDIS_LOCAL_URL=redis://redis_bot_local:6379/0
-      - GAME_SERVER_API=http://fast_api:8000 # Используем имя сервиса fast_api
-      - CONTAINER_ID=discord_bot_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
+      - GAME_SERVER_API=http://fast_api:8000 
+      - CONTAINER_ID=discord_bot_service 
+      - GATEWAY_BOT_SECRET=${GATEWAY_BOT_SECRET} # 🔥 Убедитесь, что эта переменная передается боту!
     depends_on:
-      fast_api: { condition: service_started }
+      fast_api:
+        condition: service_healthy # <--- ИЗМЕНИТЬ ЗДЕСЬ
       redis_bot_local: { condition: service_healthy }
     volumes:
       - ./logs/discord_bot_output:/app/game_server/logs
@@ -169,30 +191,44 @@ services:
     build:
       dockerfile: services_config/game_server/Dockerfile
     container_name: start_orchestrator_service
-    command: uvicorn game_server.game_services.game_world_state_orchestrator:app --host 0.0.0.0 --port 8000
-    
-    # 🔥 ДОБАВЛЕНО: Переменные окружения для подключения к зависимостям
+    command: uvicorn game_server.game_services.game_world_state_orchestrator:app --host 0.0.0.0 --port 8002    
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      # ✅ НОВЫЕ: Передача переменных MongoDB
-      - MONGO_URI=${MONGO_URI}
-      - MONGO_HOST=${MONGO_HOST_CONTAINER}
-      - MONGO_PORT=${MONGO_PORT}
-      - MONGO_DB_NAME=${MONGO_DB_NAME}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - CONTAINER_ID=start_orchestrator_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
-    
-    # 🔥 ДОБАВЛЕНО: Зависимость от Redis и MongoDB
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin
+      - CONTAINER_ID=start_orchestrator_service    
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      mongo_db: { condition: service_healthy } # ✅ НОВАЯ ЗАВИСИМОСТЬ
-      
+      mongo_db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy } 
     volumes:
-      - ./logs/start_orchestrator_output:/app/game_server/logs # Обновлен путь для консистентности
+      - ./logs/start_orchestrator_output:/app/game_server/logs
+
+  auth_service:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile 
+    container_name: auth_service_container 
+    command: uvicorn game_server.game_services.auth_service_main:app --host 0.0.0.0 --port 8001
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER} 
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_HOST=rabbitmq 
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - CONTAINER_ID=auth_service_container 
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy } 
+    volumes:
+      - ./logs/auth_service_output:/app/game_server/logs
 
 
 # ===================================================================
@@ -205,27 +241,26 @@ services:
     build:
       dockerfile: services_config/game_server/Dockerfile
     container_name: arq_worker_service
-    
-    # ИСПРАВЛЕНИЕ: УДАЛЕНА ОПЦИЯ --watch
     command: arq game_server.Logic.InfrastructureLogic.arq_worker.arq_worker_settings.WorkerSettings
-    
-    # Воркеру нужны те же переменные окружения для подключения к БД и Redis
     environment:
       - REDIS_URL=redis://redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      # ✅ НОВЫЕ: Передача переменных MongoDB
       - MONGO_URI=${MONGO_URI}
       - MONGO_HOST=${MONGO_HOST_CONTAINER}
       - MONGO_PORT=${MONGO_PORT}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-      - CONTAINER_ID=arq_worker_service # <--- ДОБАВЛЕНО: Передача имени контейнера как ID
-      
-    # Воркер должен стартовать только после того, как БД, Redis и MongoDB готовы
+      - RABBITMQ_USER=${RABBITMQ_USER} 
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_HOST=rabbitmq 
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - CONTAINER_ID=arq_worker_service 
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
-      mongo_db: { condition: service_healthy } # ✅ НОВАЯ ЗАВИСИМОСТЬ      
+      mongo_db: { condition: service_healthy } 
+      rabbitmq: { condition: service_healthy } 
     volumes:
       - ./logs/arq_worker_output:/app/game_server/logs

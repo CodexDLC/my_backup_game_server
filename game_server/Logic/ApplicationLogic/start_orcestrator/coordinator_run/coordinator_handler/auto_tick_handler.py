@@ -1,42 +1,29 @@
 # game_server/Logic/ApplicationLogic/start_orcestrator/coordinator_run/coordinator_handler/auto_leveling_handler.py
 
 import uuid
-from typing import Dict, Any, Optional, Type
+from typing import Dict, Any
 
 from arq import ArqRedis
-# from arq.connections import ArqRedis # УДАЛЕНО: будет получен из зависимостей
 
-# Главный импорт для всей конфигурации
 from game_server.config.provider import config
-
-# ИМПОРТ ИНТЕРФЕЙСОВ для менеджеров (для типизации)
-from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.task_queue_cache_manager import ITaskQueueCacheManager # ИЗМЕНЕНО: используем интерфейс
-from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient # ИЗМЕНЕНО: для типизации, если нужно
-
-
 from game_server.Logic.ApplicationLogic.start_orcestrator.start_orcestrator_utils.batch_utils import split_into_batches
-
 from .base_handler import ICommandHandler
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
 
+# <<< ИЗМЕНЕНО: Импортируем RedisBatchStore вместо несуществующего интерфейса
+from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.redis_batch_store import RedisBatchStore
 
 class AutoLevelingHandler(ICommandHandler):
     """ Обработчик для команды 'process_auto_leveling'. """
 
-    # ИЗМЕНЕНО: Конструктор принимает dependencies
     def __init__(self, dependencies: Dict[str, Any]):
-        # super().__init__(dependencies) # Если ICommandHandler требует super().__init__(dependencies), добавьте
-        self.logger = dependencies['logger'] # Получаем логгер из зависимостей
+        super().__init__(dependencies)
         
-        # ИЗВЛЕКАЕМ ВСЕ НЕОБХОДИМЫЕ ЗАВИСИМОСТИ ИЗ СЛОВАРЯ dependencies
-        self.task_queue_cache_manager: ITaskQueueCacheManager = dependencies['task_queue_cache_manager']
-        self.arq_redis_client: ArqRedis = dependencies['arq_redis_client'] # Получаем arq_redis_client напрямую
-        # self.central_redis_client: CentralRedisClient = dependencies['central_redis_client'] # Если нужен здесь
+        # <<< ИЗМЕНЕНО: Извлекаем 'redis_batch_store' вместо 'task_queue_cache_manager'
+        # Убедитесь, что в DI-контейнере зависимость зарегистрирована под ключом 'redis_batch_store'
+        self.redis_batch_store: RedisBatchStore = dependencies['redis_batch_store']
+        self.arq_redis_client: ArqRedis = dependencies['arq_redis_pool']
 
-        # УДАЛЕНО: Инициализация TaskQueueCacheManager здесь, т.к. он уже инициализирован и передан
-        # self.task_queue_manager = TaskQueueCacheManager(redis_client=central_redis_client_instance)
-
-        self.logger.info("✅ AutoLevelingHandler инициализирован.")
+        self.logger.info("✅ AutoLevelingHandler (v2, RedisBatchStore) инициализирован.")
 
     async def execute(self, payload: Dict[str, Any]) -> None:
         character_ids = payload.get("character_ids", [])
@@ -46,48 +33,55 @@ class AutoLevelingHandler(ICommandHandler):
 
         self.logger.info(f"AutoLevelingHandler: получено {len(character_ids)} ID для обработки.")
         
-        # 1. Получаем свой размер батча и имя ARQ-задачи из общих конфигов
         category_name = "auto_leveling"
         
         batch_size = config.settings.runtime.BATCH_SIZES.get(category_name, config.settings.runtime.DEFAULT_BATCH_SIZE)
-        arq_task_name = config.constants.coordinator.ARQ_COMMAND_TASK_NAMES.get(category_name) 
+        arq_task_name = config.constants.coordinator.ARQ_COMMAND_TASK_NAMES.get(category_name)
+        
+        # <<< ИЗМЕНЕНО: Получаем правильный шаблон ключа для этой задачи.
+        # Предполагается, что он есть в конфиге. Если нет, его нужно добавить.
+        key_template = config.constants.coordinator.AUTO_LEVELING_BATCH_KEY_TEMPLATE
 
-        if not arq_task_name:
-            self.logger.error(f"Для категории '{category_name}' не найдено имя ARQ-задачи в константах. Пропускаем.")
+        if not arq_task_name or not key_template:
+            self.logger.error(f"Для категории '{category_name}' не найдено имя ARQ-задачи или шаблон ключа Redis. Пропускаем.")
             return
 
-        # 2. Готовим инструкции
         instructions = [{"character_id": char_id, "task_type": category_name} for char_id in character_ids]
 
-        # 3. Делим на батчи и отправляем
         successful_batches = 0
         failed_batches = 0
-        for batch_data in split_into_batches(instructions, batch_size):
+        for batch_instructions in split_into_batches(instructions, batch_size):
             try:
-                redis_worker_batch_id = str(uuid.uuid4()) # Генерируем UUID здесь
-                # ИЗМЕНЕНО: Используем self.task_queue_cache_manager
-                success = await self.task_queue_cache_manager.add_task_to_queue(
+                redis_worker_batch_id = str(uuid.uuid4())
+                
+                # <<< ИЗМЕНЕНО: Формируем словарь данных для save_batch
+                batch_data_to_save = {
+                    "specs": batch_instructions,
+                    "target_count": len(batch_instructions),
+                    "status": "pending"
+                }
+                
+                # <<< ИЗМЕНЕНО: Вызываем self.redis_batch_store.save_batch
+                success = await self.redis_batch_store.save_batch(
                     batch_id=redis_worker_batch_id,
-                    key_template=config.constants.coordinator.TICK_WORKER_BATCH_KEY_TEMPLATE, 
-                    specs=batch_data, 
-                    target_count=len(batch_data),
-                    initial_status="pending"
+                    key_template=key_template,
+                    batch_data=batch_data_to_save,
+                    ttl_seconds=config.settings.redis.BATCH_TASK_TTL_SECONDS
                 )
                 
                 if success:
-                    # ИЗМЕНЕНО: Используем self.arq_redis_client
                     await self.arq_redis_client.enqueue_job(
-                        task_name=arq_task_name,
-                        batch_id=redis_worker_batch_id
+                        arq_task_name,  # Позиционный аргумент для имени функции
+                        batch_id=redis_worker_batch_id # Именованный аргумент для функции воркера
                     )
                     successful_batches += 1
-                    self.logger.debug(f"Задача '{arq_task_name}' с batch_id '{redis_worker_batch_id}' поставлена в очередь ARQ. ({len(batch_data)} инструкций)")
+                    self.logger.debug(f"Задача '{arq_task_name}' с batch_id '{redis_worker_batch_id}' поставлена в очередь ARQ. ({len(batch_instructions)} инструкций)")
                 else:
                     failed_batches += 1
                     self.logger.error(f"Не удалось сохранить батч ID '{redis_worker_batch_id}' в Redis. ARQ-задача не будет отправлена.")
             except Exception as e:
                 failed_batches += 1
-                self.logger.error(f"Ошибка при обработке батча для '{category_name}' (инструкций: {len(batch_data)}): {e}", exc_info=True)
+                self.logger.error(f"Ошибка при обработке батча для '{category_name}' (инструкций: {len(batch_instructions)}): {e}", exc_info=True)
         
         if successful_batches > 0:
             self.logger.info(f"AutoLevelingHandler: Обработано. Поставлено {successful_batches} батчей задач '{arq_task_name}' в очередь. Ошибок: {failed_batches}.")

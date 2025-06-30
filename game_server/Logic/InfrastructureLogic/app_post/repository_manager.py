@@ -14,7 +14,7 @@ from .repository_groups.character.interfaces_character import (
     ICharacterRepository, ICharacterSkillRepository, ICharacterSpecialRepository,
     ISpecialStatEffectRepository, ISkillExclusionRepository
 )
-from .repository_groups.discord.interfaces_discord import IDiscordEntityRepository, IDiscordRolesMappingRepository
+from .repository_groups.discord.interfaces_discord import IDiscordEntityRepository
 from .repository_groups.world_state.core_world.interfaces_core_world import IStateEntityRepository, IGameLocationRepository
 from .repository_groups.world_state.auto_session.interfaces_auto_session import IAutoSessionRepository, IXpTickDataRepository
 from .repository_groups.meta_data_0lvl.interfaces_meta_data_0lvl import (
@@ -41,7 +41,7 @@ from .repository_groups.character.character_special_repository_impl import Chara
 from .repository_groups.character.special_stat_effect_repository_impl import SpecialStatEffectRepositoryImpl
 from .repository_groups.character.skill_exclusion_repository_impl import SkillExclusionRepositoryImpl
 from .repository_groups.discord.discord_entity_repository_impl import DiscordEntityRepositoryImpl
-from .repository_groups.discord.discord_roles_mapping_repository_impl import DiscordRolesMappingRepositoryImpl
+
 from .repository_groups.world_state.core_world.state_entity_repository_impl import StateEntityRepositoryImpl
 from .repository_groups.world_state.core_world.game_location_repository_impl import GameLocationRepositoryImpl
 from .repository_groups.world_state.auto_session.auto_session_repository_impl import AutoSessionRepositoryImpl
@@ -76,7 +76,7 @@ class RepositoryManager:
         self._special_stat_effect_repo: ISpecialStatEffectRepository = SpecialStatEffectRepositoryImpl(db_session_factory)
         self._skill_exclusion_repo: ISkillExclusionRepository = SkillExclusionRepositoryImpl(db_session_factory)
         self._discord_entity_repo: IDiscordEntityRepository = DiscordEntityRepositoryImpl(db_session_factory)
-        self._discord_roles_mapping_repo: IDiscordRolesMappingRepository = DiscordRolesMappingRepositoryImpl(db_session_factory)
+
         self._state_entity_repo: IStateEntityRepository = StateEntityRepositoryImpl(db_session_factory)
         self._game_location_repo: IGameLocationRepository = GameLocationRepositoryImpl(db_session_factory)
         self._auto_session_repo: IAutoSessionRepository = AutoSessionRepositoryImpl(db_session_factory)
@@ -140,10 +140,6 @@ class RepositoryManager:
     @property
     def discord_entities(self) -> IDiscordEntityRepository:
         return self._discord_entity_repo
-
-    @property
-    def discord_roles_mapping(self) -> IDiscordRolesMappingRepository:
-        return self._discord_roles_mapping_repo
 
     @property
     def state_entities(self) -> IStateEntityRepository:

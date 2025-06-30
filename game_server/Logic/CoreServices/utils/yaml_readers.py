@@ -3,7 +3,7 @@
 import yaml
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 class YamlReader:
     @staticmethod

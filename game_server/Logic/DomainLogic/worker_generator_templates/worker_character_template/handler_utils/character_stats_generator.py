@@ -4,11 +4,12 @@ import numpy as np
 from numba import jit, int32 # int32 здесь используется для Numba, но не для np.zeros
 
 # --- Импорты констант и конфига ---
+from game_server.common_contracts.dtos.orchestrator_dtos import CharacterBaseStatsData
 from game_server.config.provider import config
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+
 
 # ДОБАВЛЕНО: Импорт CharacterBaseStatsData DTO
-from game_server.common_contracts.start_orcestrator.dtos import CharacterBaseStatsData #
+
 
 
 # Выносим часть логики, которую Numba может компилировать

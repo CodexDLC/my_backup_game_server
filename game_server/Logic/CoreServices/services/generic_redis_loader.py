@@ -5,7 +5,7 @@ from typing import Dict, Any, List, TypeVar, Type, Optional, Union
 from pydantic import BaseModel, ValidationError
 
 from game_server.Logic.CoreServices.utils.yaml_readers import YamlReader
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 PydanticDTO = TypeVar('PydanticDTO', bound=BaseModel)
 

@@ -7,13 +7,14 @@ from numba import njit # Correct Numba decorator for nopython mode
 # Removed: from contextlib import ExitStack
 
 # --- Логгер ---
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.common_contracts.dtos.orchestrator_dtos import CharacterRoleInputData, CharacterWithRoleArchetypeData
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # --- Константы ---
 from game_server.config.provider import config
 
 # ДОБАВЛЕНО: Импорт DTO
-from game_server.common_contracts.start_orcestrator.dtos import CharacterBaseStatsData, CharacterRoleInputData, CharacterWithRoleArchetypeData #
+
 
 
 # Numba-оптимизированная функция

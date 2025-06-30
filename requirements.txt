@@ -95,5 +95,5 @@ NumPy
 
 numba
 
-
+aio-pika
 pymongo

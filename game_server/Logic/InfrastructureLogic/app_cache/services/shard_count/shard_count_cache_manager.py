@@ -1,39 +1,32 @@
 # game_server/Logic/InfrastructureLogic/app_cache/services/shard_count/shard_count_cache_manager.py
-
 import logging
-from typing import Optional, Dict, Any
-from abc import ABC, abstractmethod # Добавлено
+from typing import Optional
 
-# Импорт CentralRedisClient
 from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
-
-# Обновленный импорт логгера
 from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_shard_count_cache import IShardCountCacheManager
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger # Изменено
+from game_server.config.logging.logging_setup import app_logger as logger
 
-# Импорт нового интерфейса
+# 🔥 ИЗМЕНЕНИЕ: Импортируем константы из нового файла
+from game_server.config.constants.redis_key.shard_keys import KEY_SHARD_STATS, FIELD_SHARD_PLAYER_COUNT
 
 
-# Константа для ключа Redis
-# Можно вынести в game_server/config/constants/redis.py, если это уже используется
-REDIS_KEY_SHARD_PLAYER_COUNT_PREFIX = "shard:players_count"
-
-# Изменяем класс ShardCountCacheManager, чтобы он наследовал от IShardCountCacheManager
-class ShardCountCacheManager(IShardCountCacheManager): # Изменено
+class ShardCountCacheManager(IShardCountCacheManager):
     """
     Менеджер для работы со счетчиками игроков на шарадах в Redis.
-    Предоставляет методы для атомарного инкремента/декремента и установки значений.
+    Использует Hash для хранения статистики по каждому шарду.
     """
     def __init__(self, redis_client: CentralRedisClient):
         self.redis = redis_client
-        logger.info("✅ ShardCountCacheManager инициализирован.") # Изменено: используем logger
+        logger.info("✅ ShardCountCacheManager (v2) инициализирован.")
 
     async def get_shard_player_count(self, discord_guild_id: int) -> int:
         """
-        Получает текущее количество игроков для заданного шарда из Redis.
+        Получает текущее количество игроков для заданного шарда из поля в Hash.
         """
-        key = f"{REDIS_KEY_SHARD_PLAYER_COUNT_PREFIX}:{discord_guild_id}"
-        count = await self.redis.get(key)
+        # 🔥 ИЗМЕНЕНИЕ: Используем новый шаблон ключа
+        key = KEY_SHARD_STATS.format(discord_guild_id=discord_guild_id)
+        # 🔥 ИЗМЕНЕНИЕ: Получаем значение поля из Hash
+        count = await self.redis.hget(key, FIELD_SHARD_PLAYER_COUNT)
         if count:
             logger.debug(f"Получен счетчик игроков для шарда {discord_guild_id} из Redis: {count}")
             return int(count)
@@ -42,44 +35,47 @@ class ShardCountCacheManager(IShardCountCacheManager): # Изменено
 
     async def increment_shard_player_count(self, discord_guild_id: int) -> int:
         """
-        Атомарно инкрементирует счетчик игроков для заданного шарда в Redis.
-        Возвращает новое значение счетчика.
+        Атомарно инкрементирует счетчик игроков для заданного шарда в поле Hash.
         """
-        key = f"{REDIS_KEY_SHARD_PLAYER_COUNT_PREFIX}:{discord_guild_id}"
-        new_count = await self.redis.incr(key)
+        # 🔥 ИЗМЕНЕНИЕ: Используем новый шаблон ключа
+        key = KEY_SHARD_STATS.format(discord_guild_id=discord_guild_id)
+        # 🔥 ИЗМЕНЕНИЕ: Инкрементируем значение поля в Hash
+        new_count = await self.redis.hincrby(key, FIELD_SHARD_PLAYER_COUNT, 1)
         logger.info(f"Счетчик игроков для шарда {discord_guild_id} инкрементирован до: {new_count}")
         return new_count
 
     async def decrement_shard_player_count(self, discord_guild_id: int) -> int:
         """
-        Атомарно декрементирует счетчик игроков для заданного шарда в Redis.
-        Возвращает новое значение счетчика. Счетчик не может быть отрицательным.
+        Атомарно декрементирует счетчик игроков для заданного шарда в поле Hash.
         """
-        key = f"{REDIS_KEY_SHARD_PLAYER_COUNT_PREFIX}:{discord_guild_id}"
-        # Проверяем, чтобы счетчик не ушел в минус, если это необходимо
+        key = KEY_SHARD_STATS.format(discord_guild_id=discord_guild_id)
+        
+        # Проверка остается полезной, но теперь она внутри Hash
         current_count = await self.get_shard_player_count(discord_guild_id)
         if current_count <= 0:
             logger.warning(f"Попытка декрементировать счетчик шарда {discord_guild_id}, но он уже <= 0. Возвращено 0.")
             return 0
-
-        new_count = await self.redis.decr(key)
+        
+        # 🔥 ИЗМЕНЕНИЕ: Декрементируем значение поля в Hash
+        new_count = await self.redis.hincrby(key, FIELD_SHARD_PLAYER_COUNT, -1)
         logger.info(f"Счетчик игроков для шарда {discord_guild_id} декрементирован до: {new_count}")
         return new_count
 
     async def set_shard_player_count(self, discord_guild_id: int, count: int):
         """
-        Устанавливает счетчик игроков для заданного шарда в Redis до определенного значения.
-        Используется для инициализации или синхронизации.
+        Устанавливает счетчик игроков для заданного шарда в поле Hash.
         """
-        key = f"{REDIS_KEY_SHARD_PLAYER_COUNT_PREFIX}:{discord_guild_id}"
-        await self.redis.set(key, count)
+        key = KEY_SHARD_STATS.format(discord_guild_id=discord_guild_id)
+        # 🔥 ИЗМЕНЕНИЕ: Устанавливаем значение поля в Hash
+        await self.redis.hset(key, FIELD_SHARD_PLAYER_COUNT, count)
         logger.info(f"Счетчик игроков для шарда {discord_guild_id} установлен в Redis на: {count}")
 
     async def delete_shard_player_count(self, discord_guild_id: int):
         """
-        Удаляет счетчик игроков для заданного шарда из Redis.
-        Может быть полезно при удалении шарда.
+
+        Удаляет только поле счетчика игроков, не трогая весь Hash статистики.
         """
-        key = f"{REDIS_KEY_SHARD_PLAYER_COUNT_PREFIX}:{discord_guild_id}"
-        await self.redis.delete(key)
-        logger.info(f"Счетчик игроков для шарда {discord_guild_id} удален из Redis.")
+        key = KEY_SHARD_STATS.format(discord_guild_id=discord_guild_id)
+        # 🔥 ИЗМЕНЕНИЕ: Удаляем только поле из Hash
+        await self.redis.hdel(key, FIELD_SHARD_PLAYER_COUNT)
+        logger.info(f"Поле счетчика игроков для шарда {discord_guild_id} удалено из Hash статистики.")

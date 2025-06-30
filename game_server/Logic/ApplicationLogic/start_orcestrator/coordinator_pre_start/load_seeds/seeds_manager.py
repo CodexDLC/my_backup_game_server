@@ -9,7 +9,7 @@ from game_server.Logic.InfrastructureLogic.app_post.repository_groups.world_stat
 from game_server.config.constants.seeds import FILE_LOAD_ORDER, SEEDS_DIR
 
 from game_server.database.models.models import Base
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger # Импортируем app_logger
+from game_server.config.logging.logging_setup import app_logger as logger # Импортируем app_logger
 
 from .seed_loader import SeedLoader
 

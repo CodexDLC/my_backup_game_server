@@ -1,78 +1,82 @@
+# game_server/Logic/DomainLogic/worker_generator_templates/worker_character_template/handler_utils/redis_task_status_handler.py
+
 import logging
 from typing import List, Dict, Any, Tuple, Optional
 
-# 🔥 ДОБАВЛЕНО: Импорт класса для типизации
-from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.task_queue_cache_manager import TaskQueueCacheManager
-from game_server.config.constants.redis import CHARACTER_GENERATION_REDIS_TASK_KEY_TEMPLATE
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
+# <<< ИЗМЕНЕНО: Импортируем RedisBatchStore
+from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.redis_batch_store import RedisBatchStore
 
 
-# 🔥 ИЗМЕНЕНИЕ: Функция теперь принимает task_queue_cache_manager
 async def get_task_specs_from_redis(
     batch_id: str,
     task_key_template: str,
-    task_queue_cache_manager: TaskQueueCacheManager, # 🔥 ДОБАВЛЕНО
+    redis_batch_store: RedisBatchStore, # <<< ИЗМЕНЕНО
 ) -> Tuple[Optional[List[Dict[str, Any]]], int, Optional[str]]:
     """
-    Извлекает спецификации задачи и целевое количество через TaskQueueCacheManager.
+    Извлекает спецификации задачи и целевое количество через RedisBatchStore.
     """
     log_prefix = f"CHAR_SPEC_GET({batch_id}):"
-    # 🔥 ИСПОЛЬЗУЕМ ПЕРЕДАННЫЙ task_queue_cache_manager
-    loaded_data = await task_queue_cache_manager.get_character_task_specs(
-        batch_id=batch_id,
-        key_template=task_key_template
-    )
-    
-    specs, target_count, error_message = loaded_data
+    try:
+        # <<< ИЗМЕНЕНО: Используем redis_batch_store.load_batch
+        loaded_data = await redis_batch_store.load_batch(
+            batch_id=batch_id,
+            key_template=task_key_template
+        )
+        
+        if not loaded_data:
+            logger.error(f"{log_prefix} Не удалось загрузить данные батча.")
+            return None, 0, "Batch data not found in Redis."
 
-    if error_message:
-        logger.error(f"{log_prefix} Ошибка при получении спецификаций: {error_message}")
-    
-    return specs, target_count, error_message
+        specs = loaded_data.get("specs")
+        target_count = loaded_data.get("target_count", 0)
+        
+        if not specs:
+            logger.warning(f"{log_prefix} Данные батча загружены, но не содержат спецификаций ('specs').")
+            return None, target_count, "Specs not found in batch data."
+
+        return specs, target_count, None
+
+    except Exception as e:
+        logger.critical(f"{log_prefix} Ошибка при получении спецификаций батча: {e}", exc_info=True)
+        return None, 0, str(e)
 
 
-# 🔥 ИЗМЕНЕНИЕ: Функция теперь принимает task_queue_cache_manager (если не было добавлено ранее)
-async def update_task_generated_count(
-    batch_id: str,
-    task_key_template: str,
-    task_queue_cache_manager: TaskQueueCacheManager, # 🔥 ДОБАВЛЕНО
-    increment_by: int = 1
-) -> Optional[int]:
-    """Атомарно инкрементирует 'generated_count_in_chunk' через TaskQueueCacheManager."""
-    log_prefix = f"CHAR_COUNT_UPDATE({batch_id}):"
-    # 🔥 ИСПОЛЬЗУЕМ ПЕРЕДАННЫЙ task_queue_cache_manager
-    new_count = await task_queue_cache_manager.increment_task_generated_count(
-        batch_id=batch_id,
-        key_template=task_key_template,
-        increment_by=increment_by
-    )
-    if new_count is not None:
-        logger.debug(f"{log_prefix} Счетчик сгенерированных элементов для задачи '{batch_id}' обновлен до {new_count}.")
-    else:
-        logger.warning(f"{log_prefix} Не удалось обновить счетчик сгенерированных элементов для задачи '{batch_id}'.")
-    return new_count
+# <<< УДАЛЕНО: Функция update_task_generated_count больше не нужна.
+# Обновление счетчика происходит один раз в конце через set_task_final_status.
 
-# 🔥 ИЗМЕНЕНИЕ: Функция теперь принимает task_queue_cache_manager (если не было добавлено ранее)
+
 async def set_task_final_status(
     batch_id: str,
     task_key_template: str,
     status: str,
-    task_queue_cache_manager: TaskQueueCacheManager, # 🔥 ДОБАВЛЕНО
+    redis_batch_store: RedisBatchStore, # <<< ИЗМЕНЕНО
     final_generated_count: Optional[int] = None,
     target_count: Optional[int] = None,
     error_message: Optional[str] = None,
     was_empty: bool = False
 ) -> None:
-    """Устанавливает финальный статус задачи через TaskQueueCacheManager."""
+    """Устанавливает финальный статус задачи через RedisBatchStore."""
     log_prefix = f"CHAR_FINAL_STATUS({batch_id}):"
-    # 🔥 ИСПОЛЬЗУЕМ ПЕРЕДАННЫЙ task_queue_cache_manager
-    await task_queue_cache_manager.set_character_task_final_status(
-        batch_id=batch_id,
-        key_template=task_key_template,
-        status=status,
-        final_generated_count=final_generated_count,
-        target_count=target_count,
-        error_message=error_message,
-        was_empty=was_empty
-    )
-    logger.info(f"{log_prefix} Финальный статус задачи '{batch_id}' установлен на '{status}'.")
+    
+    fields_to_update = {"status": status}
+    if final_generated_count is not None:
+        fields_to_update["final_generated_count"] = final_generated_count
+    if target_count is not None:
+        fields_to_update["target_count"] = target_count
+    if error_message:
+        fields_to_update["error_message"] = error_message
+    if was_empty:
+        fields_to_update["was_empty"] = True
+
+    try:
+        # <<< ИЗМЕНЕНО: Используем redis_batch_store.update_fields
+        await redis_batch_store.update_fields(
+            batch_id=batch_id,
+            key_template=task_key_template,
+            fields=fields_to_update
+        )
+        logger.info(f"{log_prefix} Финальный статус задачи '{batch_id}' установлен на '{status}'.")
+    except Exception as e:
+        logger.error(f"{log_prefix} Ошибка при установке финального статуса задачи '{batch_id}': {e}", exc_info=True)
+

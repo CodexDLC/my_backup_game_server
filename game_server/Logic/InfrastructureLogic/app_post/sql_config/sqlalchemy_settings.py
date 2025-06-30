@@ -5,21 +5,23 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import NullPool
 
 # Используем ваш путь для импорта DATABASE_URL (из core_settings)
-from game_server.config.settings_core import DATABASE_URL #
+from game_server.config.settings_core import DATABASE_URL 
 
-# Импортируем конфиг логгера для получения sql_echo настройки
-from game_server.Logic.InfrastructureLogic.logging.logging_config import loggerConfig #
+# 🔥 ИСПРАВЛЕНИЕ: Импортируем 'config' (экземпляр LoggerConfig) из logging_setup.py
+# Файл logging_config.py больше не содержит класса loggerConfig, он был перенесен.
+from game_server.config.logging.logging_setup import config as logging_config_instance 
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger #
+
 
 # ✅ Инициализация конфигурации логгера для получения настроек SQL_ECHO
-_logger_config_instance = loggerConfig() #
+# _logger_config_instance = loggerConfig() # ЭТА СТРОКА БОЛЬШЕ НЕ НУЖНА, МЫ ИСПОЛЬЗУЕМ ИМПОРТИРОВАННЫЙ 'config'
 
-# ✅ Создание движка с учетом настроек логирования из `loggerConfig`
+
+# ✅ Создание движка с учетом настроек логирования из `LoggerConfig`
 engine = create_async_engine(
     DATABASE_URL,
-    echo=_logger_config_instance.sql_echo,  # 🔹 Управление логами SQL через конфиг
+    echo=logging_config_instance.sql_echo,  # 🔹 Управление логами SQL через конфиг
     poolclass=NullPool,  # <--- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: используем NullPool
     future=True
 )

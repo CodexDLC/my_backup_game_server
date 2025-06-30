@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 # 👇 ИЗМЕНЕНИЕ: Главный импорт для всей конфигурации
 from game_server.config.provider import config
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 from game_server.database.models.models import AutoSession # Оставляем для типизации
 
 # ДОБАВЛЕНО: Импорт RepositoryManager

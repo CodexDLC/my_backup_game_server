@@ -1,0 +1,13 @@
+discord.py
+aiohttp
+websockets
+tenacity
+redis
+aioredis
+Pydantic
+msgpack
+python-dotenv
+loguru
+colorlog
+prometheus-client
+psutil

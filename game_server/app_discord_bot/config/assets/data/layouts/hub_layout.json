@@ -1,0 +1,96 @@
+{
+  "Категория: НАЧНИ ЗДЕСЬ": {
+    "type": "category",
+    "permissions": "public_view",
+    "channels": {
+      "добро-пожаловать": {
+        "type": "text",
+        "description": "Канал, где новых участников встречает бот и дается краткая информация о проекте.",
+        "permissions": "read_only"
+      },
+      "правила": {
+        "type": "text",
+        "description": "Ключевые правила поведения на сервере.",
+        "permissions": "read_only"
+      },
+      "новости-и-анонсы": {
+        "type": "news",
+        "description": "Важные объявления, которые должен видеть каждый.",
+        "permissions": "read_only"
+      }
+    }
+  },
+  "Категория: ИГРОВОЙ ДОСТУП": {
+    "type": "category",
+    "permissions": "public_view",
+    "channels": {
+      "как-начать-играть": {
+        "type": "text",
+        "description": "Простая и понятная инструкция по всему процессу онбординга и получения доступа.",
+        "permissions": "read_only"
+      },
+      "получить-доступ": {
+        "type": "text",
+        "description": "Приватный канал, доступ к которому выдается после прохождения онбординга. Здесь игрок получает ссылку.",
+        "permissions": "read_only"
+      }
+    }
+  },
+  "Категория: СООБЩЕСТВО": {
+    "type": "category",
+    "permissions": "player_chat_category",
+    "channels": {
+      "общий-чат": {
+        "type": "text",
+        "description": "Основной чат для общения.",
+        "permissions": "player_chat"
+      },
+      "поиск-группы": {
+        "type": "forum",
+        "description": "Форум, где игроки могут создавать посты для поиска команды.",
+        "permissions": "player_chat"
+      },
+      "торговая-зона": {
+        "type": "text",
+        "description": "Канал для торговых объявлений.",
+        "permissions": "player_chat"
+      },
+      "предложения": {
+        "type": "forum",
+        "description": "Форум для сбора идей и фидбэка, где каждое предложение - отдельный пост.",
+        "permissions": "player_chat"
+      },
+      "поддержка": {
+        "type": "forum",
+        "description": "Форум для запросов в поддержку, где каждый тикет - отдельный пост.",
+        "permissions": "player_chat"
+      }
+    }
+  },
+  "Категория: БИБЛИОТЕКА ЗНАНИЙ": {
+    "type": "category",
+    "permissions": "read_only_category",
+    "channels": {
+      "лор-и-сюжет": {
+        "type": "text",
+        "permissions": "read_only"
+      },
+      "классы-и-фракции": {
+        "type": "text",
+        "permissions": "read_only"
+      },
+      "локации-и-карты": {
+        "type": "text",
+        "permissions": "read_only"
+      },
+      "игровые-механики": {
+        "type": "text",
+        "permissions": "read_only"
+      },
+      "квесты": {
+        "type": "text",
+        "permissions": "read_only"
+      }
+    }
+  }
+}

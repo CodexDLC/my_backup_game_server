@@ -3,13 +3,14 @@
 from typing import Dict, Any
 
 # --- Логгер ---
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # --- Константы через ConfigProvider ---
+from game_server.common_contracts.dtos.orchestrator_dtos import CharacterMetaAttributesData
 from game_server.config.provider import config
 
 # ДОБАВЛЕНО: Импорт CharacterMetaAttributesData DTO
-from game_server.common_contracts.start_orcestrator.dtos import CharacterMetaAttributesData #
+
 
 
 async def get_character_meta_attributes(

@@ -1,69 +1,59 @@
 # game_server/Logic/ApplicationLogic/start_orcestrator/coordinator_pre_start/template_generator_item/item_template_planner_logic.py
-
-# -*- coding: utf-8 -*-
 import json
 import asyncio
-import re
-import time
 import hashlib
+import re
 import uuid
-from typing import Dict, Any, Optional, List, Set, Tuple, Callable
+import time
+from typing import Dict, Any, Optional, List, Set, Tuple
 
-# Главный импорт для всей конфигурации
 from game_server.Logic.CoreServices.services.data_version_manager import DataVersionManager
-from game_server.config.provider import config
-
-# Остальные импорты, не связанные с конфигами
 from game_server.Logic.ApplicationLogic.start_orcestrator.start_orcestrator_utils.generator_utils import generate_item_code
-
-# ДОБАВЛЕНО: Импорт RepositoryManager
 from game_server.Logic.InfrastructureLogic.app_post.repository_manager import RepositoryManager
-
-
-# Обновленные импорты кэш-менеджеров (типизация)
-from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient # Для типизации
+from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
 from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.redis_batch_store import RedisBatchStore
-from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.task_queue_cache_manager import ITaskQueueCacheManager # Для типизации
-from game_server.Logic.InfrastructureLogic.app_cache.services.reference_data.reference_data_reader import IReferenceDataReader # Для типизации
-from arq.connections import ArqRedis # Для типизации arq_redis_pool
-
-# НЕ МЕНЯТЬ: from game_server.database.models.models import EquipmentTemplate # Оставить, если модель используется для типизации возвращаемых значений репозиторием
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
-
+from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_reference_data_reader import IReferenceDataReader
+from game_server.config.logging.logging_setup import app_logger as logger
 from game_server.Logic.ApplicationLogic.start_orcestrator.start_orcestrator_utils.batch_utils import split_into_batches
+from game_server.common_contracts.dtos.orchestrator_dtos import ItemGenerationSpec
+from game_server.config.settings.process.prestart import ETALON_POOL_TTL_SECONDS
+from game_server.config.provider import config
+from game_server.config.constants.redis_key.task_keys import KEY_ITEM_GENERATION_TASK
 
-# ДОБАВЛЕНО: Импорт ItemGenerationSpec DTO
-from game_server.common_contracts.start_orcestrator.dtos import ItemGenerationSpec #
+from game_server.config.constants.redis_key.reference_data_keys import (
+    REDIS_KEY_GENERATOR_ITEM_BASE,
+    REDIS_KEY_GENERATOR_MATERIALS,
+    REDIS_KEY_GENERATOR_SUFFIXES,
+   
+)
+from game_server.config.constants.redis import (
+    REDIS_KEY_ETALON_ITEM_POOL, 
+    REDIS_KEY_ETALON_ITEM_FINGERPRINT,   
+)
 
 
 class ItemTemplatePlannerLogic:
     def __init__(
         self,
-        repository_manager: RepositoryManager, # ИЗМЕНЕНО: теперь принимаем RepositoryManager
-        central_redis_client: CentralRedisClient, # ИЗМЕНЕНО: точная типизация
-        reference_data_reader: IReferenceDataReader, # ИЗМЕНЕНО: точная типизация
-        task_queue_cache_manager: ITaskQueueCacheManager, # ИЗМЕНЕНО: точная типизация
-        arq_redis_pool: ArqRedis, # ИЗМЕНЕНО: точная типизация
+        repository_manager: RepositoryManager,
+        central_redis_client: CentralRedisClient,
+        reference_data_reader: IReferenceDataReader,
+        redis_batch_store: RedisBatchStore,
         item_generation_limit: Optional[int] = None
     ):
-        # УДАЛЕНО: self.async_session_factory = async_session_factory
-        self.repository_manager = repository_manager # ДОБАВЛЕНО: сохраняем RepositoryManager
+        self.repository_manager = repository_manager
         self.logger = logger
         self.central_redis_client = central_redis_client
         self.reference_data_reader = reference_data_reader
-        self.task_queue_cache_manager = task_queue_cache_manager
-        self.arq_redis_pool = arq_redis_pool # Этот атрибут больше не будет использоваться для enqueue_job здесь.
-        
-        self.redis_batch_store = RedisBatchStore(redis_client=self.central_redis_client) # RedisBatchStore принимает CentralRedisClient
-
+        self.redis_batch_store = redis_batch_store
         self.item_generation_limit = item_generation_limit
-        logger.debug("✅ ItemTemplatePlannerLogic инициализирован.")
+        logger.debug("✅ ItemTemplatePlannerLogic (v3) инициализирован.")
 
     async def _get_current_data_fingerprint(self) -> str:
         dependency_keys = [
-            config.constants.redis.REDIS_KEY_GENERATOR_ITEM_BASE,
-            config.constants.redis.REDIS_KEY_GENERATOR_MATERIALS,
-            config.constants.redis.REDIS_KEY_GENERATOR_SUFFIXES,
+            REDIS_KEY_GENERATOR_ITEM_BASE,
+            REDIS_KEY_GENERATOR_MATERIALS,
+            REDIS_KEY_GENERATOR_SUFFIXES,
         ]
         versions = await DataVersionManager.get_redis_fingerprint(self.central_redis_client, dependency_keys)
         fingerprint_str = json.dumps(versions, sort_keys=True)
@@ -72,67 +62,55 @@ class ItemTemplatePlannerLogic:
     async def _get_cached_etalon_pool(self) -> Tuple[Optional[Dict], Optional[str]]:
         try:
             async with self.central_redis_client.pipeline() as pipe:
-                pipe.get(config.constants.redis.REDIS_KEY_ETALON_ITEM_POOL)
-                pipe.get(config.constants.redis.REDIS_KEY_ETALON_ITEM_FINGERPRINT)
+                pipe.get(REDIS_KEY_ETALON_ITEM_POOL)
+                pipe.get(REDIS_KEY_ETALON_ITEM_FINGERPRINT)
                 results = await pipe.execute()
             
             pool_json, fingerprint_hash = results[0], results[1]
             if not pool_json or not fingerprint_hash:
                 return None, None
             
-            # ИЗМЕНЕНО: При загрузке из кэша, преобразуем словари обратно в ItemGenerationSpec объекты
-            # Предполагаем, что в кэше они хранятся как словари (json.loads)
             cached_pool_dicts = json.loads(pool_json)
-            cached_pool_specs = {k: ItemGenerationSpec(**v) for k, v in cached_pool_dicts.items()} # <--- ДОБАВЛЕНО
-            
-            return {k: spec.model_dump() for k, spec in cached_pool_specs.items()}, fingerprint_hash # Возвращаем словари, чтобы не менять сигнатуру метода get_or_build_etalon_specs пока что.
-                                                                                                # В идеале, etalon_specs должны стать Dict[str, ItemGenerationSpec]
+            # Примечание: Преобразование в DTO теперь происходит в вызывающем методе get_or_build_etalon_specs
+            return cached_pool_dicts, fingerprint_hash
         except Exception as e:
             self.logger.error(f"Ошибка при загрузке кэшированного эталонного пула: {e}", exc_info=True)
             return None, None
 
     async def _cache_etalon_pool(self, pool: Dict, fingerprint_hash: str):
         try:
-            # ИЗМЕНЕНО: Убедимся, что pool содержит Pydantic объекты, и преобразуем их в словари для кэширования
-            # pool_to_cache = {k: v.model_dump() if isinstance(v, ItemGenerationSpec) else v for k, v in pool.items()} # Если pool уже содержит ItemGenerationSpec
-            pool_to_cache = pool # В текущей реализации pool уже Dict[str, Tuple], поэтому model_dump не нужен
-                                 # Но если бы etalon_item_data_specs хранил ItemGenerationSpec, тогда бы pool_to_cache
-                                 # был бы результатом преобразования этих объектов в dict.
-            pool_json = json.dumps(pool_to_cache, ensure_ascii=False) # Используем pool_to_cache
+            # Убеждаемся, что на вход подаются словари
+            pool_json = json.dumps(pool, ensure_ascii=False)
             
             async with self.central_redis_client.pipeline() as pipe:
-                pipe.set(config.constants.redis.REDIS_KEY_ETALON_ITEM_POOL, pool_json)
-                pipe.set(config.constants.redis.REDIS_KEY_ETALON_ITEM_FINGERPRINT, fingerprint_hash)
-                pipe.expire(config.constants.redis.REDIS_KEY_ETALON_ITEM_POOL, config.settings.prestart.ETALON_POOL_TTL_SECONDS)
-                pipe.expire(config.constants.redis.REDIS_KEY_ETALON_ITEM_FINGERPRINT, config.settings.prestart.ETALON_POOL_TTL_SECONDS)
+                pipe.set(REDIS_KEY_ETALON_ITEM_POOL, pool_json)
+                pipe.set(REDIS_KEY_ETALON_ITEM_FINGERPRINT, fingerprint_hash)
+                pipe.expire(REDIS_KEY_ETALON_ITEM_POOL, ETALON_POOL_TTL_SECONDS)
+                pipe.expire(REDIS_KEY_ETALON_ITEM_FINGERPRINT, ETALON_POOL_TTL_SECONDS)
                 await pipe.execute()
             self.logger.info(f"✅ Эталонный пул предметов успешно кэширован (хэш: {fingerprint_hash[:8]}...).")
         except Exception as e:
             self.logger.error(f"Ошибка при кэшировании эталонного пула: {e}", exc_info=True)
 
-    # ИЗМЕНЕНО: Сигнатура метода теперь возвращает Dict[str, ItemGenerationSpec]
     async def get_or_build_etalon_specs(self) -> Dict[str, ItemGenerationSpec]:
         self.logger.debug("Проверка кэша для эталонного пула предметов...")
         
         current_fingerprint = await self._get_current_data_fingerprint()
-        cached_pool_dicts, cached_fingerprint = await self._get_cached_etalon_pool() # cached_pool_dicts уже будут словарями
+        cached_pool_dicts, cached_fingerprint = await self._get_cached_etalon_pool()
 
         if cached_pool_dicts is not None and current_fingerprint == cached_fingerprint:
             self.logger.debug(f"✅ Кэш эталонного пула актуален (хэш: {current_fingerprint[:8]}...). Используем кэшированную версию.")
-            # ИЗМЕНЕНО: Преобразуем словари из кэша в ItemGenerationSpec объекты
-            return {k: ItemGenerationSpec(**v) for k, v in cached_pool_dicts.items()} # <--- ДОБАВЛЕНО
+            return {k: ItemGenerationSpec(**v) for k, v in cached_pool_dicts.items()}
         
         self.logger.warning(f"Кэш эталонного пула не найден или устарел. Запуск полного пересчета... (Текущий хэш: {current_fingerprint[:8]}, кэш: {cached_fingerprint[:8] if cached_fingerprint else 'N/A'})")
         
-        item_base_raw, materials_raw, suffixes_raw, modifiers_raw = await self.load_reference_data_from_redis()
+        item_base_raw, materials_raw, suffixes_raw, _ = await self.load_reference_data_from_redis()
         
         item_base = item_base_raw if item_base_raw is not None else {}
         materials = materials_raw if materials_raw is not None else {}
         suffixes = suffixes_raw if suffixes_raw is not None else {}
-        modifiers = modifiers_raw if modifiers_raw is not None else {}
         
-        # ИЗМЕНЕНО: build_etalon_item_codes теперь возвращает Dict[str, ItemGenerationSpec]
-        new_etalon_pool: Dict[str, ItemGenerationSpec] = self.build_etalon_item_codes(item_base, materials, suffixes)
+        new_etalon_pool = self.build_etalon_item_codes(item_base, materials, suffixes)
         
         existing_codes_in_db = await self.get_existing_item_codes_from_db()
         new_etalon_item_codes = set(new_etalon_pool.keys())
@@ -145,8 +123,7 @@ class ItemTemplatePlannerLogic:
         else:
             self.logger.debug("ℹ️ Нет 'лишних' item_code для удаления из БД.")
 
-        # ИЗМЕНЕНО: Передаем словари для кэширования
-        await self._cache_etalon_pool({k: v.model_dump() for k, v in new_etalon_pool.items()}, current_fingerprint) # <--- ДОБАВЛЕНО
+        await self._cache_etalon_pool({k: v.model_dump() for k, v in new_etalon_pool.items()}, current_fingerprint)
         
         return new_etalon_pool
 
@@ -179,7 +156,6 @@ class ItemTemplatePlannerLogic:
         
         try:
             repo = self.repository_manager.equipment_templates
-            # Если delete_by_item_code_batch еще не реализован, нужно его добавить
             deleted_count = await repo.delete_by_item_code_batch(item_codes_to_delete)
             self.logger.info(f"🗑️ Успешно удалено {deleted_count} 'лишних' item_code из БД.")
             return deleted_count
@@ -187,11 +163,10 @@ class ItemTemplatePlannerLogic:
             self.logger.error(f"❌ Ошибка при удалении item_code из БД: {e}", exc_info=True)
             return 0
 
-    # ИЗМЕНЕНО: Сигнатура метода теперь возвращает Dict[str, ItemGenerationSpec]
     def build_etalon_item_codes(
         self, item_base_data: Dict[str, Any], materials_data: Dict[str, Any], suffixes_data: Dict[str, Any]
-    ) -> Dict[str, ItemGenerationSpec]: # <--- ИЗМЕНЕНО
-        etalon_item_data_specs: Dict[str, ItemGenerationSpec] = {} # <--- ИЗМЕНЕНО
+    ) -> Dict[str, ItemGenerationSpec]:
+        etalon_item_data_specs: Dict[str, ItemGenerationSpec] = {}
         self.logger.info("ItemTemplatePlannerLogic: Начало формирования эталонного пула item_code.")
         start_time = time.time()
 
@@ -230,7 +205,6 @@ class ItemTemplatePlannerLogic:
                             material_code=material_code, suffix_code=suffix_code, rarity_level=rarity_level_to_use
                         )
 
-                        # ИЗМЕНЕНО: Создаем ItemGenerationSpec объект
                         spec_obj = ItemGenerationSpec(
                             item_code=item_code,
                             category=category,
@@ -240,19 +214,17 @@ class ItemTemplatePlannerLogic:
                             suffix_code=suffix_code,
                             rarity_level=rarity_level_to_use
                         )
-                        etalon_item_data_specs[item_code] = spec_obj # <--- Теперь храним объект DTO
+                        etalon_item_data_specs[item_code] = spec_obj
 
         elapsed_time = time.time() - start_time
         self.logger.info(f"ItemTemplatePlannerLogic: Построен эталонный пул из {len(etalon_item_data_specs)} уникальных item_code. Время выполнения: {elapsed_time:.2f} секунд.")
         return etalon_item_data_specs
 
-    # ИЗМЕНЕНО: Сигнатура метода теперь принимает и возвращает List[ItemGenerationSpec]
-    def find_missing_specs(self, etalon_specs: Dict[str, ItemGenerationSpec], existing_codes: Set[str]) -> List[ItemGenerationSpec]: # <--- ИЗМЕНЕНО
+    def find_missing_specs(self, etalon_specs: Dict[str, ItemGenerationSpec], existing_codes: Set[str]) -> List[ItemGenerationSpec]:
         return [spec for item_code, spec in etalon_specs.items() if item_code not in existing_codes]
 
-    # ИЗМЕНЕНО: Сигнатура метода теперь принимает List[ItemGenerationSpec]
     async def prepare_tasks_for_missing_items(
-        self, missing_specs: List[ItemGenerationSpec], item_generation_limit: Optional[int] # <--- ИЗМЕНЕНО
+        self, missing_specs: List[ItemGenerationSpec], item_generation_limit: Optional[int]
     ) -> List[Dict[str, Any]]:
         self.logger.debug(f"Начало подготовки задач для {len(missing_specs)} недостающих предметов.")
 
@@ -262,30 +234,26 @@ class ItemTemplatePlannerLogic:
             self.logger.debug(f"Применен лимит генерации: будет обработано {len(specs_to_process)} спецификаций.")
 
         if not specs_to_process:
-            self.logger.info("Нет спецификаций для обработки после применения лимита. Возвращаем пустой список задач.")
             return []
 
         generated_task_entries = []
 
-        # split_into_batches теперь будет получать List[ItemGenerationSpec]
-        for batch_specs_objs in split_into_batches(specs_to_process, config.settings.prestart.ITEM_GENERATION_BATCH_SIZE): # <--- ИЗМЕНЕНО: переименовал переменную для ясности
-
-            # ИЗМЕНЕНО: Преобразуем список ItemGenerationSpec объектов в список словарей для Redis/JSON
-            batch_specs_as_dicts = [
-                spec_obj.model_dump(by_alias=True) # ИСПОЛЬЗУЕМ Pydantic метод для преобразования в dict
-                for spec_obj in batch_specs_objs # <--- ИЗМЕНЕНО: используем объекты ItemGenerationSpec
-            ]
-
+        for batch_specs_objs in split_into_batches(specs_to_process, config.settings.prestart.ITEM_GENERATION_BATCH_SIZE):
+            batch_specs_as_dicts = [spec_obj.model_dump(by_alias=True) for spec_obj in batch_specs_objs]
             redis_worker_batch_id = str(uuid.uuid4())
             
-            self.logger.critical(f"*** DEBUG_ENQUEUE_ITEM_PRE: Batch ID='{redis_worker_batch_id}', Chunk Size={len(batch_specs_as_dicts)}")
+            batch_data_to_save = {
+                "specs": batch_specs_as_dicts,
+                "target_count": len(batch_specs_as_dicts),
+                "status": "pending"
+            }
 
-            success = await self.task_queue_cache_manager.add_task_to_queue(
+            # <<< ИСПРАВЛЕНО: Добавлен обязательный аргумент 'key_template' в вызов метода
+            success = await self.redis_batch_store.save_batch(
+                key_template=KEY_ITEM_GENERATION_TASK, # <<< ВОТ ОН
                 batch_id=redis_worker_batch_id,
-                key_template=config.constants.redis.ITEM_GENERATION_REDIS_TASK_KEY_TEMPLATE,
-                specs=batch_specs_as_dicts, # Здесь все еще ожидаются словари, так как это данные для Redis/ARQ
-                target_count=len(batch_specs_as_dicts),
-                initial_status="pending"
+                batch_data=batch_data_to_save,
+                ttl_seconds=config.settings.redis.BATCH_TASK_TTL_SECONDS
             )
 
             if success:
@@ -294,5 +262,5 @@ class ItemTemplatePlannerLogic:
             else:
                 self.logger.error(f"Не удалось сохранить батч ID '{redis_worker_batch_id}' в Redis. ARQ-задача не будет отправлена.")
 
-        self.logger.info(f"Подготовлено {len(generated_task_entries)} батчей задач на генерацию предметов. Готов к постановке в очередь ARQ.")
+        self.logger.info(f"Подготовлено {len(generated_task_entries)} батчей задач на генерацию предметов.")
         return generated_task_entries

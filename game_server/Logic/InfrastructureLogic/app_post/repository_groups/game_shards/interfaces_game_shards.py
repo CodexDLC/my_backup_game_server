@@ -1,14 +1,16 @@
-# game_server/Logic/InfrastructureLogic/DataAccessLogic/app_post/repository_groups/game_shards/interfaces_game_shards.py
-
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
-# Импорт моделей, используемых в сигнатурах этого интерфейса
-from game_server.database.models.models import GameShard
+from typing import Optional, List, Dict, Any # Убедитесь, что Dict и Any импортированы, т.к. они используются в upsert_shard
 
+from game_server.database.models.models import GameShard # Импорт вашей модели GameShard
 
 class IGameShardRepository(ABC):
     @abstractmethod
     async def create_shard(self, shard_name: str, discord_guild_id: int, max_players: int, is_admin_enabled: bool, is_system_active: bool) -> GameShard: pass
+    
+    # 🔥 НОВЫЙ АБСТРАКТНЫЙ МЕТОД: upsert_shard
+    @abstractmethod
+    async def upsert_shard(self, shard_data: Dict[str, Any]) -> GameShard: pass # Добавляем этот метод в интерфейс
+
     @abstractmethod
     async def get_shard_by_guild_id(self, discord_guild_id: int) -> Optional[GameShard]: pass
     @abstractmethod

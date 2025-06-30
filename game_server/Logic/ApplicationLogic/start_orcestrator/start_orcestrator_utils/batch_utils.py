@@ -3,7 +3,7 @@
 # import json # Больше не нужен
 from typing import List, Dict, Any, Iterator
 
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 

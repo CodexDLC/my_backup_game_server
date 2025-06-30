@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from game_server.common_contracts.start_orcestrator.dtos import ItemBaseData
+from game_server.common_contracts.dtos.orchestrator_dtos import ItemBaseData
 from game_server.config.provider import config
 from game_server.Logic.CoreServices.services.generic_redis_loader import GenericRedisLoader
 

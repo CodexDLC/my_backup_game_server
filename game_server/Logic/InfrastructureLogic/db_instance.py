@@ -11,7 +11,7 @@ from typing import Any, AsyncGenerator, Optional
 from game_server.Logic.InfrastructureLogic.app_post.sql_config.sqlalchemy_settings import engine # <--- ИЗМЕНЕНО
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger # <--- ИЗМЕНЕНО
+from game_server.config.logging.logging_setup import app_logger as logger # <--- ИЗМЕНЕНО
 
 # 🔹 Фабрики сессий
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)

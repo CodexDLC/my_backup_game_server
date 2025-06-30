@@ -14,7 +14,7 @@ from game_server.Logic.InfrastructureLogic.app_post.repository_groups.meta_data_
 from game_server.database.models.models import CreatureType, CreatureTypeInitialSkill
 
 # ДОБАВЛЕНО: Импорт DTO для CreatureType и PlayableRace
-from game_server.common_contracts.start_orcestrator.dtos import CreatureTypeData, PlayableRaceData # Предполагаем, что PlayableRaceData будет создана
+from game_server.common_contracts.dtos.orchestrator_dtos import CreatureTypeData, PlayableRaceData # Предполагаем, что PlayableRaceData будет создана
 
 
 logger = logging.getLogger(__name__)

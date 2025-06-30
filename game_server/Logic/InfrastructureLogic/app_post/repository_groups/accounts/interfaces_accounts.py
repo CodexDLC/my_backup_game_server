@@ -7,20 +7,28 @@ from game_server.database.models.models import AccountGameData, AccountInfo
 
 
 class IAccountGameDataRepository(ABC):
+
     @abstractmethod
-    async def get_account_game_data(self, account_id: int) -> Optional[AccountGameData]: pass
+    async def get_account_game_data(self, account_id: int) -> Optional[AccountGameData]:
+        pass
     @abstractmethod
-    async def update_shard_id(self, account_id: int, new_shard_id: Optional[str]) -> Optional[AccountGameData]: pass
+    async def update_shard_id(self, account_id: int, new_shard_id: Optional[str]) -> Optional[AccountGameData]:
+        pass
     @abstractmethod
-    async def update_last_login_game(self, account_id: int) -> Optional[AccountGameData]: pass
+    async def update_last_login_game(self, account_id: int) -> Optional[AccountGameData]:
+        pass
     @abstractmethod
-    async def get_inactive_accounts_with_shard_id(self, days_inactive: int) -> List[AccountGameData]: pass
+    async def get_inactive_accounts_with_shard_id(self, days_inactive: int) -> List[AccountGameData]:
+        pass
     @abstractmethod
-    async def clear_shard_id_for_accounts(self, account_ids: List[int]) -> int: pass
+    async def clear_shard_id_for_accounts(self, account_ids: List[int]) -> int:
+        pass
     @abstractmethod
-    async def count_players_on_shard(self, shard_id: str) -> int: pass
+    async def count_players_on_shard(self, shard_id: str) -> int:
+        pass
     @abstractmethod
-    async def count_players_on_all_shards(self) -> Dict[str, int]: pass
+    async def count_players_on_all_shards(self) -> Dict[str, int]:
+        pass
 
 class IAccountInfoRepository(ABC):
     @abstractmethod

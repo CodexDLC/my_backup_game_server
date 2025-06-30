@@ -5,10 +5,10 @@ from game_server.config.provider import config
 from game_server.Logic.CoreServices.services.generic_redis_loader import GenericRedisLoader
 
 # Импортируем DTO, которое мы только что определили (или обновили)
-from game_server.common_contracts.start_orcestrator.dtos import LocationConnectionData
+from game_server.common_contracts.dtos.orchestrator_dtos import LocationConnectionData
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 class LocationConnectionsLoader:
     """

@@ -1,21 +1,29 @@
+# game_server/Logic/ApplicationLogic/start_orcestrator/coordinator_run/coordinator_handler/base_handler.py
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 
 class ICommandHandler(ABC):
     """
-    Абстрактный базовый класс (интерфейс) для всех обработчиков команд.
-    Определяет единый метод `execute`, который должны реализовать все конкретные обработчики.
-    
-    Этот класс не содержит логики, а только определяет "контракт" (правила),
-    которым должны следовать другие классы.
+    Абстрактный интерфейс для всех обработчиков команд Координатора.
+    Гарантирует, что каждый обработчик будет иметь метод execute.
     """
-    @abstractmethod
-    async def execute(self, payload: Dict[str, Any]) -> None:
+    def __init__(self, dependencies: Dict[str, Any]):
         """
-        Основной метод, выполняющий всю логику, связанную с командой.
-        
+        Конструктор принимает словарь с общими зависимостями (клиенты, менеджеры).
+        """
+        self.dependencies = dependencies
+        self.logger = dependencies.get("logger")
+        # Здесь можно для удобства сразу извлечь часто используемые зависимости
+        # self.repository_manager = dependencies.get("repository_manager")
+        # self.arq_redis_client = dependencies.get("arq_redis_client")
+
+    @abstractmethod
+    async def execute(self, command_dto: Any):
+        """
+        Основной метод, который выполняет бизнес-логику команды.
+        Должен быть реализован в каждом конкретном обработчике.
+
         Args:
-            payload (Dict[str, Any]): Полезная нагрузка из сообщения, 
-                                      содержащая команду и ее данные.
+            command_dto: Валидированный Pydantic DTO объект с данными команды.
         """
         pass

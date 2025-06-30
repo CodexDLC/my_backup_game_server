@@ -1,0 +1,248 @@
+# docker-compose.backend.yml
+# ===================================================================
+# volumes & networks: Определяем их на верхнем уровне
+# ===================================================================
+volumes:
+  pg_data:
+    driver: local
+  redis_central_data:
+    driver: local
+  mongo_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  backend_network:
+    name: backend_network # 🔥 Явно указываем имя сети
+    driver: bridge
+
+# ===================================================================
+# x-templates: Используем якоря для переиспользования общих блоков
+# ===================================================================
+x-common-env: &common-env
+  env_file: .env
+
+x-common-restart-policy: &common-restart-policy
+  restart: always
+
+x-common-build-python: &common-build-python
+  build:
+    context: .
+    # Dockerfile будет указан в каждом сервисе отдельно
+
+# ===================================================================
+# 🏗️ ИНФРАСТРУКТУРНЫЕ СЕРВИСЫ БЭКЕНДА
+# ===================================================================
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_service
+    hostname: postgres
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mongo_db:
+    image: mongo:6.0
+    container_name: mongo_service
+    hostname: mongo
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis_cache_service
+    hostname: redis
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    command: redis-server --requirepass "${REDIS_PASSWORD}" --appendonly yes
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_central_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_service
+    hostname: rabbitmq
+    <<: [*common-env, *common-restart-policy]
+    networks: [backend_network]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity", "-q"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+# ===================================================================
+# 🚀 ПРИЛОЖЕНИЯ СЕРВЕРА
+# ===================================================================
+  fast_api:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/fast_api/Dockerfile
+    container_name: fast_api_service
+    command: gunicorn -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:8000 game_server.app_gateway.main:app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin
+      - CONTAINER_ID=fast_api_service
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      mongo_db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/fast_api_output:/app/game_server/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  start_orchestrator:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile
+    container_name: start_orchestrator_service
+    command: uvicorn game_server.game_services.game_world_state_orchestrator:app --host 0.0.0.0 --port 8002
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin
+      - CONTAINER_ID=start_orchestrator_service
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      mongo_db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/start_orchestrator_output:/app/game_server/logs
+
+  auth_service:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile
+    container_name: auth_service_container
+    command: uvicorn game_server.game_services.auth_service_main:app --host 0.0.0.0 --port 8001
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - CONTAINER_ID=auth_service_container
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/auth_service_output:/app/game_server/logs
+
+  system_services:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile
+    container_name: system_services_container
+    command: uvicorn game_server.game_services.system_services_main:app --host 0.0.0.0 --port 8001
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - CONTAINER_ID=auth_service_container
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/system_services_output:/app/game_server/logs
+
+  arq_worker:
+    <<: [*common-env, *common-restart-policy, *common-build-python]
+    networks: [backend_network]
+    build:
+      dockerfile: services_config/game_server/Dockerfile
+    container_name: arq_worker_service
+    command: arq game_server.Logic.InfrastructureLogic.arq_worker.arq_worker_settings.WorkerSettings
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_HOST=${MONGO_HOST_CONTAINER}
+      - MONGO_PORT=${MONGO_PORT}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - RABBITMQ_VHOST=${RABBITMQ_VHOST}
+      - CONTAINER_ID=arq_worker_service
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      mongo_db: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    volumes:
+      - ./logs/arq_worker_output:/app/game_server/logs

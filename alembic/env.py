@@ -5,7 +5,7 @@ from datetime import datetime
 
 from game_server.config.settings_core import DATABASE_URL_SYNC, SQL_ECHO
 from game_server.database.models.models import Base
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # 👇 ИЗМЕНЕНИЕ: Импортируем URL для БД и настройку echo из главного файла настроек
 

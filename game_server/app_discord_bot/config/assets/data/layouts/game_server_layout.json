@@ -1,0 +1,57 @@
+{
+  "Категория: ЛОГИ СЕРВЕРА": {
+    "type": "category",
+    "permissions": "admin_only_category",
+    "channels": {
+      "общий-лог": {
+        "type": "text",
+        "description": "Канал для глобальных событий и публичных логов игрового мира.",
+        "permissions": "read_only"
+      },
+      "админ-лог": {
+        "type": "text",
+        "description": "Скрытый канал для логирования действий на этом шарде.",
+        "permissions": "admin_only"
+      }
+    }
+  },
+  "Категория: АДМИН-ЗОНА": {
+    "type": "category",
+    "permissions": "admin_only_category",
+    "channels": {
+      "админ-чат": {
+        "type": "text",
+        "description": "Закрытый чат для администраторов сервера.",
+        "permissions": "admin_only"
+      },
+      "модераторский-чат": {
+        "type": "text",
+        "description": "Чат для команды модераторов.",
+        "permissions": "moderator_only"
+      }
+    }
+  },
+  "Категория: ОБЩИЕ КАНАЛЫ": {
+    "type": "category",
+    "permissions": "public_category",
+    "channels": {
+      "приёмная": {
+        "type": "text",
+        "description": "Основной канал для новых игроков. Сюда будут вести пригласительные ссылки.",
+        "permissions": "public"
+      }
+    }
+  },
+  "player_channel_categories": [
+    {
+      "name": "ИНТЕРФЕЙСЫ",
+      "type": "category",
+      "description": "Категория, где будут создаваться личные каналы игроков '#интерфейс-[имя]'."
+    },
+    {
+      "name": "АРЕНЫ И ЛОГИ",
+      "type": "category",
+      "description": "Категория, где будут создаваться личные каналы игроков '#арена-[имя]' для боев и логов."
+    }
+  ]
+}

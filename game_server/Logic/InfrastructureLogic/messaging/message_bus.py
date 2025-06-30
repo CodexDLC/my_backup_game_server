@@ -1,64 +1,68 @@
-#game_server\Logic\InfrastructureLogic\messaging\message_bus.py
+# game_server/Logic/InfrastructureLogic/messaging/message_bus.py
 
 import asyncio
 from typing import Dict, Any, AsyncIterator
 from arq.connections import ArqRedis
-
-# 🔥 ИЗМЕНЕНИЕ: Вместо json импортируем msgpack
 import msgpack
 
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
+# ИЗМЕНЕНО: Импортируем наш новый интерфейс и форматтер сообщений
+from .i_message_bus import IMessageBus
 from .message_format import create_message
 
-
-class RedisMessageBus:
+# ИЗМЕНЕНО: Класс теперь реализует интерфейс IMessageBus
+class RedisMessageBus(IMessageBus):
     """
     Реализация шины сообщений на базе Redis Streams.
-    Использует MsgPack для быстрой и компактной сериализации.
+    Полностью реализует интерфейс IMessageBus.
     """
     def __init__(self, redis_pool: ArqRedis):
         self.redis = redis_pool
-        logger.info("✅ RedisMessageBus (с MsgPack) инициализирован.")
+        logger.info("✅ RedisMessageBus (совместимый с IMessageBus) инициализирован.")
 
-    async def publish(self, channel: str, message: Dict[str, Any]):
+    # ИЗМЕНЕНО: Сигнатура метода теперь соответствует интерфейсу
+    async def publish(self, exchange_name: str, routing_key: str, message: Dict[str, Any]):
         """
-        Публикует сообщение в указанный канал (стрим) Redis.
-        Сериализует payload с помощью MsgPack.
+        Публикует полное сообщение (metadata + payload) в стрим Redis.
+
+        Для Redis Streams мы используем `routing_key` как имя стрима.
+        `exchange_name` игнорируется, так как у Redis нет такой концепции.
         """
+        # 1. Создаем полный "конверт" для сообщения
         full_message = create_message(payload=message)
-        payload_to_publish = full_message.get("payload", {})
         
-        # 🔥 ИЗМЕНЕНИЕ: Используем msgpack.packb для сериализации в байты
-        # packb = pack to bytes
-        packed_payload = msgpack.packb(payload_to_publish, use_bin_type=True)
+        # 2. Сериализуем ВЕСЬ "конверт", а не только payload
+        packed_message = msgpack.packb(full_message, use_bin_type=True)
         
-        await self.redis.xadd(channel, {'payload': packed_payload})
-        logger.debug(f"Сообщение опубликовано в канал '{channel}'")
+        # 3. Публикуем в стрим (routing_key - это имя стрима)
+        #    Используем ключ 'data' для хранения всего сообщения
+        await self.redis.xadd(routing_key, {'data': packed_message})
+        logger.debug(f"Сообщение {full_message['metadata']['message_id']} опубликовано в стрим '{routing_key}'")
 
-    async def subscribe(self, channel: str, last_id: str = '$') -> AsyncIterator[Dict[str, Any]]:
+    # ИЗМЕНЕНО: Сигнатура метода теперь соответствует интерфейсу
+    async def subscribe(self, queue_name: str, **kwargs) -> AsyncIterator[Dict[str, Any]]:
         """
-        Подписывается на канал (стрим) и асинхронно возвращает новые сообщения.
-        Десериализует payload с помощью MsgPack.
+        Подписывается на стрим (имя которого передается в queue_name)
+        и асинхронно возвращает полные сообщения.
         """
-        logger.info(f"Подписка на канал '{channel}'...")
+        last_id = kwargs.get("last_id", "$")
+        logger.info(f"Подписка на стрим '{queue_name}'...")
         while True:
             try:
-                # Ожидаем новое сообщение в стриме
                 messages = await self.redis.xread(
-                    streams={channel: last_id},
+                    streams={queue_name: last_id},
                     count=1,
-                    block=0 # Блокирующий вызов, ждет вечно
+                    block=0 
                 )
                 
                 for stream, message_list in messages:
                     for message_id, raw_message in message_list:
-                        if b'payload' in raw_message:
-                            # 🔥 ИЗМЕНЕНИЕ: Используем msgpack.unpackb для десериализации из байтов
-                            # unpackb = unpack from bytes
-                            payload = msgpack.unpackb(raw_message[b'payload'], raw=False)
-                            yield payload
+                        # ИЗМЕНЕНО: Ожидаем ключ 'data', а не 'payload'
+                        if b'data' in raw_message:
+                            # Десериализуем и возвращаем ВЕСЬ "конверт"
+                            full_message = msgpack.unpackb(raw_message[b'data'], raw=False)
+                            yield full_message
                         
-                        # Обновляем ID последнего полученного сообщения
                         last_id = message_id
 
             except ConnectionError:

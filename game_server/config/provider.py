@@ -18,6 +18,8 @@ from .settings.process import runtime as runtime_settings
 from .settings import redis_setting as redis_settings_module
 # 🔥 НОВЫЙ ИМПОРТ: Импортируем настройки генератора персонажей
 from .settings.character import generator_settings as character_generator_settings
+# 🔥 ИСПРАВЛЕННЫЙ ИМПОРТ: Импортируем settings_core.py, который находится на том же уровне
+from . import settings_core as core_settings_module # <--- ВОТ ЭТО ИЗМЕНЕНИЕ!
 
 
 class _Constants:
@@ -39,6 +41,8 @@ class _Settings:
         self.redis = redis_settings_module
         # 🔥 НОВОЕ: Добавляем настройки генератора персонажей
         self.character = character_generator_settings
+        # 🔥 НОВОЕ: Добавляем импортированные настройки из settings_core
+        self.core = core_settings_module
 
 
 class ConfigProvider:

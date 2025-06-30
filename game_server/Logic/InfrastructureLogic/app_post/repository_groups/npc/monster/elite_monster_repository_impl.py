@@ -16,7 +16,7 @@ from game_server.Logic.InfrastructureLogic.app_post.repository_groups.npc.monste
 
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class EliteMonsterRepositoryImpl(IEliteMonsterRepository):

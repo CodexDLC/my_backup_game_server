@@ -398,37 +398,6 @@ class StateEntity(Base):
 
 
 
-class StateEntityDiscord(Base):
-    __tablename__ = 'state_entities_discord'
-    __table_args__ = (
-        PrimaryKeyConstraint('guild_id', 'role_id', name='state_entities_discord_pkey'),
-        # <--- ForeignKeyConstraint ОСТАЕТСЯ, так как это связь на уровне БД
-        ForeignKeyConstraint(
-            ['access_code'],
-            ['state_entities.access_code'],
-            name='fk_state_entities_discord_access_code',
-            ondelete='CASCADE'
-        )
-    )
-
-    guild_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    role_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-
-    access_code: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-
-    role_name: Mapped[str] = mapped_column(TEXT, nullable=False)
-    permissions: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-
-    # --- УДАЛЕНО: relationship для state_entity ---
-    # state_entity: Mapped[Optional['StateEntity']] = relationship(...)
-
-    def __repr__(self):
-        return (f"<StateEntityDiscord(guild_id={self.guild_id}, role_id={self.role_id}, "
-                f"access_code='{self.access_code}', role_name='{self.role_name}')>")
-
 
 
 
@@ -1126,36 +1095,45 @@ class UsedCharacterArchive(Base):
 
 class DiscordEntity(Base):
     """
-    Универсальная таблица для хранения всех созданных ботом
-    сущностей Discord (категорий, каналов) на всех серверах (Хабе и Шардах).
+    Универсальная таблица для хранения ВСЕХ сущностей Discord:
+    ролей, каналов, категорий и т.д.
+    Тип сущности определяется полем 'entity_type'.
     """
     __tablename__ = 'discord_entities'
+    
+    # ИСПРАВЛЕНИЕ: Добавляем составной уникальный ключ на guild_id и access_code
+    # И убираем unique=True из определения колонки access_code ниже.
+    __table_args__ = (
+        UniqueConstraint('guild_id', 'discord_id', name='uq_guild_discord_id'),
+        UniqueConstraint('guild_id', 'access_code', name='uq_guild_access_code'), # <--- НОВОЕ: ЭТО РЕШЕНИЕ
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     
     guild_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    discord_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
     
-    discord_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
-    
-    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    entity_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    
+    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     parent_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    permissions: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
 
-    # --- НОВОЕ ПОЛЕ: permissions ---
-    permissions: Mapped[Optional[str]] = mapped_column(String(50), nullable=True) # Добавляем это поле
-
-    # --- НОВОЕ ПОЛЕ: description ---
-    description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True) # Добавляем это поле (если оно должно храниться)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime(True), server_default=text('now()'))
+    # --- ПОЛЕ, ПЕРЕНЕСЕННОЕ ИЗ STATE_ENTITIES_DISCORD ---
+    # Важнейшее поле для связи роли с игровой логикой.
+    # Для каналов и категорий будет NULL.
+    # ИСПРАВЛЕНИЕ: unique=True УДАЛЕНО отсюда, так как уникальность теперь в __table_args__
+    access_code: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True) 
+    
+    # --- Общие поля ---
+    created_at: Mapped[datetime] = mapped_column(DateTime(True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(True), server_default=func.now(), onupdate=func.now())
 
     def __repr__(self):
         return (f"<DiscordEntity(id={self.id}, guild_id={self.guild_id}, "
                 f"discord_id={self.discord_id}, name='{self.name}', "
-                f"entity_type='{self.entity_type}', parent_id={self.parent_id}, "
-                f"permissions='{self.permissions}', description='{self.description}')>")
+                f"entity_type='{self.entity_type}', access_code='{self.access_code}')>")
 
 
 
@@ -1169,6 +1147,7 @@ class GameShard(Base):
     shard_name = Column(String(100), unique=True, nullable=False)
     discord_guild_id = Column(BigInteger, unique=True, nullable=False)
     current_players = Column(Integer, default=0, nullable=False)
+    max_players = Column(Integer, default=200, nullable=False) # <--- ДОБАВЬТЕ ЭТУ СТРОКУ
     is_admin_enabled = Column(Boolean, default=False, nullable=False) # Админский мастер-переключатель
     is_system_active = Column(Boolean, default=False, nullable=False) # Серверный флаг активности/сна
     created_at = Column(DateTime(timezone=True), server_default=func.now())

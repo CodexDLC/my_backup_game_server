@@ -4,8 +4,6 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
 
 class IReferenceDataReader(ABC):
-    @abstractmethod
-    async def _get_full_hash_as_dict(self, redis_key: str) -> Optional[Dict[str, Any]]: pass
 
     @abstractmethod
     async def get_weighted_random_id(

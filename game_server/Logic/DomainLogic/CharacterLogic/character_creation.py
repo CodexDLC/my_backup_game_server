@@ -4,7 +4,7 @@ from typing import Dict, Any # Добавляем для типизации
 
 # Утилиты и хелперы
 from game_server.Logic.DomainLogic.CharacterLogic.character_utils.character_creation_helpers import precalculate_skill_xp_data, select_template_from_pool
-from game_server.Logic.DomainLogic.dom_utils.account_identifiers import AccountIdentifiers
+from game_server.Logic.CoreServices.services.identifiers_servise import IdentifiersServise
 
 
 # Репозитории
@@ -23,7 +23,7 @@ class CharacterCreationOrchestrator:
     def __init__(self, session: AsyncSession, cache_manager: CharacterCacheManager):
         self.session = session
         self.character_cache_manager = cache_manager
-        self.account_finder = AccountIdentifiers(session)
+        self.account_finder = IdentifiersServise(session)
         self.pool_repo = CharacterPoolRepository(session)
         self.character_repo = CharacterMetaRepository(session)
         self.stats_manager = CharacterSpecialManager(session)

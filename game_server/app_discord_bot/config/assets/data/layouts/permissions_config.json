@@ -1,0 +1,70 @@
+{
+  "public_view": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": false,
+    "add_reactions": true,
+    "use_external_emojis": true
+  },
+  "read_only": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": false
+  },
+  "player_chat": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": true,
+    "add_reactions": true,
+    "use_external_emojis": true
+  },
+  "admin_only_category": {
+    "view_channel": false,
+    "read_messages": false,
+    "connect": false,
+    "send_messages": false,
+    "read_message_history": false
+  },
+  "admin_only": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": true,
+    "add_reactions": true,
+    "manage_channels": true,
+    "manage_roles": true
+  },
+  "moderator_only": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": true,
+    "manage_messages": true
+  },
+  "read_only_category": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": false,
+    "add_reactions": false,
+    "use_external_emojis": false
+  },
+  "public": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": true,
+    "add_reactions": true
+  },
+  "public_category": {
+    "read_messages": true,
+    "send_messages": true,
+    "connect": true,
+    "speak": true,
+    "view_channel": true
+  },
+  "player_chat_category": {
+    "view_channel": true,
+    "read_messages": true,
+    "send_messages": true,
+    "connect": true,
+    "speak": true,
+    "add_reactions": true
+  }
+}

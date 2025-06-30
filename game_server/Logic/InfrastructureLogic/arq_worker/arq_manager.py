@@ -5,7 +5,7 @@ from arq.connections import RedisSettings, create_pool, ArqRedis
 
 
 from game_server.config.settings_core import REDIS_CACHE_URL
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 class ArqPoolManager:
     """

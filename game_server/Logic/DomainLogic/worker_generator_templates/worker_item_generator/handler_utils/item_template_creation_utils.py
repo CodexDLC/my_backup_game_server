@@ -3,13 +3,14 @@ import asyncio
 from typing import List, Dict, Any, Optional, Type # Добавлен Type
 
 # --- Логгер ---
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # --- ИМПОРТЫ ДЛЯ ITEM_GENERATION_LOGIC ---
 from game_server.Logic.InfrastructureLogic.app_cache.services.reference_data.reference_data_reader import ReferenceDataReader
+from game_server.common_contracts.dtos.orchestrator_dtos import ItemBaseData, ItemGenerationSpec, MaterialData, SuffixData
 
 # ДОБАВЛЕНО: Импорт ItemGenerationSpec DTO и других DTO
-from game_server.common_contracts.start_orcestrator.dtos import ItemGenerationSpec, ItemBaseData, MaterialData, SuffixData
+
 
 
 class ItemGenerationLogic:

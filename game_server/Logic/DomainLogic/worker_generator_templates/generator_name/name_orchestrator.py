@@ -3,7 +3,7 @@
 from typing import Tuple, Any, Optional
 # Импортируем логгер
 from game_server.Logic.DomainLogic.worker_generator_templates.generator_name.generator_name_utils.item_name_generator import ItemNameGenerator
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 from game_server.Logic.DomainLogic.worker_generator_templates.generator_name.generator_name_utils.character_name_generator import CharacterNameGenerator
 

@@ -17,7 +17,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install --upgrade pip wheel
 
 # Копируем файл с зависимостями бота для кэширования этого слоя
-COPY ./Discord_API/requirements.txt .
+# ИСПРАВЛЕНИЕ: Изменена путь к requirements.txt
+COPY ./game_server/app_discord_bot/requirements.txt .
 
 # Устанавливаем зависимости в виртуальное окружение
 RUN pip install --no-cache-dir -r requirements.txt
@@ -35,11 +36,13 @@ WORKDIR /app
 RUN groupadd --gid 1001 appuser && \
     useradd --uid 1001 --gid 1001 --shell /bin/bash --create-home appuser
 
-# Копируем ТОЛЬКО готовое виртуальное окружение из этапа "Сборщик"
+# Копируем готовое виртуальное окружение из этапа "Сборщик"
 COPY --from=builder /opt/venv /opt/venv
 
-# Копируем ТОЛЬКО необходимый для бота код от имени нового пользователя
-COPY --chown=appuser:appuser ./Discord_API /app/Discord_API
+# Копируем код, необходимый для работы координаторов
+# Здесь appuser становится владельцем всего /app/game_server
+COPY --chown=appuser:appuser ./game_server /app/game_server
+
 
 # Переключаемся на непривилегированного пользователя
 USER appuser

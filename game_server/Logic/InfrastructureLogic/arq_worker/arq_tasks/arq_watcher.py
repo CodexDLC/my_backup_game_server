@@ -2,7 +2,7 @@ import logging
 import time
 # from sqlalchemy.ext.asyncio import AsyncSession # REMOVED: No longer needed here directly
 from game_server.Logic.InfrastructureLogic.messaging.message_bus import RedisMessageBus
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # Импортируем нашу основную функцию-оркестратор
 from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_run.auto_tick_module.tick_AutoSession_Watcher import collect_and_dispatch_sessions

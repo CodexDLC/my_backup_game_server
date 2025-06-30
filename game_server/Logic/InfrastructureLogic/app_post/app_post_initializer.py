@@ -1,41 +1,40 @@
 # game_server/Logic/InfrastructureLogic/app_post/app_post_initializer.py
 
 import logging
-from typing import Optional, Callable, Dict, Any, Type
-from sqlalchemy.ext.asyncio import AsyncSession # Для async_session_factory
+from typing import Optional
+
+# ИЗМЕНЕНО: Мы импортируем фабрику сессий напрямую здесь
+
 
 from game_server.Logic.InfrastructureLogic.app_post.repository_manager import RepositoryManager
-# Импорты ваших репозиториев (если они нужны здесь для инициализации)
-# from .repository_groups.<domain>.<repo_impl> import <RepoImpl>
+from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
-logger = logging.getLogger(__name__)
-
-# Глобальная переменная для хранения экземпляра RepositoryManager
-# Она должна быть Optional, так как сначала она None
+# Глобальная переменная для хранения единственного экземпляра RepositoryManager
 _repository_manager_instance: Optional[RepositoryManager] = None
 
-async def initialize_app_post_managers(async_session_factory: Callable[[], AsyncSession]) -> bool:
+# ИЗМЕНЕНО: Функция больше не принимает аргументов
+async def initialize_app_post_managers() -> bool:
     """
-    Инициализирует RepositoryManager и все его репозитории.
+    Инициализирует RepositoryManager. Теперь он сам импортирует фабрику сессий.
     Должен быть вызван один раз при старте приложения.
     """
-    global _repository_manager_instance # Объявляем, что будем изменять глобальную переменную
+    global _repository_manager_instance
 
     logger.info("🔧 Инициализация менеджеров PostgreSQL (RepositoryManager)...")
 
     try:
         if _repository_manager_instance is None:
-            _repository_manager_instance = RepositoryManager(db_session_factory=async_session_factory)
-            # Здесь можно добавить любые дополнительные проверки или действия после инициализации,
-            # например, проверку подключения к БД через RepositoryManager
+            # ИЗМЕНЕНО: Используем импортированный AsyncSessionLocal напрямую
+            _repository_manager_instance = RepositoryManager(db_session_factory=AsyncSessionLocal)
+            
             logger.info("✅ RepositoryManager успешно инициализирован.")
         else:
             logger.warning("RepositoryManager уже инициализирован. Пропуск повторной инициализации.")
         return True
     except Exception as e:
         logger.critical(f"🚨 Критическая ошибка при инициализации RepositoryManager: {e}", exc_info=True)
-        # Если инициализация не удалась, обнуляем экземпляр
         _repository_manager_instance = None
         return False
 
@@ -51,20 +50,9 @@ def get_repository_manager_instance() -> RepositoryManager:
 
 async def shutdown_app_post_managers() -> None:
     """
-    Корректно закрывает ресурсы, связанные с PostgreSQL.
-    В данном случае, если RepositoryManager управляет пулом соединений или Engine,
-    логика закрытия должна быть в нем или здесь.
+    Обнуляет экземпляр менеджера при завершении работы.
     """
     global _repository_manager_instance
-
     logger.info("🛑 Завершение работы менеджеров PostgreSQL...")
-    # Если RepositoryManager сам имеет метод close/dispose для ресурсов БД, вызовите его
-    # if _repository_manager_instance and hasattr(_repository_manager_instance, 'close'):
-    #     await _repository_manager_instance.close()
-    
-    # В данном случае, закрытие движка SQLAlchemy происходит в game_world_state_orchestrator.py
-    # через 'engine.dispose()', поэтому здесь прямое закрытие не нужно,
-    # но _repository_manager_instance все равно обнуляем.
-    
     _repository_manager_instance = None
     logger.info("✅ Менеджеры PostgreSQL завершены.")

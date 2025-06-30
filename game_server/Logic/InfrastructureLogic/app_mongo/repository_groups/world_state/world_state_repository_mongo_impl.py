@@ -6,7 +6,7 @@ from pymongo import UpdateMany # Для массового обновления/
 
 from game_server.Logic.InfrastructureLogic.app_mongo.repository_groups.world_state.interfaces_world_state_mongo import IWorldStateMongoRepository
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 class WorldStateMongoRepositoryImpl(IWorldStateMongoRepository):
     def __init__(self, mongo_database: AsyncIOMotorDatabase): # <--- Принимает AsyncIOMotorDatabase

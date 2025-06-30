@@ -9,7 +9,7 @@ from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
 from game_server.Logic.InfrastructureLogic.app_post.repository_manager import RepositoryManager # Добавлен импорт RepositoryManager
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 @asynccontextmanager

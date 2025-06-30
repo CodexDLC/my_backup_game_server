@@ -2,13 +2,14 @@ from typing import Optional, List, Dict, Any
 
 from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.data_processing.creature_type_data_orchestrator import CreatureTypeDataOrchestrator
 from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.template_generator_character.character_template_planner import CharacterTemplatePlanner
+from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.template_generator_item.item_template_planner import ItemTemplatePlanner
 from .base_step_handler import IPreStartStepHandler
 # 👇 ИЗМЕНЕНИЕ: Импортируем единый конфиг
 from game_server.config.provider import config
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # ДОБАВЛЕНО: Импорты классов планировщиков для типизации
-from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.template_generator_item.item_template_planner import ItemTemplatePlanner
+
 
 # ДОБАВЛЕНО: Импорт оркестратора типов существ для типизации
 # from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.data_processing.creature_type_data_orchestrator import CreatureTypeDataOrchestrator # Уже импортирован выше
@@ -17,7 +18,7 @@ from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.
 from arq import ArqRedis
 
 # ДОБАВЛЕНО: Импорт PlayableRaceData DTO
-from game_server.common_contracts.start_orcestrator.dtos import PlayableRaceData #
+from game_server.common_contracts.dtos.orchestrator_dtos import PlayableRaceData #
 
 
 class RunLevel1GeneratorsHandler(IPreStartStepHandler):

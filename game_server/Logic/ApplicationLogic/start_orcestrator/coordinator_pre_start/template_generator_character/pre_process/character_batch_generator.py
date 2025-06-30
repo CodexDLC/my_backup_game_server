@@ -2,6 +2,8 @@
 
 from typing import List, Dict, Any
 from collections import Counter
+
+from game_server.common_contracts.dtos.orchestrator_dtos import CharacterGenerationSpec
 # from sqlalchemy.ext.asyncio import AsyncSession # <- УДАЛЕНО
 
 # Импорты утилит остаются
@@ -12,10 +14,10 @@ from .character_batch_utils import (
 )
 
 # ДОБАВЛЕНО: Импорт логгера
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # ДОБАВЛЕНО: Импорт CharacterGenerationSpec DTO
-from game_server.common_contracts.start_orcestrator.dtos import CharacterGenerationSpec #
+
 
 
 async def generate_pre_batch_from_pool_needs(

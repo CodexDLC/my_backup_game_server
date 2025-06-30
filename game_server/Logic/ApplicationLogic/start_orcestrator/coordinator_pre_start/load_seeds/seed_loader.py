@@ -5,6 +5,8 @@ import uuid
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, Type, List, TypeVar
 
+from game_server.common_contracts.dtos.state_entity_dtos import StateEntityDTO
+
 
 
 
@@ -16,7 +18,7 @@ from game_server.config.settings.process.prestart import SEEDING_DELETION_BATCH_
 from game_server.database.models.models import Base, Ability, BackgroundStory, CreatureType, GameLocation, Material, \
     ModifierLibrary, Personality, Skills, CreatureTypeInitialSkill, StaticItemTemplate, Suffix, \
     EquipmentTemplate, StateEntity
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 from game_server.Logic.InfrastructureLogic.app_post.repository_manager import RepositoryManager
 
@@ -26,14 +28,14 @@ from game_server.Logic.InfrastructureLogic.app_post.repository_groups.meta_data_
     ISuffixRepository
 )
 from game_server.Logic.InfrastructureLogic.app_post.repository_groups.meta_data_1lvl.interfaces_meta_data_1lvl import IEquipmentTemplateRepository
-from game_server.Logic.InfrastructureLogic.app_post.repository_groups.system.interfaces_system import IDataVersionRepository
+
 
 from pydantic import BaseModel, ValidationError
 
-from game_server.common_contracts.start_orcestrator.dtos import (
+from game_server.common_contracts.dtos.orchestrator_dtos import (
     AbilityData, BackgroundStoryData, CreatureTypeData, GameLocationData, MaterialData,
     ModifierLibraryData, PersonalityData, SkillData, CreatureTypeInitialSkillData,
-    StaticItemTemplateData, SuffixData, StateEntityData
+    StaticItemTemplateData, SuffixData
 )
 
 PydanticDtoType = TypeVar('PydanticDtoType', bound=BaseModel)
@@ -52,7 +54,7 @@ class SeedLoader:
         CreatureTypeInitialSkill: CreatureTypeInitialSkillData,
         StaticItemTemplate: StaticItemTemplateData,
         Suffix: SuffixData,
-        StateEntity: StateEntityData,
+        StateEntity: StateEntityDTO,
         GameLocation: GameLocationData, # <--- ВОТ ЭТА СТРОКА РЕШАЕТ ПРОБЛЕМУ
     }
 

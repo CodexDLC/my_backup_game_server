@@ -3,7 +3,7 @@ from typing import Literal, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging # Добавляем для логирования
 
-from game_server.Logic.DomainLogic.dom_utils.account_identifiers import AccountIdentifiers
+from game_server.Logic.CoreServices.services.identifiers_servise import IdentifiersServise
 from game_server.Logic.InfrastructureLogic.DataAccessLogic.manager.system.manager_tick_handler.ORM_Auto_Sessions import AutoSessionsManager
 
 ActionType = Literal["start", "stop", "status", "update"]
@@ -16,7 +16,7 @@ class AutoSession:
     
     def __init__(self, db_session: AsyncSession):
         self.manager = AutoSessionsManager(db_session)
-        self.identifiers = AccountIdentifiers(db_session)
+        self.identifiers = IdentifiersServise(db_session)
         logger.info("AutoSession (логика) инициализирована.") # Логирование инициализации
 
     async def handle(

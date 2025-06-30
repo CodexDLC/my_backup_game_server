@@ -16,7 +16,7 @@ from game_server.database.models.models import Character, AccountInfo # AccountI
 from game_server.Logic.InfrastructureLogic.app_post.repository_groups.character.interfaces_character import ICharacterRepository
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class CharacterRepositoryImpl(ICharacterRepository): # <--- ИЗМЕНЕНО: Наследование и имя класса

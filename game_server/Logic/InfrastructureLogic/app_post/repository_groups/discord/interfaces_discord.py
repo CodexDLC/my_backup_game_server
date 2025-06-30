@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
-from game_server.database.models.models import DiscordEntity, StateEntityDiscord
+from game_server.database.models.models import DiscordEntity
 
 class IDiscordEntityRepository(ABC):
     @abstractmethod
@@ -22,16 +22,3 @@ class IDiscordEntityRepository(ABC):
     @abstractmethod
     async def get_total_entities_count(self, guild_id: Optional[int] = None) -> int: pass
 
-class IDiscordRolesMappingRepository(ABC):
-    @abstractmethod
-    async def create_or_update_single_role(self, role_data: Dict[str, Any]) -> Optional[StateEntityDiscord]: pass
-    @abstractmethod
-    async def create_or_update_roles_batch(self, roles_data: List[Dict[str, Any]]) -> int: pass
-    @abstractmethod
-    async def get_role_by_pk(self, guild_id: int, role_id: int) -> Optional[StateEntityDiscord]: pass
-    @abstractmethod
-    async def get_all_roles_for_guild(self, guild_id: int) -> List[StateEntityDiscord]: pass
-    @abstractmethod
-    async def delete_role_by_pk(self, guild_id: int, role_id: int) -> bool: pass
-    @abstractmethod
-    async def delete_roles_by_discord_ids(self, discord_role_ids: List[int]) -> int: pass

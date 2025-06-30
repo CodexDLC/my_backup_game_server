@@ -1,7 +1,7 @@
 
 import re
 from typing import Any, Dict, Generator, List, Optional
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 def generate_item_code(category: str, base_code: str, specific_name: str, material_code: str, suffix_code: str, rarity_level: int) -> str:

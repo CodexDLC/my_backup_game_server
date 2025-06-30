@@ -3,7 +3,8 @@ from typing import Dict, List, Any, Tuple, Optional, Set, Union
 from collections import defaultdict, Counter
 
 # --- Логгер ---
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.common_contracts.dtos.orchestrator_dtos import SkillData
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # --- Константы ---
 from game_server.config.provider import config
@@ -12,7 +13,7 @@ from game_server.config.provider import config
 from game_server.Logic.InfrastructureLogic.app_cache.services.reference_data.reference_data_reader import ReferenceDataReader # Уточненный импорт
 
 # ДОБАВЛЕНО: Импорт SkillData DTO
-from game_server.common_contracts.start_orcestrator.dtos import SkillData #
+
 
 
 # 🔥 ИЗМЕНЕНИЕ: Функция теперь принимает skills_data как Dict[str, SkillData]

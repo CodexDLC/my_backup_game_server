@@ -5,11 +5,11 @@ from typing import Dict, List, Any
 from collections import Counter
 
 # Импорт логгера
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 from game_server.config.settings.process.prestart import DEFAULT_WEIGHT_FOR_MISSING_RARITY
 
 # ДОБАВЛЕН ИМПОРТ DTO PlayableRaceData
-from game_server.common_contracts.start_orcestrator.dtos import PlayableRaceData
+from game_server.common_contracts.dtos.orchestrator_dtos import PlayableRaceData
 
 
 def determine_genders_for_batch(

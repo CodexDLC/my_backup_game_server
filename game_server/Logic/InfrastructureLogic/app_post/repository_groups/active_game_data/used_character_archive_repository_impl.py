@@ -11,7 +11,7 @@ from game_server.database.models.models import UsedCharacterArchive
 # Импорт интерфейса репозитория
 from game_server.Logic.InfrastructureLogic.app_post.repository_groups.active_game_data.interfaces_active_game_data import IUsedCharacterArchiveRepository
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class UsedCharacterArchiveRepositoryImpl(IUsedCharacterArchiveRepository): # <--- ИЗМЕНЕНО: Наследование и имя класса

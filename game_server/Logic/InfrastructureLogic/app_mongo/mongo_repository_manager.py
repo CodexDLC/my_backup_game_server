@@ -11,7 +11,7 @@ from game_server.Logic.InfrastructureLogic.app_mongo.repository_groups.world_sta
 from game_server.Logic.InfrastructureLogic.app_mongo.repository_groups.world_state.world_state_repository_mongo_impl import WorldStateMongoRepositoryImpl
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 class MongoRepositoryManager:
     def __init__(self): # <--- Конструктор теперь не принимает клиента напрямую, а использует get_mongo_database()

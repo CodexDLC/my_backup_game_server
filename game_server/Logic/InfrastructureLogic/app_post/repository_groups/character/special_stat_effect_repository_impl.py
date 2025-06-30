@@ -13,7 +13,7 @@ from game_server.database.models.models import SpecialStatEffect # <--- ОБРА
 
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class SpecialStatEffectRepositoryImpl(ISpecialStatEffectRepository): # <--- ИЗМЕНЕНО: Наследование и имя класса

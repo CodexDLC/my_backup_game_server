@@ -3,13 +3,13 @@
 import logging
 from typing import List, Optional, Dict, Any, Type
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func # ДОБАВЛЕНО func
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from sqlalchemy import select, update, delete, func
+from sqlalchemy.exc import IntegrityError, NoResultFound, SQLAlchemyError
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from game_server.database.models.models import StateEntity
 from game_server.Logic.InfrastructureLogic.app_post.repository_groups.world_state.core_world.interfaces_core_world import IStateEntityRepository
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class StateEntityRepositoryImpl(IStateEntityRepository):
@@ -54,7 +54,7 @@ class StateEntityRepositoryImpl(IStateEntityRepository):
         Этот метод в интерфейсе, но может вызвать путаницу. Возвращает None, т.к. нет int PK.)
         """
         logger.warning(f"Вызван get_by_id({entity_id}) для StateEntity, но ORM-модель использует 'access_code' (str) как PK. "
-                       f"Этот метод не поддерживается для StateEntity. Используйте get_by_access_code вместо этого.")
+                        f"Этот метод не поддерживается для StateEntity. Используйте get_by_access_code вместо этого.")
         raise NotImplementedError(f"Поиск StateEntity по целочисленному ID '{entity_id}' не поддерживается, так как PK - 'access_code' (строка).")
 
     async def get_by_access_code(self, access_code: str) -> Optional[StateEntity]:
@@ -83,16 +83,25 @@ class StateEntityRepositoryImpl(IStateEntityRepository):
         Соответствует абстрактному методу 'update'.
         """
         async with await self._get_session() as session:
-            stmt = update(StateEntity).where(StateEntity.access_code == access_code).values(**updates).returning(StateEntity)
-            result = await session.execute(stmt)
-            updated_entity = result.scalars().first()
-            if updated_entity:
-                await session.commit()
-                logger.info(f"Сущность состояния мира (access_code: {access_code}) обновлена.")
-            else:
+            try:
+                stmt = update(StateEntity).where(StateEntity.access_code == access_code).values(**updates).returning(StateEntity)
+                result = await session.execute(stmt)
+                updated_entity = result.scalars().first()
+                if updated_entity:
+                    await session.commit()
+                    logger.info(f"Сущность состояния мира (access_code: {access_code}) обновлена.")
+                else:
+                    await session.rollback()
+                    logger.warning(f"Сущность состояния мира (access_code: {access_code}) не найдена для обновления.")
+                return updated_entity
+            except SQLAlchemyError as e:
                 await session.rollback()
-                logger.warning(f"Сущность состояния мира (access_code: {access_code}) не найдена для обновления.")
-            return updated_entity
+                logger.error(f"Ошибка SQLAlchemy при обновлении сущности состояния мира (access_code: {access_code}): {e}", exc_info=True)
+                return None
+            except Exception as e:
+                await session.rollback()
+                logger.error(f"Непредвиденная ошибка при обновлении сущности состояния мира (access_code: {access_code}): {e}", exc_info=True)
+                raise
 
     async def delete(self, access_code: str) -> bool:
         """
@@ -111,7 +120,7 @@ class StateEntityRepositoryImpl(IStateEntityRepository):
                 logger.warning(f"Сущность состояния мира (access_code: {access_code}) не найдена для удаления.")
                 return False
 
-    async def upsert(self, entity_data: Dict[str, Any]) -> StateEntity:
+    async def upsert(self, entity_data: Dict[str, Any]) -> Optional[StateEntity]:
         """
         Создает или обновляет сущность состояния мира. Использует access_code как PK для ON CONFLICT.
         Соответствует абстрактному методу 'upsert'.
@@ -122,7 +131,6 @@ class StateEntityRepositoryImpl(IStateEntityRepository):
 
         async with await self._get_session() as session:
             try:
-                # Список полей, которые можно обновлять. created_at не должен здесь быть.
                 updatable_fields = [
                     "code_name",
                     "ui_type",
@@ -130,65 +138,43 @@ class StateEntityRepositoryImpl(IStateEntityRepository):
                     "is_active",
                 ]
 
-                # Фильтруем entity_data, чтобы не включать created_at в values(),
-                # если оно не было явно предоставлено.
-                # Также гарантируем, что 'access_code' всегда будет в values
-                values_to_insert = {k: v for k, v in entity_data.items() if k != "created_at"}
+                # ИСПРАВЛЕНИЕ: Фильтруем entity_data, чтобы ИСКЛЮЧИТЬ 'id', 'created_at' И 'updated_at' из values().
+                # created_at и updated_at имеют default/onupdate в модели, а id - это автоинкрементный PK.
+                values_to_insert = {k: v for k, v in entity_data.items() if k not in ["created_at", "updated_at", "id"]}
+                
+                # Убедимся, что 'access_code' всегда будет в values, если вдруг его нет
                 if "access_code" not in values_to_insert:
-                    values_to_insert["access_code"] = access_code # Убедимся, что PK есть
+                    values_to_insert["access_code"] = access_code
 
-                insert_stmt = pg_insert(StateEntity).values(**values_to_insert) # <--- ИЗМЕНЕНО: используем filtered dict
+                insert_stmt = pg_insert(StateEntity).values(**values_to_insert)
 
-                # Определяем, какие поля обновлять при конфликте.
-                # created_at не должно обновляться. updated_at (если есть) можно обновить через func.now()
                 set_clause = {}
                 for field in updatable_fields:
-                    if field in insert_stmt.excluded: # Проверяем, что поле есть в данных для вставки
+                    if field in insert_stmt.excluded:
                         set_clause[field] = getattr(insert_stmt.excluded, field)
 
-                # Добавляем updated_at, если оно есть в модели и должно обновляться автоматически
-                # Проверяем модель StateEntity: updated_at там нет, но если бы было,
-                # можно было бы добавить `updated_at=func.now()` сюда.
-                # В StateEntity есть created_at с default.
-                #
-                # Ключевой момент: в models.py:
-                # created_at: Mapped[datetime] = mapped_column(DateTime(True), default=lambda: datetime.now(timezone.utc))
-                # Этот DEFAULT сработает ПРИ ВСТАВКЕ, если created_at не передан.
-                # При ON CONFLICT DO UPDATE, мы не должны трогать created_at,
-                # оно уже должно быть установлено при первой вставке.
-                #
-                # Убедимся, что set_clause не содержит created_at
-                # И оно не должно быть в updatable_fields
-                # set_={'data_hash': new_hash} # Это из DataVersion, здесь нужно свои поля.
-                
-                # Добавим created_at в excluded, чтобы убедиться, что оно не будет обновлено.
-                # set_={k: getattr(insert_stmt.excluded, k) for k in updatable_fields}
-                # Это уже было так, как мы перечислили updatable_fields.
-                
-                # final_set_clause = {
-                #     "code_name": insert_stmt.excluded.code_name,
-                #     "ui_type": insert_stmt.excluded.ui_type,
-                #     "description": insert_stmt.excluded.description,
-                #     "is_active": insert_stmt.excluded.is_active,
-                # }
-
                 upsert_stmt = insert_stmt.on_conflict_do_update(
-                    index_elements=[StateEntity.access_code],
-                    set_=set_clause # <--- ИЗМЕНЕНО: Используем динамически сгенерированный set_clause
+                    index_elements=[StateEntity.access_code], # Конфликт по access_code
+                    set_=set_clause # Используем динамически сгенерированный set_clause
                 ).returning(StateEntity)
 
                 result = await session.execute(upsert_stmt)
-                await session.commit()
                 upserted_entity = result.scalar_one_or_none()
+                await session.commit()
                 if not upserted_entity:
+                    await session.rollback() # Откатываем, если объект не вернулся
                     raise RuntimeError("UPSERT StateEntity не вернул объект.")
                 logger.info(f"StateEntity '{access_code}' успешно добавлен/обновлен.")
                 return upserted_entity
             except IntegrityError as e:
                 await session.rollback()
                 logger.error(f"Ошибка целостности при UPSERT StateEntity '{access_code}': {e.orig}", exc_info=True)
-                raise ValueError(f"Ошибка целостности при сохранении StateEntity: {e.orig}")
+                return None # Возвращаем None при ошибке целостности
+            except SQLAlchemyError as e:
+                await session.rollback()
+                logger.error(f"Ошибка SQLAlchemy при UPSERT StateEntity '{access_code}': {e}", exc_info=True)
+                return None
             except Exception as e:
                 await session.rollback()
-                logger.error(f"Непредвиденная ошибка при UPSERT StateEntity '{access_code}': {e}", exc_info=True)
+                logger.critical(f"Непредвиденная ошибка при UPSERT StateEntity '{access_code}': {e}", exc_info=True)
                 raise

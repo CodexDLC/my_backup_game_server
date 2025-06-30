@@ -14,7 +14,7 @@ from game_server.database.models.models import CharacterSpecial, SpecialStatEffe
 
 
 # Используем ваш уникальный логгер
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class CharacterSpecialRepositoryImpl(ICharacterSpecialRepository): # <--- ИЗМЕНЕНО: Наследование и имя класса

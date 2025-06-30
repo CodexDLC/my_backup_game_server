@@ -1,3 +1,3 @@
-__all__ = ['account_identifiers']
+__all__ = ['identifiers_servise']
 
-from . import account_identifiers
+from ...CoreServices.services import identifiers_servise

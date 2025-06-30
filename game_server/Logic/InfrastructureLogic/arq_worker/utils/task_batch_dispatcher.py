@@ -1,53 +1,43 @@
-# game_server\Logic\InfrastructureLogic\arq_worker\utils\task_batch_dispatcher.py
+# game_server/Logic/InfrastructureLogic/arq_worker/utils/task_batch_dispatcher.py
 
-import uuid # Все еще нужен для генерации batch_id
-# import json # УДАЛЕНО: Больше не нужен, если все сериализуется в TaskQueueCacheManager
+import uuid
 import logging
-from typing import List, Dict, Any, Callable, Optional, Iterator
-from arq.connections import ArqRedis # Импортируем для типизации arq_redis_pool
+from typing import List, Dict, Any, Optional, Iterator
+from arq.connections import ArqRedis
 
-# Импортируем наш обновленный CentralRedisClient
-from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
-from game_server.config.constants.redis import KEY_PREFIX_TASK_QUEUE # Все еще нужен для формирования ключа
-
-# ИМПОРТИРУЕМ TaskQueueCacheManager из новой доменной папки
-from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.task_queue_cache_manager import TaskQueueCacheManager # ИЗМЕНЕНО
-# ДОБАВЛЕНО: Импорт интерфейса TaskQueueCacheManager для типизации
-from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_task_queue_cache import ITaskQueueCacheManager
-
+# <<< ИЗМЕНЕНО: Импортируем RedisBatchStore
+from game_server.Logic.InfrastructureLogic.app_cache.services.task_queue.redis_batch_store import RedisBatchStore
+from game_server.config.provider import config # Для получения TTL по умолчанию
 
 logger = logging.getLogger(__name__)
 
-# --- Вспомогательные утилиты ---
+# --- Вспомогательная утилита ---
 
 def split_into_batches(data: List[Any], batch_size: int) -> Iterator[List[Any]]:
     """Разбивает список на батчи указанного размера."""
     if not data or batch_size <= 0:
-        return iter([]) # Возвращаем пустой итератор для корректности
+        return iter([])
     for i in range(0, len(data), batch_size):
         yield data[i:i + batch_size]
 
 
-class ArqTaskDispatcher: # Класс переименован в ArqTaskDispatcher
+class ArqTaskDispatcher:
     """
     Класс-помощник для централизованной диспетчеризации задач в ARQ.
-    Использует TaskQueueCacheManager для сохранения данных батчей.
+    Использует RedisBatchStore для сохранения данных батчей.
     """
-    # Конструктор теперь принимает подключенный ArqRedis пул и CentralRedisClient
-    def __init__(self, arq_redis_pool: ArqRedis, redis_client: CentralRedisClient):
+    # <<< ИЗМЕНЕНО: Конструктор теперь принимает ArqRedis и RedisBatchStore
+    def __init__(self, arq_redis_pool: ArqRedis, redis_batch_store: RedisBatchStore):
         self.arq_redis_pool = arq_redis_pool
-        self.redis_client = redis_client # Будем использовать для передачи в TaskQueueCacheManager
-        # Инициализируем TaskQueueCacheManager здесь
-        # ИЗМЕНЕНО: Инициализируем с использованием интерфейса (если TaskQueueCacheManager реализует ITaskQueueCacheManager)
-        self.task_queue_manager: ITaskQueueCacheManager = TaskQueueCacheManager(redis_client=redis_client)
-        logger.info("✅ ArqTaskDispatcher инициализирован.")
+        self.redis_batch_store = redis_batch_store
+        logger.info("✅ ArqTaskDispatcher (v2, RedisBatchStore) инициализирован.")
 
     async def process_and_dispatch_tasks(
         self,
         task_list: List[Dict[str, Any]],
         batch_size: int,
-        # redis_ttl_seconds: int, # УДАЛЕНО: Этот аргумент больше не нужен
-        task_arq_name: str, # Принимаем строковое имя ARQ-задачи
+        key_template: str, # <<< ДОБАВЛЕНО: Шаблон ключа теперь обязателен
+        task_arq_name: str,
         task_type_name: str,
     ) -> List[str]:
         """
@@ -69,20 +59,23 @@ class ArqTaskDispatcher: # Класс переименован в ArqTaskDispatc
             
             redis_worker_batch_id = str(uuid.uuid4())
             
-            # 🔥 ИСПРАВЛЕНИЕ: Используем TaskQueueCacheManager.add_task_to_queue для сохранения
-            success = await self.task_queue_manager.add_task_to_queue(
+            # <<< ИЗМЕНЕНО: Используем self.redis_batch_store.save_batch
+            batch_data_to_save = {
+                "specs": chunk_of_specs,
+                "target_count": len(chunk_of_specs),
+                "status": "pending"
+            }
+            
+            success = await self.redis_batch_store.save_batch(
                 batch_id=redis_worker_batch_id,
-                key_template=KEY_PREFIX_TASK_QUEUE, # Используем KEY_PREFIX_TASK_QUEUE
-                specs=chunk_of_specs,
-                target_count=len(chunk_of_specs),
-                initial_status="pending",
-                # ttl_seconds=redis_ttl_seconds # <--- ttl_seconds управляется внутри add_task_to_queue с DEFAULT_TTL_TASK_STATUS
+                key_template=key_template,
+                batch_data=batch_data_to_save,
+                ttl_seconds=config.settings.redis.BATCH_TASK_TTL_SECONDS
             )
             
             if success:
                 try:
-                    await self.arq_redis_pool.enqueue_job(task_arq_name, redis_worker_batch_id)
-
+                    await self.arq_redis_pool.enqueue_job(task_arq_name, batch_id=redis_worker_batch_id)
                     created_batch_ids.append(redis_worker_batch_id)
                     logger.info(f"Задача для батча {i+1}/{len(worker_batch_chunks)} ({task_type_name}) ID '{redis_worker_batch_id}' успешно поставлена в очередь ARQ ('{task_arq_name}').")
                 except Exception as e:
@@ -96,7 +89,7 @@ class ArqTaskDispatcher: # Класс переименован в ArqTaskDispatc
     async def dispatch_existing_batch_id(
         self,
         batch_id: str,
-        task_arq_name: str, # Принимаем строковое имя ARQ-задачи
+        task_arq_name: str,
         task_type_name: str,
         *task_args: Any
     ) -> bool:
@@ -105,12 +98,10 @@ class ArqTaskDispatcher: # Класс переименован в ArqTaskDispatc
         """
         logger.info(f"Начинаем диспетчеризацию существующего батча '{batch_id}' ({task_type_name}) в очередь ARQ ('{task_arq_name}').")
         try:
-            await self.arq_redis_pool.enqueue_job(task_arq_name, batch_id, *task_args)
+            # Передаем batch_id как именованный аргумент, как ожидают наши задачи
+            await self.arq_redis_pool.enqueue_job(task_arq_name, batch_id=batch_id, *task_args)
             logger.info(f"✅ Существующий батч '{batch_id}' ({task_type_name}) успешно поставлен в очередь ARQ ('{task_arq_name}').")
             return True
         except Exception as e:
             logger.error(f"❌ Не удалось поставить существующий батч '{batch_id}' ({task_type_name}) в очередь ARQ: {e}", exc_info=True)
             return False
-
-# Глобальный экземпляр ArqTaskDispatcher будет инициализирован в FastAPI lifespan или ARQ worker startup.
-# Он не создается здесь напрямую.

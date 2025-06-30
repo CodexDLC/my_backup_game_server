@@ -1,5 +1,5 @@
 import time
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 from prometheus_client import Histogram, Counter # Добавлен Counter для ошибок
 import asyncio
 

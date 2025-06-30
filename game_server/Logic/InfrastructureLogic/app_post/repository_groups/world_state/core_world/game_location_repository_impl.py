@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert # Для upsert_m
 from game_server.Logic.InfrastructureLogic.app_post.repository_groups.world_state.core_world.interfaces_core_world import IGameLocationRepository
 from game_server.database.models.models import GameLocation
 
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 
 class GameLocationRepositoryImpl(IGameLocationRepository):

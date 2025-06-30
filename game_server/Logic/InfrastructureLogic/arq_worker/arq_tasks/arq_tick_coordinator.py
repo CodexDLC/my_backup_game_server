@@ -5,7 +5,7 @@ from typing import Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession # Оставляем, так как db_session передается
 from arq import ArqRedis # Оставляем для ctx['redis']
 
-from game_server.Logic.InfrastructureLogic.logging.logging_setup import app_logger as logger
+from game_server.config.logging.logging_setup import app_logger as logger
 
 # ИМПОРТ ИНТЕРФЕЙСОВ для менеджеров (для типизации)
 from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_task_queue_cache import ITaskQueueCacheManager # ИЗМЕНЕНО
