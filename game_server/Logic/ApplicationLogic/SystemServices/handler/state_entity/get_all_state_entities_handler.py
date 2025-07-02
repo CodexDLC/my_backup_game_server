@@ -47,7 +47,6 @@ class GetAllStateEntitiesHandler(ISystemServiceHandler):
 
             self.logger.info(f"Найдено {len(response_entities)} сущностей состояния.")
             
-            # РЕФАКТОРИНГ: Возвращаем BaseResultDTO, оборачивая GetAllStateEntitiesResult
             return BaseResultDTO[GetAllStateEntitiesResult](
                 correlation_id=command_dto.correlation_id,
                 trace_id=command_dto.trace_id, 
