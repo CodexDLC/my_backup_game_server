@@ -8,59 +8,131 @@ data:
   # =================================================================
   # 1. Верхний город: Квартал Власти и Богатства
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "100"
-    parent_access_key: "10"
-    location_type: "DISTRICT"
+  - location_id: "100"
+    parent_id: "10"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Квартал Власти и Богатства"
     description: "Элитный район города, где расположены особняки знати, административные здания и храмы. Чистота, порядок и строгая охрана."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids:
+      - "110"
+      - "120"
+      - "130"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "DISTRICT"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 2. Академия Охотников: Квартал Знаний и Силы
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "200"
-    parent_access_key: "10"
-    location_type: "CAMPUS_DISTRICT"
+  - location_id: "200"
+    parent_id: "10"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Академия Охотников"
     description: "Огромная территория, посвященная обучению и карьере Охотников. Включает в себя Главный Зал Гильдии, тренировочные корпуса и библиотеки."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids:
+      - "201"
+      - "210"
+      - "220"
+      - "230"
+      - "240"
+      - "250"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "CAMPUS_DISTRICT"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 3. Средний город: Квартал Торговли и Ремёсел
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "300"
-    parent_access_key: "10"
-    location_type: "DISTRICT"
+  - location_id: "300"
+    parent_id: "10"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Квартал Торговли и Ремёсел"
     description: "Шумное сердце экономики города. Здесь находятся рынки, мастерские, банки и доки."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Подняться на Площадь Правосудия"
+        target_location_id: "120"
+      - label: "Пройти в Академию Охотников"
+        target_location_id: "200"
+      - label: "Спуститься в Закоулки"
+        target_location_id: "400"
+      - label: "Выйти к Гарнизонному Округу"
+        target_location_id: "500"
+    child_location_ids:
+      - "310"
+      - "320"
+      - "330"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "DISTRICT"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 4. Нижний город: Квартал Теней и Бедности
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "400"
-    parent_access_key: "10"
-    location_type: "DISTRICT"
+  - location_id: "400"
+    parent_id: "10"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Квартал Теней и Бедности"
     description: "Густонаселенный и неухоженный район, дом для простых горожан и тех, кто предпочитает оставаться в тени. Полон как опасностей, так и возможностей."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Выбраться в Торговый Посад"
+        target_location_id: "300"
+      - label: "Пробраться к стенам Гарнизонного Округа"
+        target_location_id: "500"
+    child_location_ids:
+      - "410"
+      - "420"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "DISTRICT"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 5. Оборонительный периметр
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "500"
-    parent_access_key: "10"
-    location_type: "DISTRICT"
+  - location_id: "500"
+    parent_id: "10"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Оборонительный периметр"
     description: "Зона, включающая в себя городские стены, ворота, казармы стражи и Арену."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Пройти к Академии"
+        target_location_id: "200"
+      - label: "Пройти в Торговый Посад"
+        target_location_id: "300"
+      - label: "Начать патрулирование Закоулков"
+        target_location_id: "400"
+      - label: "Войти в Высокий Двор через служебные ворота"
+        target_location_id: "100"
+    child_location_ids:
+      - "510"
+      - "520"
+      - "530"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "DISTRICT"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []

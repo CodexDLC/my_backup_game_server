@@ -5,9 +5,11 @@ from typing import Optional, Dict, Any, Tuple
 from pydantic import BaseModel # Импортируем BaseModel для универсальности
 from game_server.app_discord_bot.transport.http_client.interfaces.i_discord_api import IDiscordAPIRoutes
 # Добавляем импорт GuildConfigDeleteRequest
-from game_server.common_contracts.api_models.discord_api import GetDiscordEntitiesRequest, GuildConfigSyncRequest, UnifiedEntityBatchDeleteRequest, UnifiedEntitySyncRequest, GuildConfigDeleteRequest
-from game_server.common_contracts.shared_models.api_contracts import BaseRequest
+
 from game_server.config.logging.logging_setup import app_logger as logger
+from game_server.contracts.api_models.discord.config_management_requests import GuildConfigDeleteRequest, GuildConfigSyncRequest
+from game_server.contracts.api_models.discord.entity_management_requests import GetDiscordEntitiesRequest, UnifiedEntityBatchDeleteRequest, UnifiedEntitySyncRequest
+from game_server.contracts.shared_models.base_requests import BaseRequest
 
 
 class DiscordAPIRoutesImpl(IDiscordAPIRoutes):

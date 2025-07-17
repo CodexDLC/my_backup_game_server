@@ -1,16 +1,18 @@
 # game_server/game_services/command_center/coordinator/coordinator_config.py
 
 # Импортируем классы-обработчики, которые будем использовать
-from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_run.coordinator_handler.auto_exploring_handler import AutoExploringHandler
-from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_run.coordinator_handler.auto_tick_handler import AutoLevelingHandler
+
 
 
 # Импортируем имя очереди из нашей центральной топологии RabbitMQ
 # (Предполагается, что вы добавите очередь для координатора в rabbitmq_topology.py)
 
 
-from game_server.common_contracts.dtos.coordinator_dtos import ProcessAutoExploringDTO, ProcessAutoLevelingDTO
+from game_server.Logic.ApplicationLogic.world_orchestrator.runtime.handlers.auto_exploring_handler import AutoExploringHandler
+from game_server.Logic.ApplicationLogic.world_orchestrator.runtime.handlers.auto_leveling_handler import AutoLevelingHandler
+
 from game_server.config.settings.rabbitmq.rabbitmq_names import Queues
+from game_server.contracts.dtos.coordinator.commands import ProcessAutoExploringDTO, ProcessAutoLevelingDTO
 
 
 # --- Часть 1: Обязательные параметры для BaseMicroserviceListener ---

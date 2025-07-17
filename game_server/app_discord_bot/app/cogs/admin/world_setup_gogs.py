@@ -1,25 +1,47 @@
-# Discord_API/cogs/admin/world_setup_gogs.py
+# game_server/app_discord_bot/app/cogs/admin/world_setup_gogs.py
 
+import discord
 from discord.ext import commands
+import logging
+import inject
+from typing import Dict, Any, List, Optional
+import asyncio
 
-# Импортируем наш централизованный логгер
-from game_server.config.logging.logging_setup import app_logger as logger
-world_setup_logger = logger.getChild(__name__)
-
-# Импортируем наш оркестратор сервисов Discord сущностей
-
-
-# Импортируем BOT_PREFIX из настроек
+from game_server.app_discord_bot.app.constant.constants_world import HUB_GUILD_ID
 from game_server.app_discord_bot.app.services.admin.discord_entity_service import DiscordEntityService
+from game_server.app_discord_bot.app.services.utils.cache_sync_manager import CacheSyncManager
+from game_server.app_discord_bot.app.services.utils.name_formatter import NameFormatter
 from game_server.app_discord_bot.config.discord_settings import BOT_PREFIX
+from game_server.app_discord_bot.app.ui.messages.admin_command_messages import (
+    COMMAND_STARTED, COMMAND_SUCCESS, COMMAND_ERROR_VALUE_ERROR,
+    COMMAND_ERROR_UNEXPECTED, SETUP_HUB, TEARDOWN_HUB,
+    SETUP_GAME_SERVER, TEARDOWN_GAME_SERVER,
+    SYNC_ROLES, DELETE_ROLES, COMMAND_SKIPPED
+)
+from game_server.app_discord_bot.storage.cache.managers.guild_config_manager import GuildConfigManager
+
+MESSAGE_TTL_SECONDS = 3600
+
 
 class WorldSetupCommands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    @inject.autoparams()
+    def __init__(
+        self,
+        bot: commands.Bot,
+        logger: logging.Logger,
+        discord_entity_service: DiscordEntityService,
+        guild_config_manager: GuildConfigManager,
+        cache_sync_manager: CacheSyncManager,
+        name_formatter: NameFormatter,
+    ):
         self.bot = bot
-        self.discord_entity_service = DiscordEntityService(bot)
-        world_setup_logger.info("WorldSetupCommands Cog инициализирован.")
+        self.logger = logger
+        self.discord_entity_service = discord_entity_service
+        self.guild_config_manager = guild_config_manager
+        self.cache_sync_manager = cache_sync_manager
+        self.name_formatter = name_formatter
+        self.logger.info("✅ WorldSetupCommands (полностью DI-ready) инициализирован.")
 
-    # --- Проверка прав (только для создателя сервера) ---
     async def cog_check(self, ctx: commands.Context) -> bool:
         """
         Глобальная проверка для всех команд в этом Cog'е:
@@ -30,10 +52,24 @@ class WorldSetupCommands(commands.Cog):
             return False
         
         if ctx.author.id != ctx.guild.owner_id:
-            world_setup_logger.warning(f"Пользователь {ctx.author} (ID: {ctx.author.id}) попытался использовать админскую команду без прав на сервере {ctx.guild.name}.")
+            self.logger.warning(f"Пользователь {ctx.author} (ID: {ctx.author.id}) попытался использовать админскую команду без прав на сервере {ctx.guild.name}.")
             await ctx.send("У вас нет прав для использования этой команды. Только создатель сервера может ее использовать.")
             return False
         return True
+
+    async def _schedule_message_deletion(self, message: discord.Message, delay: int):
+        """Вспомогательная функция для удаления сообщений"""
+        try:
+            await asyncio.sleep(delay)
+            await message.delete()
+            self.logger.debug(f"Сообщение {message.id} успешно удалено после {delay} секунд.")
+        except discord.NotFound:
+            self.logger.debug(f"Сообщение {message.id} уже было удалено.")
+        except discord.Forbidden:
+            self.logger.warning(f"У бота нет прав для удаления сообщения {message.id}.")
+        except Exception as e:
+            self.logger.error(f"Непредвиденная ошибка при удалении сообщения {message.id}: {e}", exc_info=True)
+
 
     # --- Команда: !setup-hub ---
     @commands.command(
@@ -43,20 +79,56 @@ class WorldSetupCommands(commands.Cog):
     )
     @commands.guild_only()
     async def setup_hub_command(self, ctx: commands.Context):
-        world_setup_logger.info(f"Команда !setup-hub вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
+        self.logger.info(f"Команда !setup-hub вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
         
-        message = await ctx.send("Начинаю настройку Хаб-сервера... Это может занять некоторое время.")
+        initial_embed = discord.Embed(
+            title=SETUP_HUB["title"],
+            description=COMMAND_STARTED.format(SETUP_HUB["action"]),
+            color=discord.Color.blue()
+        )
+        initial_message = await ctx.send(embed=initial_embed)
 
         try:
             result = await self.discord_entity_service.setup_hub_layout(ctx.guild.id)
-            await message.edit(content=f"✅ Хаб-сервер успешно настроен!\nСообщение от бэкенда: {result.get('message')}")
-            world_setup_logger.info(f"Хаб-сервер {ctx.guild.name} (ID: {ctx.guild.id}) успешно настроен.")
+            
+            if result.get("status") == "success":
+                final_embed = discord.Embed(
+                    title=SETUP_HUB["title"],
+                    description=COMMAND_SUCCESS.format(SETUP_HUB["action"].capitalize(), result.get('message', SETUP_HUB["success_description"])),
+                    color=discord.Color.green()
+                )
+                self.logger.info(f"Хаб-сервер {ctx.guild.name} (ID: {ctx.guild.id}) успешно настроен.")
+            else:
+                final_embed = discord.Embed(
+                    title=SETUP_HUB["title"],
+                    description=COMMAND_ERROR_UNEXPECTED.format(SETUP_HUB["action"]),
+                    color=discord.Color.red()
+                )
+                final_embed.add_field(name="Сообщение", value=result.get('message', "Неизвестная ошибка."), inline=False)
+                self.logger.error(f"Ошибка при настройке Хаб-сервера {ctx.guild.name}: {result.get('message')}")
+
+            await initial_message.edit(embed=final_embed)
+        
         except ValueError as e:
-            await message.edit(content=f"❌ Ошибка настройки Хаб-сервера: {e}")
-            world_setup_logger.error(f"Ошибка ValueError при настройке Хаб-сервера {ctx.guild.name}: {e}")
+            error_embed = discord.Embed(
+                title=SETUP_HUB["title"],
+                description=COMMAND_ERROR_VALUE_ERROR.format(SETUP_HUB["action"], e),
+                color=discord.Color.red()
+            )
+            await initial_message.edit(embed=error_embed)
+            self.logger.error(f"Ошибка ValueError при настройке Хаб-сервера {ctx.guild.name}: {e}")
         except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при настройке Хаб-сервера.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при настройке Хаб-сервера {ctx.guild.name}: {e}", exc_info=True)
+            error_embed = discord.Embed(
+                title=SETUP_HUB["title"],
+                description=COMMAND_ERROR_UNEXPECTED.format(SETUP_HUB["action"]),
+                color=discord.Color.red()
+            )
+            error_embed.add_field(name="Детали", value=f"```py\n{e}\n```", inline=False)
+            await initial_message.edit(embed=error_embed)
+            self.logger.critical(f"Непредвиденная ошибка при настройке Хаб-сервера {ctx.guild.name}: {e}", exc_info=True)
+        finally:
+            asyncio.create_task(self._schedule_message_deletion(initial_message, MESSAGE_TTL_SECONDS))
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))
 
 
     # --- Команда: !teardown-hub ---
@@ -67,20 +139,62 @@ class WorldSetupCommands(commands.Cog):
     )
     @commands.guild_only()
     async def teardown_hub_command(self, ctx: commands.Context):
-        world_setup_logger.info(f"Команда !teardown-hub вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
+        self.logger.info(f"Команда !teardown-hub вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
         
-        message = await ctx.send("Начинаю удаление всех сущностей Хаб-сервера... Это может занять некоторое время.")
+        initial_embed = discord.Embed(
+            title=TEARDOWN_HUB["title"],
+            description=COMMAND_STARTED.format(TEARDOWN_HUB["action"]),
+            color=discord.Color.blue()
+        )
+        initial_message = await ctx.send(embed=initial_embed)
 
         try:
-            result = await self.discord_entity_service.teardown_discord_layout(ctx.guild.id)
-            await message.edit(content=f"✅ Все сущности Хаб-сервера успешно удалены!\nСообщение от бэкенда: {result.get('message')}")
-            world_setup_logger.info(f"Все сущности Хаб-сервера {ctx.guild.name} (ID: {ctx.guild.id}) успешно удалены.")
+            result = await self.discord_entity_service.teardown_discord_layout(ctx.guild.id, "hub")
+            
+            if result.get("status") == "success":
+                final_embed = discord.Embed(
+                    title=TEARDOWN_HUB["title"],
+                    description=COMMAND_SUCCESS.format(TEARDOWN_HUB["action"].capitalize(), result.get('message', TEARDOWN_HUB["success_description"])),
+                    color=discord.Color.green()
+                )
+                self.logger.info(f"Все сущности Хаб-сервера {ctx.guild.name} (ID: {ctx.guild.id}) успешно удалены.")
+            elif result.get("status") == "skipped":
+                 final_embed = discord.Embed(
+                    title=TEARDOWN_HUB["title"],
+                    description=COMMAND_SKIPPED.format(TEARDOWN_HUB["action"].capitalize(), result.get('message', "Нет сущностей для удаления.")),
+                    color=discord.Color.orange()
+                )
+            else:
+                final_embed = discord.Embed(
+                    title=TEARDOWN_HUB["title"],
+                    description=COMMAND_ERROR_UNEXPECTED.format(TEARDOWN_HUB["action"]),
+                    color=discord.Color.red()
+                )
+                final_embed.add_field(name="Сообщение", value=result.get('message', "Неизвестная ошибка."), inline=False)
+                self.logger.error(f"Ошибка при удалении сущностей Хаб-сервера {ctx.guild.name}: {result.get('message')}")
+
+            await initial_message.edit(embed=final_embed)
+        
         except ValueError as e:
-            await message.edit(content=f"❌ Ошибка удаления сущностей Хаб-сервера: {e}")
-            world_setup_logger.error(f"Ошибка ValueError при удалении сущностей Хаб-сервера {ctx.guild.name}: {e}")
+            error_embed = discord.Embed(
+                title=TEARDOWN_HUB["title"],
+                description=COMMAND_ERROR_VALUE_ERROR.format(TEARDOWN_HUB["action"], e),
+                color=discord.Color.red()
+            )
+            await initial_message.edit(embed=error_embed)
+            self.logger.error(f"Ошибка ValueError при удалении сущностей Хаб-сервера {ctx.guild.name}: {e}")
         except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при удалении сущностей Хаб-сервера.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при удалении сущностей Хаб-сервера {ctx.guild.name}: {e}", exc_info=True)
+            error_embed = discord.Embed(
+                title=TEARDOWN_HUB["title"],
+                description=COMMAND_ERROR_UNEXPECTED.format(TEARDOWN_HUB["action"]),
+                color=discord.Color.red()
+            )
+            error_embed.add_field(name="Детали", value=f"```py\n{e}\n```", inline=False)
+            await initial_message.edit(embed=error_embed)
+            self.logger.critical(f"Непредвиденная ошибка при удалении сущностей Хаб-сервера {ctx.guild.name}: {e}", exc_info=True)
+        finally:
+            asyncio.create_task(self._schedule_message_deletion(initial_message, MESSAGE_TTL_SECONDS))
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))
 
 
     # --- Команда: !setup-game-server ---
@@ -91,20 +205,56 @@ class WorldSetupCommands(commands.Cog):
     )
     @commands.guild_only()
     async def setup_game_server_command(self, ctx: commands.Context):
-        world_setup_logger.info(f"Команда !setup-game-server вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
+        self.logger.info(f"Команда !setup-game-server вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
         
-        message = await ctx.send("Начинаю настройку игрового сервера... Это может занять некоторое время.")
+        initial_embed = discord.Embed(
+            title=SETUP_GAME_SERVER["title"],
+            description=COMMAND_STARTED.format(SETUP_GAME_SERVER["action"]),
+            color=discord.Color.blue()
+        )
+        initial_message = await ctx.send(embed=initial_embed)
 
         try:
             result = await self.discord_entity_service.setup_game_server_layout(ctx.guild.id)
-            await message.edit(content=f"✅ Игровой сервер успешно настроен!\nСообщение от бэкенда: {result.get('message')}")
-            world_setup_logger.info(f"Игровой сервер {ctx.guild.name} (ID: {ctx.guild.id}) успешно настроен.")
+            
+            if result.get("status") == "success":
+                final_embed = discord.Embed(
+                    title=SETUP_GAME_SERVER["title"],
+                    description=COMMAND_SUCCESS.format(SETUP_GAME_SERVER["action"].capitalize(), result.get('message', SETUP_GAME_SERVER["success_description"])),
+                    color=discord.Color.green()
+                )
+                self.logger.info(f"Игровой сервер {ctx.guild.name} (ID: {ctx.guild.id}) успешно настроен.")
+            else:
+                final_embed = discord.Embed(
+                    title=SETUP_GAME_SERVER["title"],
+                    description=COMMAND_ERROR_UNEXPECTED.format(SETUP_GAME_SERVER["action"]),
+                    color=discord.Color.red()
+                )
+                final_embed.add_field(name="Сообщение", value=result.get('message', "Неизвестная ошибка."), inline=False)
+                self.logger.error(f"Ошибка при настройке игрового сервера {ctx.guild.name}: {result.get('message')}")
+
+            await initial_message.edit(embed=final_embed)
+        
         except ValueError as e:
-            await message.edit(content=f"❌ Ошибка настройки игрового сервера: {e}")
-            world_setup_logger.error(f"Ошибка ValueError при настройке игрового сервера {ctx.guild.name}: {e}")
+            error_embed = discord.Embed(
+                title=SETUP_GAME_SERVER["title"],
+                description=COMMAND_ERROR_VALUE_ERROR.format(SETUP_GAME_SERVER["action"], e),
+                color=discord.Color.red()
+            )
+            await initial_message.edit(embed=error_embed)
+            self.logger.error(f"Ошибка ValueError при настройке игрового сервера {ctx.guild.name}: {e}")
         except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при настройке игрового сервера.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при настройке игрового сервера {ctx.guild.name}: {e}", exc_info=True)
+            error_embed = discord.Embed(
+                title=SETUP_GAME_SERVER["title"],
+                description=COMMAND_ERROR_UNEXPECTED.format(SETUP_GAME_SERVER["action"]),
+                color=discord.Color.red()
+            )
+            error_embed.add_field(name="Детали", value=f"```py\n{e}\n```", inline=False)
+            await initial_message.edit(embed=error_embed)
+            self.logger.critical(f"Непредвиденная ошибка при настройке игрового сервера {ctx.guild.name}: {e}", exc_info=True)
+        finally:
+            asyncio.create_task(self._schedule_message_deletion(initial_message, MESSAGE_TTL_SECONDS))
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))
 
 
     # --- Команда: !teardown-game-server ---
@@ -115,20 +265,62 @@ class WorldSetupCommands(commands.Cog):
     )
     @commands.guild_only()
     async def teardown_game_server_command(self, ctx: commands.Context):
-        world_setup_logger.info(f"Команда !teardown-game-server вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
+        self.logger.info(f"Команда !teardown-game-server вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
         
-        message = await ctx.send("Начинаю удаление всех сущностей игрового сервера... Это может занять некоторое время.")
+        initial_embed = discord.Embed(
+            title=TEARDOWN_GAME_SERVER["title"],
+            description=COMMAND_STARTED.format(TEARDOWN_GAME_SERVER["action"]),
+            color=discord.Color.blue()
+        )
+        initial_message = await ctx.send(embed=initial_embed)
 
         try:
-            result = await self.discord_entity_service.teardown_discord_layout(ctx.guild.id)
-            await message.edit(content=f"✅ Все сущности игрового сервера успешно удалены!\nСообщение от бэкенда: {result.get('message')}")
-            world_setup_logger.info(f"Все сущности игрового сервера {ctx.guild.name} (ID: {ctx.guild.id}) успешно удалены.")
+            result = await self.discord_entity_service.teardown_discord_layout(ctx.guild.id, "game")
+            
+            if result.get("status") == "success":
+                final_embed = discord.Embed(
+                    title=TEARDOWN_GAME_SERVER["title"],
+                    description=COMMAND_SUCCESS.format(TEARDOWN_GAME_SERVER["action"].capitalize(), result.get('message', TEARDOWN_GAME_SERVER["success_description"])),
+                    color=discord.Color.green()
+                )
+                self.logger.info(f"Все сущности игрового сервера {ctx.guild.name} (ID: {ctx.guild.id}) успешно удалены.")
+            elif result.get("status") == "skipped":
+                 final_embed = discord.Embed(
+                    title=TEARDOWN_GAME_SERVER["title"],
+                    description=COMMAND_SKIPPED.format(TEARDOWN_GAME_SERVER["action"].capitalize(), result.get('message', "Нет сущностей для удаления.")),
+                    color=discord.Color.orange()
+                )
+            else:
+                final_embed = discord.Embed(
+                    title=TEARDOWN_GAME_SERVER["title"],
+                    description=COMMAND_ERROR_UNEXPECTED.format(TEARDOWN_GAME_SERVER["action"]),
+                    color=discord.Color.red()
+                )
+                final_embed.add_field(name="Сообщение", value=result.get('message', "Неизвестная ошибка."), inline=False)
+                self.logger.error(f"Ошибка при удалении сущностей игрового сервера {ctx.guild.name}: {result.get('message')}")
+
+            await initial_message.edit(embed=final_embed)
+        
         except ValueError as e:
-            await message.edit(content=f"❌ Ошибка удаления сущностей игрового сервера: {e}")
-            world_setup_logger.error(f"Ошибка ValueError при удалении сущностей игрового сервера {ctx.guild.name}: {e}")
+            error_embed = discord.Embed(
+                title=TEARDOWN_GAME_SERVER["title"],
+                description=COMMAND_ERROR_VALUE_ERROR.format(TEARDOWN_GAME_SERVER["action"], e),
+                color=discord.Color.red()
+            )
+            await initial_message.edit(embed=error_embed)
+            self.logger.error(f"Ошибка ValueError при удалении сущностей игрового сервера {ctx.guild.name}: {e}")
         except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при удалении сущностей игрового сервера.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при удалении сущностей игрового сервера {ctx.guild.name}: {e}", exc_info=True)
+            error_embed = discord.Embed(
+                title=TEARDOWN_GAME_SERVER["title"],
+                description=COMMAND_ERROR_UNEXPECTED.format(TEARDOWN_GAME_SERVER["action"]),
+                color=discord.Color.red()
+            )
+            error_embed.add_field(name="Детали", value=f"```py\n{e}\n```", inline=False)
+            await initial_message.edit(embed=error_embed)
+            self.logger.critical(f"Непредвиденная ошибка при удалении сущностей игрового сервера {ctx.guild.name}: {e}", exc_info=True)
+        finally:
+            asyncio.create_task(self._schedule_message_deletion(initial_message, MESSAGE_TTL_SECONDS))
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))
 
 
     # --- Команда: !add-article ---
@@ -139,74 +331,64 @@ class WorldSetupCommands(commands.Cog):
     )
     @commands.guild_only()
     async def add_article_command(self, ctx: commands.Context, *, channel_name: str):
-        world_setup_logger.info(f"Команда !add-article '{channel_name}' вызвана пользователем {ctx.author} на сервере {ctx.guild.name}.")
+        self.logger.info(f"Команда !add-article '{channel_name}' вызвана пользователем {ctx.author} на сервере {ctx.guild.name}.")
         
-        message = await ctx.send(f"Пытаюсь добавить канал-статью '{channel_name}'...")
+        initial_embed = discord.Embed(
+            title="Добавление статьи",
+            description=COMMAND_STARTED.format(f"добавление канала-статьи '{channel_name}'"),
+            color=discord.Color.blue()
+        )
+        initial_message = await ctx.send(embed=initial_embed)
 
         formatted_channel_name = channel_name.lower().replace(' ', '-')
 
         try:
             result = await self.discord_entity_service.add_article_channel(ctx.guild.id, formatted_channel_name)
-            await message.edit(content=f"✅ Канал-статья '{formatted_channel_name}' успешно создан!\nСообщение от бэкенда: {result.get('message')}")
-            world_setup_logger.info(f"Канал-статья '{formatted_channel_name}' успешно создан для {ctx.guild.name}.")
+            
+            if result.get("status") == "success":
+                final_embed = discord.Embed(
+                    title="Добавление статьи",
+                    description=COMMAND_SUCCESS.format("Канал-статья", result.get('message', f"Канал-статья '{formatted_channel_name}' успешно создан!")),
+                    color=discord.Color.green()
+                )
+                self.logger.info(f"Канал-статья '{formatted_channel_name}' успешно создан для {ctx.guild.name}.")
+            else:
+                final_embed = discord.Embed(
+                    title="Добавление статьи",
+                    description=COMMAND_ERROR_UNEXPECTED.format(f"добавление канала-статьи '{channel_name}'"),
+                    color=discord.Color.red()
+                )
+                final_embed.add_field(name="Сообщение", value=result.get('message', "Неизвестная ошибка."), inline=False)
+                self.logger.error(f"Ошибка при добавлении канала-статьи '{formatted_channel_name}': {result.get('message')}")
+
+            await initial_message.edit(embed=final_embed)
+        
         except ValueError as e:
-            await message.edit(content=f"❌ Ошибка при добавлении канала-статьи: {e}")
-            world_setup_logger.error(f"Ошибка ValueError при добавлении канала-статьи '{formatted_channel_name}': {e}")
+            error_embed = discord.Embed(
+                title="Добавление статьи",
+                description=COMMAND_ERROR_VALUE_ERROR.format(f"добавление канала-статьи '{channel_name}'", e),
+                color=discord.Color.red()
+            )
+            await initial_message.edit(embed=error_embed)
+            self.logger.error(f"Ошибка ValueError при добавлении канала-статьи '{formatted_channel_name}': {e}")
         except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при добавлении канала-статьи.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при добавлении канала-статьи '{formatted_channel_name}': {e}", exc_info=True)
+            error_embed = discord.Embed(
+                title="Добавление статьи",
+                description=COMMAND_ERROR_UNEXPECTED.format(f"добавление канала-статьи '{channel_name}'"),
+                color=discord.Color.red()
+            )
+            error_embed.add_field(name="Детали", value=f"```py\n{e}\n```", inline=False)
+            await initial_message.edit(embed=error_embed)
+            self.logger.critical(f"Непредвиденная ошибка при добавлении канала-статьи '{formatted_channel_name}': {e}", exc_info=True)
+        finally:
+            asyncio.create_task(self._schedule_message_deletion(initial_message, MESSAGE_TTL_SECONDS))
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))
 
-    # --- НОВАЯ КОМАНДА: !sync-roles ---
-    @commands.command(
-        name="sync-roles",
-        help="Синхронизирует роли Discord с конфигурацией State Entities.",
-        usage=f"{BOT_PREFIX}sync-roles"
-    )
-    @commands.guild_only()
-    async def sync_roles_command(self, ctx: commands.Context):
-        world_setup_logger.info(f"Команда !sync-roles вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
+    
+    # 🔥 ИЗМЕНЕНИЕ: Команда !sync-roles удалена, так как ее логика стала частью setup-команд.
+    
 
-        message = await ctx.send("Начинаю синхронизацию ролей Discord... Это может занять некоторое время.")
-
-        try:
-            # 1. Вызываем метод сервиса и получаем структурированный словарь:
-            sync_result_dict = await self.discord_entity_service.sync_discord_roles(ctx.guild.id)
-
-            # 2. Извлекаем данные из словаря для форматирования:
-            status_overall = sync_result_dict.get("status", "error")
-            message_overall = sync_result_dict.get("message", "Неизвестное сообщение о синхронизации.")
-            details = sync_result_dict.get("details", {})
-
-            # ИСПРАВЛЕНИЕ: Используем правильные ключи для created_count и updated_count
-            created_count = details.get("created_count", 0)
-            updated_count = details.get("updated_count", 0)
-            
-            # ИСПРАВЛЕНИЕ: synced_count должен быть суммой созданных и обновленных
-            synced_count = created_count + updated_count 
-            
-            errors_list = details.get("errors", [])
-
-            # 3. Формируем человекочитаемое сообщение:
-            formatted_response = f"**Синхронизация ролей завершена:** {message_overall}\n"
-            formatted_response += f"**Всего ролей обработано:** {synced_count}\n"
-            formatted_response += f"**Создано в БД:** {created_count}\n" # Изменено на "в БД"
-            formatted_response += f"**Обновлено в БД:** {updated_count}\n" # Изменено на "в БД"
-
-            if errors_list:
-                formatted_response += f"**Ошибки:** {len(errors_list)} (см. логи бота для деталей)\n"
-                formatted_response += "⚠️ Пожалуйста, проверьте логи бота для получения полной информации об ошибках."
-            
-            # 4. Отправляем форматированное сообщение в Discord:
-            await message.edit(content=f"✅ {formatted_response}") # Исправлено: используем message.edit
-            world_setup_logger.info(f"Синхронизация ролей для гильдии {ctx.guild.name} (ID: {ctx.guild.id}) завершена.")
-        except ValueError as e:
-            await message.edit(content=f"❌ Ошибка синхронизации ролей: {e}")
-            world_setup_logger.error(f"Ошибка ValueError при синхронизации ролей на сервере {ctx.guild.name}: {e}")
-        except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при синхронизации ролей.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при синхронизации ролей на сервере {ctx.guild.name}: {e}", exc_info=True)
-
-    # --- НОВАЯ КОМАНДА: !delete-roles ---
+    # --- Команда: !delete-roles ---
     @commands.command(
         name="delete-roles",
         help="Удаляет указанные Discord роли с сервера и из базы данных по их ID. Использование: !delete-roles <role_id_1> <role_id_2> ...",
@@ -214,19 +396,28 @@ class WorldSetupCommands(commands.Cog):
     )
     @commands.guild_only()
     async def delete_roles_command(self, ctx: commands.Context, *role_ids: int):
-        world_setup_logger.info(f"Команда !delete-roles {role_ids} вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
+        self.logger.info(f"Команда !delete-roles {role_ids} вызвана пользователем {ctx.author} на сервере {ctx.guild.name} (ID: {ctx.guild.id}).")
         
         if not role_ids:
-            await ctx.send("❌ Пожалуйста, укажите хотя бы один ID роли для удаления.")
+            error_embed = discord.Embed(
+                title=DELETE_ROLES["title"],
+                description="❌ Пожалуйста, укажите хотя бы один ID роли для удаления.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=error_embed)
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))
             return
 
-        message = await ctx.send(f"Начинаю удаление ролей Discord с ID: {', '.join(map(str, role_ids))}...")
+        initial_embed = discord.Embed(
+            title=DELETE_ROLES["title"],
+            description=COMMAND_STARTED.format(f"удаление ролей Discord с ID: {', '.join(map(str, role_ids))}"),
+            color=discord.Color.blue()
+        )
+        initial_message = await ctx.send(embed=initial_embed)
 
         try:
-            # ИСПРАВЛЕНИЕ 1: Вызываем правильный метод для удаления ролей
             delete_result_dict = await self.discord_entity_service.delete_discord_roles_batch(ctx.guild.id, list(role_ids))
 
-            # ИСПРАВЛЕНИЕ 2: Форматируем ответ для удаления ролей
             status_overall = delete_result_dict.get("status", "error")
             message_overall = delete_result_dict.get("message", "Неизвестное сообщение об удалении.")
             details = delete_result_dict.get("details", {})
@@ -235,23 +426,38 @@ class WorldSetupCommands(commands.Cog):
             deleted_from_backend = details.get("deleted_from_backend", 0)
             errors_list = details.get("errors", [])
 
-            formatted_response = f"**Удаление ролей завершено:** {message_overall}\n"
-            formatted_response += f"**Удалено из Discord:** {deleted_from_discord}\n"
-            formatted_response += f"**Удалено из БД:** {deleted_from_backend}\n"
-
-            if errors_list:
-                formatted_response += f"**Ошибки:** {len(errors_list)} (см. логи бота для деталей)\n"
-                formatted_response += "⚠️ Пожалуйста, проверьте логи бота для получения полной информации об ошибках."
+            if status_overall == "success":
+                formatted_response = DELETE_ROLES["base_success_message"].format(message_overall)
+                formatted_response += DELETE_ROLES["details_format"].format(deleted_from_discord, deleted_from_backend)
+                if errors_list:
+                    formatted_response += DELETE_ROLES["errors_summary"].format(len(errors_list))
+                
+                final_embed = discord.Embed(
+                    title=DELETE_ROLES["title"],
+                    description=formatted_response,
+                    color=discord.Color.green() if not errors_list else discord.Color.orange()
+                )
+                self.logger.info(f"Удаление ролей для гильдии {ctx.guild.name} (ID: {ctx.guild.id}) завершено.")
+            else:
+                final_embed = discord.Embed(
+                    title=DELETE_ROLES["title"],
+                    description=COMMAND_ERROR_UNEXPECTED.format(DELETE_ROLES["action"]),
+                    color=discord.Color.red()
+                )
+                final_embed.add_field(name="Сообщение", value=message_overall, inline=False)
+                self.logger.error(f"Ошибка при удалении ролей на сервере {ctx.guild.name}: {message_overall}")
             
-            await message.edit(content=f"✅ {formatted_response}")
-            world_setup_logger.info(f"Удаление ролей для гильдии {ctx.guild.name} (ID: {ctx.guild.id}) завершено.")
+            await initial_message.edit(embed=final_embed)
 
         except Exception as e:
-            await message.edit(content=f"❌ Произошла непредвиденная ошибка при удалении ролей.")
-            world_setup_logger.critical(f"Непредвиденная ошибка при удалении ролей на сервере {ctx.guild.name}: {e}", exc_info=True)
-
-
-# Функция для загрузки Cog'а в бота
-async def setup(bot: commands.Bot):
-    await bot.add_cog(WorldSetupCommands(bot))
-    world_setup_logger.info("WorldSetupCommands Cog загружен.")
+            error_embed = discord.Embed(
+                title=DELETE_ROLES["title"],
+                description=COMMAND_ERROR_UNEXPECTED.format(DELETE_ROLES["action"]),
+                color=discord.Color.red()
+            )
+            error_embed.add_field(name="Детали", value=f"```py\n{e}\n```", inline=False)
+            await initial_message.edit(embed=error_embed)
+            self.logger.critical(f"Непредвиденная ошибка при удалении ролей на сервере {ctx.guild.name}: {e}", exc_info=True)
+        finally:
+            asyncio.create_task(self._schedule_message_deletion(initial_message, MESSAGE_TTL_SECONDS))
+            asyncio.create_task(self._schedule_message_deletion(ctx.message, MESSAGE_TTL_SECONDS))

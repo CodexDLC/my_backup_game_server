@@ -1,80 +1,85 @@
 # game_server/Logic/ApplicationLogic/SystemServices/handler/discord/create_single_entity_handler.py
 
-from typing import Dict, Any
+import logging
+from typing import Dict, Any, Callable
+import inject
+from sqlalchemy.ext.asyncio import AsyncSession
 
+# 👇 ИЗМЕНЕНИЕ: Импортируем фабрику сессий и декоратор
+from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
+from game_server.Logic.InfrastructureLogic.app_post.utils.transactional_decorator import transactional
 
-from game_server.Logic.InfrastructureLogic.app_post.repository_manager import RepositoryManager
+# Импортируем интерфейс репозитория
+from game_server.Logic.InfrastructureLogic.app_post.repository_groups.discord.interfaces_discord import IDiscordEntityRepository
 
-# 🔥 ИЗМЕНЕНИЕ: Импортируем новые стандартизированные DTO
-from game_server.common_contracts.dtos.discord_dtos import DiscordEntityCreateCommand, DiscordEntityDTO # DiscordEntityCreateResultDTO будет заменен
-from game_server.common_contracts.dtos.base_dtos import BaseResultDTO # Базовый класс для всех результатов
+# Импортируем DTO и интерфейс обработчика
+
 from game_server.Logic.ApplicationLogic.SystemServices.handler.i_system_handler import ISystemServiceHandler
+from game_server.contracts.dtos.discord.commands import DiscordEntityCreateCommand
+from game_server.contracts.dtos.discord.data_models import DiscordEntityDTO
+from game_server.contracts.shared_models.base_commands_results import BaseResultDTO
 
 class CreateSingleEntityHandler(ISystemServiceHandler):
     """
-    Обработчик для создания одной единственной сущности Discord в БД.
-    Предотвращает создание дубликатов.
+    Обработчик для создания одной сущности Discord в БД. Работает в рамках транзакции.
     """
-    def __init__(self, dependencies: Dict[str, Any]):
-        super().__init__(dependencies)
-        try:
-            self.repo_manager: RepositoryManager = self.dependencies['repository_manager']
-            self.discord_entity_repo = self.repo_manager.discord_entities
-        except KeyError as e:
-            self.logger.critical(f"Критическая ошибка: В {self.__class__.__name__} не передана зависимость {e}.")
-            raise
+    # 👇 ИЗМЕНЕНИЕ: Внедряем логгер и фабрику репозитория
+    @inject.autoparams('logger', 'discord_repo_factory')
+    def __init__(self,
+                 logger: logging.Logger,
+                 discord_repo_factory: Callable[[AsyncSession], IDiscordEntityRepository]
+                 ):
+        self._logger = logger
+        self._discord_repo_factory = discord_repo_factory
+        self._logger.info("CreateSingleEntityHandler инициализирован.")
 
-    # 🔥 ИЗМЕНЕНИЕ: Возвращаемый тип теперь BaseResultDTO[DiscordEntityDTO]
-    async def process(self, command_dto: DiscordEntityCreateCommand) -> BaseResultDTO[DiscordEntityDTO]:
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
+
+    # 👇 ИЗМЕНЕНИЕ: Делаем метод транзакционным
+    @transactional(AsyncSessionLocal)
+    async def process(self, session: AsyncSession, command_dto: DiscordEntityCreateCommand) -> BaseResultDTO[DiscordEntityDTO]:
         guild_id = command_dto.guild_id
         discord_id = command_dto.discord_id
 
-        self.logger.info(f"Получена команда '{command_dto.command}' для сущности с Discord ID: {discord_id} (Correlation ID: {command_dto.correlation_id})")
+        self.logger.info(f"Получена команда '{command_dto.command}' для сущности с Discord ID: {discord_id}.")
 
+        # Создаем репозиторий с активной сессией
+        discord_entity_repo = self._discord_repo_factory(session)
+        
         try:
-            # Сначала проверим, не существует ли уже такая сущность
-            existing_entity = await self.discord_entity_repo.get_discord_entity_by_discord_id(
+            existing_entity = await discord_entity_repo.get_discord_entity_by_discord_id(
                 guild_id=guild_id,
                 discord_id=discord_id
             )
 
             if existing_entity:
-                self.logger.warning(f"Сущность с Discord ID {discord_id} уже существует в БД. Возвращаем существующую. (Correlation ID: {command_dto.correlation_id})")
-                # 🔥 ИЗМЕНЕНИЕ: Возвращаем BaseResultDTO
+                self.logger.warning(f"Сущность с Discord ID {discord_id} уже существует. Новая не создавалась.")
                 return BaseResultDTO[DiscordEntityDTO](
                     correlation_id=command_dto.correlation_id,
-                    trace_id=command_dto.trace_id, # Пропагируем trace_id
-                    span_id=command_dto.span_id,   # Пропагируем span_id
                     success=True,
-                    message="Сущность уже существует, новая не создавалась.",
-                    data=DiscordEntityDTO.model_validate(existing_entity.__dict__) # Данные в поле 'data'
+                    message="Сущность уже существует.",
+                    data=DiscordEntityDTO.model_validate(existing_entity.__dict__)
                 )
 
-            # Если не существует, создаем новую
-            # exclude={'command', 'correlation_id', 'trace_id', 'span_id', 'timestamp'}
-            new_entity_data = command_dto.model_dump(exclude={field.name for field in command_dto.model_fields.values() if field.json_schema_extra and field.json_schema_extra.get('exclude_from_payload')}) # Исключаем поля BaseCommandDTO
-            new_db_entity = await self.discord_entity_repo.create_discord_entity(new_entity_data)
+            new_entity_data = command_dto.model_dump(exclude={"command", "correlation_id", "trace_id", "span_id", "client_id"})
+            new_db_entity = await discord_entity_repo.create_discord_entity(new_entity_data)
 
-            self.logger.info(f"Сущность '{new_db_entity.name}' (Discord ID: {new_db_entity.discord_id}) успешно создана. (Correlation ID: {command_dto.correlation_id})")
+            self.logger.info(f"Сущность '{new_db_entity.name}' (Discord ID: {new_db_entity.discord_id}) успешно создана.")
 
-            # 🔥 ИЗМЕНЕНИЕ: Возвращаем BaseResultDTO
             return BaseResultDTO[DiscordEntityDTO](
                 correlation_id=command_dto.correlation_id,
-                trace_id=command_dto.trace_id, # Пропагируем trace_id
-                span_id=command_dto.span_id,   # Пропагируем span_id
                 success=True,
                 message="Сущность успешно создана.",
-                data=DiscordEntityDTO.model_validate(new_db_entity.__dict__) # Данные в поле 'data'
+                data=DiscordEntityDTO.model_validate(new_db_entity.__dict__)
             )
 
         except Exception as e:
-            self.logger.exception(f"Критическая ошибка при создании сущности с Discord ID {discord_id} (Correlation ID: {command_dto.correlation_id}): {e}")
-            # 🔥 ИЗМЕНЕНИЕ: Возвращаем BaseResultDTO
+            self.logger.exception(f"Критическая ошибка при создании сущности с Discord ID {discord_id}: {e}")
             return BaseResultDTO[DiscordEntityDTO](
                 correlation_id=command_dto.correlation_id,
-                trace_id=command_dto.trace_id, # Пропагируем trace_id
-                span_id=command_dto.span_id,   # Пропагируем span_id
                 success=False,
                 message=f"Критическая ошибка на сервере: {e}",
-                data=None # Данные отсутствуют при ошибке
+                data=None
             )

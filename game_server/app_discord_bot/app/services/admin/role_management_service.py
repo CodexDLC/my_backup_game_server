@@ -1,221 +1,134 @@
 # game_server/app_discord_bot/app/services/admin/role_management_service.py
+
 from typing import Dict, Any, List, Optional
 import discord
-import uuid
+import logging
+import inject
 
-from game_server.app_discord_bot.storage.cache.bot_cache_initializer import BotCache
-from game_server.app_discord_bot.storage.cache.constant.constant_key import RedisKeys
+
 from game_server.app_discord_bot.app.services.utils.request_helper import RequestHelper
-from game_server.common_contracts.api_models.discord_api import UnifiedEntitySyncRequest
-from game_server.common_contracts.api_models.system_api import GetAllStateEntitiesRequest
-from game_server.config.logging.logging_setup import app_logger as logger
-from .base_discord_operations import BaseDiscordOperations
-# Добавляем импорт CacheSyncManager
+
+from game_server.app_discord_bot.app.services.admin.base_discord_operations import BaseDiscordOperations
 from game_server.app_discord_bot.app.services.utils.cache_sync_manager import CacheSyncManager
+from game_server.app_discord_bot.storage.cache.managers.guild_config_manager import GuildConfigManager
+from game_server.contracts.api_models.discord.entity_management_requests import UnifiedEntitySyncRequest
+from game_server.contracts.api_models.system.requests import GetAllStateEntitiesRequest
+from game_server.contracts.shared_models.base_responses import ResponseStatus
+from game_server.contracts.shared_models.websocket_base_models import WebSocketMessage, WebSocketResponsePayload
 
 
 class RoleManagementService:
-    """
-    Сервисный слой для управления ролями Discord.
-    Обеспечивает двустороннюю синхронизацию между БД и Discord.
-    """
-    def __init__(self, bot):
+    @inject.autoparams()
+    def __init__(
+        self,
+        bot: discord.Client,
+        request_helper: RequestHelper,
+        logger: logging.Logger,
+        base_ops: BaseDiscordOperations,
+        guild_config_manager: GuildConfigManager,
+        cache_sync_manager: CacheSyncManager,
+    ):
         self.bot = bot
-        if not hasattr(bot, 'request_helper'):
-            logger.error("RequestHelper не инициализирован в объекте бота.")
-            raise RuntimeError("RequestHelper не инициализирован.")
-        self.request_helper: RequestHelper = bot.request_helper
+        self.request_helper = request_helper
         self.logger = logger
-        self.base_ops = BaseDiscordOperations(bot)
+        self.base_ops = base_ops
+        self.guild_config_manager = guild_config_manager
+        self.cache_sync_manager = cache_sync_manager
+        self.logger.info("✨ RoleManagementService инициализирован.")
 
-        if not hasattr(bot, 'cache_manager') or not isinstance(bot.cache_manager, BotCache):
-            logger.critical("BotCache не инициализирован в объекте бота.")
-            raise RuntimeError("BotCache не инициализирован.")
-        self.guild_config_manager = bot.cache_manager.guild_config
-
-        # РЕФАКТОРИНГ: Получаем CacheSyncManager из объекта bot для синхронизации локального кэша с бэкендом
-        if not hasattr(bot, 'sync_manager'):
-            logger.critical("CacheSyncManager (sync_manager) не инициализирован в объекте бота. Убедитесь, что он настроен через UtilsInitializer в main.py.")
-            raise RuntimeError("CacheSyncManager не инициализирован.")
-        self.cache_sync_manager: CacheSyncManager = bot.sync_manager
-
-
-    async def sync_discord_roles(self, guild_id: int, message: Optional[discord.Message] = None) -> Dict[str, Any]:
+    async def sync_discord_roles(self, guild_id: int, shard_type: str, message: Optional[discord.Message] = None) -> Dict[str, discord.Role]:
         """
-        Синхронизирует роли Discord.
-        1. Гарантирует наличие системных ролей из БД в Discord.
-        2. Считывает ВСЕ роли из Discord.
-        3. Отправляет полный список на бэкенд для upsert-синхронизации.
-        4. Кэширует результат.
-        5. Полностью синхронизирует локальный кэш гильдии с бэкенд-Redis.
-        :param guild_id: ID гильдии Discord.
-        :param message: Объект сообщения Discord для обновления прогресса (опционально).
+        Гарантирует наличие системных ролей в Discord и возвращает их.
+        1. Получает список системных ролей из БД.
+        2. Для каждой роли вызывает create_or_update_role, чтобы создать ее в Discord, если она отсутствует.
+        3. Собирает созданные/найденные объекты ролей в словарь.
+        4. Синхронизирует ID этих ролей с бэкендом.
+        5. Возвращает словарь с объектами ролей для дальнейшего использования.
         """
         guild = await self.base_ops.get_guild_by_id(guild_id)
         if not guild:
-            raise ValueError(f"Discord сервер с ID {guild_id} не найден.")
+            raise ValueError(f"Discord server with ID {guild_id} not found.")
 
         if message:
-            await message.edit(content="Начинаю синхронизацию ролей: Получаю системные роли с бэкенда...")
+            await message.edit(content="Этап 1/3: Получение системных ролей с бэкенда...")
+        self.logger.info(f"Запрос системных ролей с бэкенда для гильдии {guild_id} (тип шарда: {shard_type})...")
 
-        # --- Шаг 1: Получаем "ожидаемые" системные роли из бэкенда ---
-        self.logger.info("Запрос системных ролей (State Entities) с бэкенда...")
-        roles_to_process = []
+        system_roles_from_backend = []
         try:
             get_entities_payload = GetAllStateEntitiesRequest(guild_id=guild_id, entity_type="role")
-            response_data, _ = await self.request_helper.send_and_await_response(
+            raw_ws_dict, _ = await self.request_helper.send_and_await_response(
                 api_method=self.request_helper.http_client_gateway.state_entity.get_all,
                 request_payload=get_entities_payload,
                 correlation_id=get_entities_payload.correlation_id,
-                discord_context={"guild_id": guild_id, "command_source": "sync_roles_get_states"}
+                discord_context={"guild_id": guild_id, "command_source": "sync_roles_get_states", "shard_type": shard_type}
             )
-            if not response_data or response_data.get("status") != "success":
-                raise RuntimeError("Бэкенд вернул ошибку при получении State Entities.")
             
-            # ВРЕМЕННОЕ ЛОГИРОВАНИЕ ДЛЯ ДИАГНОСТИКИ: Выводим полное тело response_data
-            self.logger.critical(f"ДИАГНОСТИКА: Полное response_data от бэкенда (тип: {type(response_data)}): {response_data}")
+            full_message = WebSocketMessage(**raw_ws_dict)
+            response_payload = WebSocketResponsePayload(**full_message.payload)
 
-            all_state_entities = response_data.get("data", {}).get("entities", [])
+            if response_payload.status != ResponseStatus.SUCCESS:
+                error_msg = response_payload.error.message if response_payload.error else "Бэкенд вернул ошибку при получении системных ролей."
+                raise RuntimeError(error_msg)
             
-            # ВРЕМЕННОЕ ЛОГИРОВАНИЕ ДЛЯ ДИАГНОСТИКИ:
-            self.logger.critical(f"ДИАГНОСТИКА: all_state_entities (тип: {type(all_state_entities)}, длина: {len(all_state_entities)}): {all_state_entities}")
-            
-            roles_to_process = [se for se in all_state_entities if se.get("ui_type") in ["access_level", "status_flag"]]
-            self.logger.info(f"С бэкенда получено {len(roles_to_process)} системных ролей для проверки.")
-
-            if message:
-                await message.edit(content=f"Получено {len(roles_to_process)} системных ролей. Проверяю их наличие в Discord...")
-
+            all_state_entities = response_payload.data.get("entities", [])
+            system_roles_from_backend = [se for se in all_state_entities if se.get("ui_type") in ["access_level", "status_flag"]]
+            self.logger.info(f"С бэкенда получено {len(system_roles_from_backend)} системных ролей для проверки.")
         except Exception as e:
             self.logger.error(f"Не удалось получить системные роли с бэкенда: {e}", exc_info=True)
-            if message:
-                await message.edit(content=f"Ошибка: Не удалось получить системные роли с бэкенда. {e}")
-            raise # Пробрасываем ошибку, чтобы она была обработана выше
+            if message: await message.edit(content=f"Ошибка: Не удалось получить системные роли с бэкенда. {e}")
+            raise
 
-        # Создаем словарь для быстрого поиска access_code
-        access_code_map = {
-            se.get('description'): se.get('access_code')
-            for se in roles_to_process if se.get('description')
-        }
-
-        # --- Шаг 2: Гарантируем наличие системных ролей в Discord ---
-        # Бот должен создавать все роли, которые он получает из базы сервера
-        for role_name in access_code_map.keys():
-            await self.base_ops.create_or_update_role(guild, role_name) # Это создаст роль, если её нет
-        self.logger.info("Проверка и создание системных ролей в Discord завершены.")
-
-        if message:
-            await message.edit(content="Системные роли в Discord проверены и созданы. Считываю все роли с сервера...")
-
-        # --- Шаг 3 - Считываем ВСЕ роли напрямую из Discord ---
-        self.logger.info("Считывание всех ролей с сервера Discord...")
-        all_discord_roles = guild.roles
+        if message: await message.edit(content=f"Этап 2/3: Создание {len(system_roles_from_backend)} системных ролей в Discord...")
         
-        # --- Шаг 4 - Готовим ПОЛНЫЙ список для синхронизации ---
+        synced_roles: Dict[str, discord.Role] = {}
         entities_to_sync: List[Dict[str, Any]] = []
-        for role in all_discord_roles:
-            # Пропускаем стандартную роль @everyone
-            if role.is_default():
-                self.logger.debug(f"Пропускаем роль '{role.name}' (ID: {role.id}) - это @everyone.")
+
+        for role_data in system_roles_from_backend:
+            role_name = role_data.get("description")
+            if not role_name:
                 continue
-            # РЕФАКТОРИНГ (ДИАГНОСТИКА): Временно закомментируем проверку is_bot_managed() для отладки
-            # if role.is_bot_managed():
-            #     self.logger.debug(f"Пропускаем роль '{role.name}' (ID: {role.id}) - управляется ботом/интеграцией.")
-            #     continue
             
+            # Создаем или получаем роль в Discord
+            role_obj = await self.base_ops.create_or_update_role(guild, role_name)
+            synced_roles[role_name] = role_obj
+
+            # Готовим данные для отправки на бэкенд
             entities_to_sync.append({
-                "discord_id": role.id,
+                "discord_id": role_obj.id,
                 "entity_type": "role",
-                "name": role.name,
-                "access_code": access_code_map.get(role.name), # Добавляем access_code, если он есть в системных ролях
-                "guild_id": guild_id,
-                "description": None, 
-                "parent_id": None, 
-                "permissions": None
+                "name": role_obj.name,
+                "access_code": role_data.get("access_code"),
+                "guild_id": guild_id
             })
 
-        if message:
-            await message.edit(content=f"Найдено {len(entities_to_sync)} ролей в Discord. Отправляю на синхронизацию с бэкендом...")
-
-        # --- Шаг 5: Отправляем ПОЛНЫЙ список на бэкенд для upsert-синхронизации ---
-        if not entities_to_sync:
-            final_message_content = "На сервере не найдено ролей для синхронизации."
-            if message:
-                await message.edit(content=final_message_content)
-            return {"status": "success", "message": final_message_content}
-
-        self.logger.info(f"Отправка {len(entities_to_sync)} ролей на бэкенд для upsert-синхронизации...")
-        sync_payload = UnifiedEntitySyncRequest(guild_id=guild_id, entities_data=entities_to_sync)
+        self.logger.info(f"Проверка и создание системных ролей в Discord завершены. Найдено/создано: {len(synced_roles)}.")
+        if message: await message.edit(content=f"Этап 3/3: Синхронизация {len(entities_to_sync)} ролей с БД...")
         
+        if not entities_to_sync:
+            self.logger.warning("Нет системных ролей для синхронизации с бэкендом.")
+            return {}
+
+        sync_payload = UnifiedEntitySyncRequest(guild_id=guild_id, entities_data=entities_to_sync)
         try:
-            sync_response, _ = await self.request_helper.send_and_await_response(
+            raw_ws_dict, _ = await self.request_helper.send_and_await_response(
                 api_method=self.request_helper.http_client_gateway.discord.sync_entities,
                 request_payload=sync_payload,
                 correlation_id=sync_payload.correlation_id,
-                discord_context={"guild_id": guild_id, "command_source": "sync_roles_upsert"}
+                discord_context={"guild_id": guild_id, "command_source": "sync_roles_upsert", "shard_type": shard_type}
             )
 
-            if not sync_response or sync_response.get("status") != "success":
-                error_msg = sync_response.get('message') if sync_response else "Нет ответа от сервера"
-                if message:
-                    await message.edit(content=f"Ошибка синхронизации с бэкендом: {error_msg}")
-                raise RuntimeError(f"Бэкенд вернул ошибку при синхронизации ролей: {error_msg}")
+            full_message = WebSocketMessage(**raw_ws_dict)
+            response_payload = WebSocketResponsePayload(**full_message.payload)
+
+            if response_payload.status != ResponseStatus.SUCCESS:
+                error_msg = response_payload.error.message if response_payload.error else "Бэкенд вернул ошибку при синхронизации ролей."
+                raise RuntimeError(error_msg)
             
-            # Этот лог теперь будет вызываться только при реальном успехе
-            self.logger.success(f"Полная синхронизация ролей с бэкендом успешно завершена. Ответ: {sync_response.get('message')}")
-
-            if message:
-                created_count = sync_response.get('data', {}).get('created_count', 0)
-                updated_count = sync_response.get('data', {}).get('updated_count', 0)
-                await message.edit(content=f"Синхронизация с бэкендом завершена. Создано: {created_count}, Обновлено: {updated_count}. Кэширую данные...")
-
-            # --- Шаг 6: Кэширование результата (локально) ---
-            try:
-                # Используем тот же самый полный список entities_to_sync для кэширования
-                roles_to_cache = {
-                    role_data["name"]: {
-                        "discord_id": role_data["discord_id"],
-                        "access_code": role_data.get("access_code")
-                    }
-                    for role_data in entities_to_sync
-                }
-                if roles_to_cache:
-                    await self.guild_config_manager.set_field(
-                        guild_id=guild_id,
-                        field_name=RedisKeys.FIELD_SYSTEM_ROLES,
-                        data=roles_to_cache
-                    )
-                    self.logger.success(f"Обновленные данные о ролях для гильдии {guild_id} сохранены в кэше.")
-                else:
-                    self.logger.warning(f"Нет данных о ролях для кэширования для гильдии {guild_id}.")
-
-                if message:
-                    await message.edit(content="Данные о ролях сохранены в локальном кэше. Запускаю полную синхронизацию кэша с бэкендом...")
-
-                # --- РЕФАКТОРИНГ: Шаг 7: Запускаем синхронизацию полной конфигурации гильдии с бэкендом ---
-                self.logger.info(f"Запускаем синхронизацию полной конфигурации гильдии {guild_id} с бэкендом через CacheSyncManager после синхронизации ролей...")
-                sync_success_to_backend = await self.cache_sync_manager.sync_guild_config_to_backend(guild_id)
-                if sync_success_to_backend:
-                    self.logger.success(f"Полная конфигурация гильдии {guild_id} успешно синхронизирована с бэкендом после синхронизации ролей.")
-                else:
-                    self.logger.error(f"Ошибка при синхронизации полной конфигурации гильдии {guild_id} с бэкендом после синхронизации ролей.")
-                
-                if message:
-                    if sync_success_to_backend:
-                        await message.edit(content="Полная конфигурация кэша успешно синхронизирована с бэкендом.")
-                    else:
-                        await message.edit(content="Ошибка: Полная конфигурация кэша не синхронизирована с бэкендом.")
-
-            except Exception as e:
-                self.logger.error(f"Не удалось закэшировать роли для гильдии {guild_id} или синхронизировать с бэкендом: {e}", exc_info=True)
-                if message:
-                    await message.edit(content=f"Ошибка: Не удалось закэшировать роли или синхронизировать кэш с бэкендом. {e}")
-                raise # Пробрасываем ошибку
-
-            return {"status": "success", "message": "Синхронизация ролей завершена.", "details": sync_response.get('data')}
-        
+            self.logger.success("Синхронизация системных ролей с бэкендом успешно завершена.")
         except Exception as e:
-            self.logger.critical(f"Критическая ошибка при синхронизации ролей: {e}", exc_info=True)
-            if message:
-                await message.edit(content=f"Критическая ошибка при синхронизации ролей: {e}")
+            self.logger.critical(f"Критическая ошибка при синхронизации системных ролей: {e}", exc_info=True)
+            if message: await message.edit(content=f"Критическая ошибка при синхронизации ролей: {e}")
             raise
+        
+        # Возвращаем словарь с готовыми объектами ролей
+        return synced_roles

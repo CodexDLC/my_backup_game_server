@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any, Union, Tuple
 from game_server.database.models.models import (
     CharacterPool, EquipmentTemplate # StaticItemTemplate УДАЛЕНО
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 UnifiedIdType = Union[int, str]
 
@@ -28,6 +29,7 @@ class ICharacterPoolRepository(ABC):
     async def find_one_available_and_lock(self) -> Optional[CharacterPool]: pass
     @abstractmethod
     async def delete_character(self, character: CharacterPool) -> bool: pass
+
 
 
 class IEquipmentTemplateRepository(ABC):

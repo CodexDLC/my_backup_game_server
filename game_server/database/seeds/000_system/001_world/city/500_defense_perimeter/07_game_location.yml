@@ -8,101 +8,182 @@ data:
   # =================================================================
   # 1. Основные под-зоны Периметра (parent: 500)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "510"
-    parent_access_key: "500"
-    location_type: "GATE_AREA"
+  - location_id: "510"
+    parent_id: "500"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Городские Врата"
     description: "Общая зона, объединяющая все основные входы и выходы из города. Постоянно патрулируется стражей."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Выйти из города через Южные Ворота"
+        target_location_id: "20"
+      - label: "Выйти из города через Северные Ворота"
+        target_location_id: "30"
+    child_location_ids:
+      - "512"
+      - "513"
+      - "514"
+      - "511"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "GATE_AREA"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "520"
-    parent_access_key: "500"
-    location_type: "GARRISON"
+  - location_id: "520"
+    parent_id: "500"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Гарнизон 'Железная Стена'"
     description: "Военный центр города. Здесь базируется городская стража, находятся склады и тюрьма."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids:
+      - "521"
+      - "522"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "GARRISON"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "530"
-    parent_access_key: "500"
-    location_type: "ARENA_COMPLEX"
+  - location_id: "530"
+    parent_id: "500"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Арена 'Кровавый Пепел'"
     description: "Большой комплекс для проведения публичных турниров и гладиаторских боев."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids:
+      - "531"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "ARENA_COMPLEX"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 2. Детализация: Городские Врата (parent: 510)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "511"
-    parent_access_key: "510"
-    location_type: "GATE"
+  - location_id: "511"
+    parent_id: "510"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Северные Ворота"
     description: "Массивные ворота, ведущие к холодным землям Северного Эпицентра."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "GATE"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "512"
-    parent_access_key: "510"
-    location_type: "GATE"
+  - location_id: "512"
+    parent_id: "510"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Южные Ворота"
     description: "Ворота, открывающие путь в опасные и нестабильные земли Южного Эпицентра."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "GATE"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
   
-  - skeleton_template_id: "main_world_v1"
-    access_key: "513"
-    parent_access_key: "510"
-    location_type: "GATE"
+  - location_id: "513"
+    parent_id: "510"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Восточные (Торговые) Ворота"
     description: "Главный путь для торговых караванов и путешественников."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "GATE"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "514"
-    parent_access_key: "510"
-    location_type: "GATE"
+  - location_id: "514"
+    parent_id: "510"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Западные (Портовые) Ворота"
     description: "Дорога, ведущая к портовому району. В данный момент закрыты на неопределенный срок."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "GATE"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 3. Детализация: Гарнизон (parent: 520)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "521"
-    parent_access_key: "520"
-    location_type: "BUILDING"
+  - location_id: "521"
+    parent_id: "520"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Главные Казармы"
     description: "Место жительства, тренировок и сбора городской стражи. Источник квестов по защите города."
-    is_peaceful: true
-    visibility: "private"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "BUILDING"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "522"
-    parent_access_key: "520"
-    location_type: "BUILDING"
+  - location_id: "522"
+    parent_id: "520"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Городская Тюрьма"
     description: "Хорошо охраняемое здание для содержания особо опасных преступников."
-    is_peaceful: true
-    visibility: "private"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "BUILDING"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 4. Детализация: Арена (parent: 530)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "531"
-    parent_access_key: "530"
-    location_type: "ARENA"
+  - location_id: "531"
+    parent_id: "530"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Главная Арена"
     description: "Сама боевая яма, где проливается кровь и рождаются легенды."
-    is_peaceful: false
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "ARENA"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []

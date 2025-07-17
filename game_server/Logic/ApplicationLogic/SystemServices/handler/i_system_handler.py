@@ -2,29 +2,24 @@
 
 from abc import ABC, abstractmethod
 import logging
-from typing import Dict, Any
+from typing import Any
 
 class ISystemServiceHandler(ABC):
     """
     Абстрактный базовый класс для обработчиков команд в микросервисе SystemServices.
     Определяет общий контракт для инициализации и выполнения бизнес-логики.
     """
-    def __init__(self, dependencies: Dict[str, Any]):
-        """
-        Инициализирует обработчик с необходимыми зависимостями.
-        :param dependencies: Словарь с зависимостями, предоставленными оркестратором.
-        """
-        self.dependencies = dependencies
-        # Использование логгера из зависимостей, или создание нового, если не предоставлен
-        self.logger = dependencies.get('logger', logging.getLogger(self.__class__.__name__))
-        self.logger.info(f"✅ {self.__class__.__name__} инициализирован.")
+    @property
+    @abstractmethod
+    def logger(self) -> logging.Logger:
+        """Возвращает экземпляр логгера для обработчика."""
+        pass
 
     @abstractmethod
-    async def process(self, *args, **kwargs) -> Any:
+    async def process(self, command_dto: Any) -> Any:
         """
         Абстрактный метод, выполняющий основную бизнес-логику обработчика.
         Должен быть реализован в дочерних классах.
-        Принимает произвольные аргументы, чтобы быть гибким для разных команд.
+        Принимает DTO команды.
         """
         pass
-

@@ -1,26 +1,32 @@
 # game_server/Logic/ApplicationLogic/SystemServices/handler/discord/delete_config_from_bot_handler.py
+# Version: 0.001
 
 import logging
 from typing import Dict, Any
+import inject # ▼▼▼ НОВЫЙ ИМПОРТ: inject ▼▼▼
 
 from game_server.Logic.ApplicationLogic.SystemServices.handler.i_system_handler import ISystemServiceHandler
 from game_server.Logic.InfrastructureLogic.app_cache.services.discord.backend_guild_config_manager import BackendGuildConfigManager
-from game_server.common_contracts.api_models.discord_api import GuildConfigDeleteRequest
-from game_server.common_contracts.dtos.base_dtos import BaseResultDTO
+
+from game_server.contracts.api_models.discord.config_management_requests import GuildConfigDeleteRequest
+from game_server.contracts.shared_models.base_commands_results import BaseResultDTO
 
 
 class DeleteConfigFromBotHandler(ISystemServiceHandler):
     """
     Обработчик для удаления полной конфигурации гильдии из кэша Redis на стороне бэкенда.
     """
-    def __init__(self, dependencies: Dict[str, Any]):
-        super().__init__(dependencies)
-        try:
-            # Ожидаем, что в зависимости будет передан менеджер кэша для бэкенда
-            self.cache_manager: BackendGuildConfigManager = self.dependencies['guild_config_manager']
-        except KeyError:
-            self.logger.critical(f"Критическая ошибка: В {self.__class__.__name__} не передана зависимость 'guild_config_manager'.")
-            raise
+    # ▼▼▼ ИСПОЛЬЗУЕМ @inject.autoparams() И ЯВНО ОБЪЯВЛЯЕМ ЗАВИСИМОСТИ ▼▼▼
+    @inject.autoparams()
+    def __init__(self, logger: logging.Logger, guild_config_manager: BackendGuildConfigManager):
+        self._logger = logger
+        self.cache_manager: BackendGuildConfigManager = guild_config_manager # Переименовал для ясности
+        self._logger.info("DeleteConfigFromBotHandler инициализирован.")
+
+    # ▼▼▼ РЕАЛИЗАЦИЯ АБСТРАКТНОГО СВОЙСТВА logger ИЗ ISystemServiceHandler ▼▼▼
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
 
     async def process(self, command_dto: GuildConfigDeleteRequest) -> BaseResultDTO[Dict[str, Any]]:
         guild_id = command_dto.guild_id
@@ -51,7 +57,6 @@ class DeleteConfigFromBotHandler(ISystemServiceHandler):
                 span_id=command_dto.span_id,
                 success=False,
                 message=f"Критическая ошибка на сервере при удалении конфигурации: {e}",
-                data={"guild_id": guild_id, "error": str(e)},
+                data={"guild_id": guild_id, "error": str(e)}, # ▼▼▼ ИСПОЛЬЗУЕМ Dict для data ▼▼▼
                 client_id=command_dto.client_id
             )
-

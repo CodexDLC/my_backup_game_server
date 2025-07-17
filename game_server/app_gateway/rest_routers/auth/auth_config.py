@@ -6,7 +6,7 @@ auth_routers = [
     {
         "router": auth_routes_router,
         "prefix": "/auth",
-        "tags": ["System"],
+        "tags": ["Authentication"],
     },
     
 ]

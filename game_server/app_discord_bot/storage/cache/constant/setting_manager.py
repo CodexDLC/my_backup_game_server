@@ -8,3 +8,5 @@ class PendingRequestSettings:
 class AuthTokenSettings:
     """Настройки для AuthTokenManager."""
     DEFAULT_TTL_SECONDS = 43200 # 12 часов
+    
+

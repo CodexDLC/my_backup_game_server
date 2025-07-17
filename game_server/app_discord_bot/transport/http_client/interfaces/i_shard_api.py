@@ -2,7 +2,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 
-from game_server.common_contracts.dtos.shard_dtos import SaveShardCommandDTO
+from game_server.contracts.dtos.shard.commands import SaveShardCommandDTO
+
 
 
 

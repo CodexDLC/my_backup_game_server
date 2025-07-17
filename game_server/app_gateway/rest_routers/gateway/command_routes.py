@@ -8,9 +8,10 @@ from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessa
 from game_server.app_gateway.rest_api_dependencies import get_message_bus_dependency
 from game_server.config.settings.rabbitmq.rabbitmq_names import Exchanges
 from game_server.config.logging.logging_setup import app_logger as logger
+from game_server.contracts.api_models.gateway.requests import BotAcknowledgementRequest
 
 # Импорт моделей
-from game_server.common_contracts.api_models.gateway_api import BotAcknowledgementRequest
+
 
 router = APIRouter(tags=["Command Lifecycle"])
 

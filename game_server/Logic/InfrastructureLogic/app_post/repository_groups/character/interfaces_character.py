@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
 from game_server.database.models.models import Character, CharacterSkills, CharacterSpecial, SpecialStatEffect, SkillExclusion
+from sqlalchemy.ext.asyncio import AsyncSession
 
 class ICharacterRepository(ABC):
     @abstractmethod
@@ -17,6 +18,9 @@ class ICharacterRepository(ABC):
     async def soft_delete_character(self, character_id: int) -> bool: pass
     @abstractmethod
     async def get_online_character_by_account_id(self, account_id: int) -> Optional[Character]: pass
+    @abstractmethod
+    async def get_full_character_data_by_id(self, session: AsyncSession, character_id: int) -> Optional[Character]:
+        pass
 
 class ICharacterSkillRepository(ABC):
     @abstractmethod
@@ -27,6 +31,10 @@ class ICharacterSkillRepository(ABC):
     async def update_skill(self, character_id: int, updates: Dict[str, Any]) -> Optional[CharacterSkills]: pass
     @abstractmethod
     async def delete_skill(self, character_id: int, skill_key: int) -> bool: pass
+    @abstractmethod
+    async def bulk_create_skills(self, character_id: int, skills_data: List[Dict[str, Any]]) -> None:
+        pass
+
 
 class ICharacterSpecialRepository(ABC):
     @abstractmethod
@@ -37,6 +45,9 @@ class ICharacterSpecialRepository(ABC):
     async def update_special_stats(self, character_id: int, updates: Dict[str, Any]) -> Optional[CharacterSpecial]: pass
     @abstractmethod
     async def delete_special_stats(self, character_id: int) -> bool: pass
+    @abstractmethod
+    async def create_special_stats(self, character_id: int, stats_data: Dict[str, Any]) -> CharacterSpecial:
+        pass
 
 class ISpecialStatEffectRepository(ABC):
     @abstractmethod

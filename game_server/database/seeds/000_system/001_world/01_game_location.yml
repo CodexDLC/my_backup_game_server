@@ -8,37 +8,69 @@ data:
   # ===============================================
   # 1. Город - главный хаб (access_key в диапазоне 1-99)
   # ===============================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "10"
-    parent_access_key: null
-    location_type: "CITY"
+  - location_id: "10"
+    parent_id: null
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Город"
     description: "Центральный город, основной хаб для игроков."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids:
+      - "100"
+      - "200"
+      - "300"
+      - "400"
+      - "500"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "CITY"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # ===============================================
   # 2. Южный Эпицентр - зона хаоса (access_key в диапазоне 1-99)
   # ===============================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "20"
-    parent_access_key: null
-    location_type: "REGION"
+  - location_id: "20"
+    parent_id: null
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Южный эпицентр"
     description: "Разломы миров, нестабильные пространства и аномальные явления. Опасная зона для высокоуровневых игроков."
-    is_peaceful: false
-    visibility: "public"
+    exits: []
+    child_location_ids:
+      - "21"
+      - "22"
+      - "23"
+      - "24"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "REGION"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # ===============================================
   # 3. Северный Эпицентр - задел на будущее (access_key в диапазоне 1-99)
-  # ===============================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "30"
-    parent_access_key: null
-    location_type: "REGION"
+  # =================================================================
+  - location_id: "30"
+    parent_id: null
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Северный эпицентр"
     description: "Неизведанные ледяные пустоши, хранящие древние тайны. (Контент для будущих обновлений)."
-    is_peaceful: false
-    visibility: "public"
-
-
+    exits: []
+    child_location_ids:
+      - "31"
+      - "32"
+      - "33"
+      - "34"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "REGION"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []

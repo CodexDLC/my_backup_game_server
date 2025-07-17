@@ -1,3 +1,6 @@
+
+# game_server\config\settings_core.py
+
 import os
 from dotenv import load_dotenv
 
@@ -33,13 +36,19 @@ if DATABASE_URL_SYNC is None and DATABASE_URL is not None:
 
 SQL_ECHO = os.getenv("SQL_ECHO", "False").lower() in ("true", "1", "yes")
 
-
+# --- MongoDB Configuration ---
 MONGO_INITDB_ROOT_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME", "youruser")
 MONGO_INITDB_ROOT_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD", "yourpassword")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "game_db_mongo")
 MONGO_PORT = os.getenv("MONGO_PORT", "27017")
 MONGO_HOST_LOCAL = os.getenv("MONGO_HOST_LOCAL", "127.0.0.1")
 MONGO_HOST_CONTAINER = os.getenv("MONGO_HOST_CONTAINER", "mongo_db")
+
+# ✅ НОВОЕ: Полный URI для подключения к MongoDB
+# ВАЖНО: MONGO_HOST_CONTAINER используется здесь, потому что fast_api, arq_worker,
+# и orchestrator будут подключаться к MongoDB внутри Docker сети по имени сервиса.
+# Убедитесь, что 'mongo_db' соответствует имени сервиса MongoDB в вашем docker-compose.yml.
+MONGO_URI = f"mongodb://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@{MONGO_HOST_CONTAINER}:{MONGO_PORT}/{MONGO_DB_NAME}?authSource=admin" # ДОБАВЛЕНО
 
 # ===================================================================
 # ⚡️ КЭШ И ВРЕМЕННОЕ ХРАНИЛИЩЕ (Redis) - ЦЕНТРАЛЬНЫЙ СЕРВЕР
@@ -53,10 +62,8 @@ if not REDIS_PASSWORD:
 REDIS_POOL_SIZE = int(os.getenv("REDIS_POOL_SIZE", 40))
 
 # URL'ы для центрального Redis (основная БД и кэш)
-REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"  # Основная БД Redis
+REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"   # Основная БД Redis
 REDIS_CACHE_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1" # Кэш-БД Redis (например, БД 1)
-
-REDIS_BOT_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/9" # БД Redis для бота (db: 9)
 
 # ===================================================================
 # 🐇 БРОКЕР СООБЩЕНИЙ (RabbitMQ)
@@ -74,18 +81,13 @@ RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "/") # Указываем знач�
 AMQP_URL = os.getenv("AMQP_URL")
 if not AMQP_URL:
     if all([RABBITMQ_USER, RABBITMQ_PASS, RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_VHOST is not None]):
-        # Убедитесь, что vhost начинается с '/', если это не просто '/'
-        # Некоторые библиотеки могут некорректно обрабатывать DSN без начального слэша
-        # if not RABBITMQ_VHOST.startswith('/'):
-        #     RABBITMQ_VHOST = '/' + RABBITMQ_VHOST
         AMQP_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PORT}{RABBITMQ_VHOST}"
     else:
-        # Можно сделать это ошибкой или оставить AMQP_URL None, в зависимости от логики вашего приложения
         print("❌ Предупреждение: Не все переменные окружения RabbitMQ заданы. AMQP_URL не будет сформирован автоматически.")
         AMQP_URL = None # Установите None или вызовите исключение
 
 # Если AMQP_URL критичен для работы приложения, можете добавить проверку:
 # if not AMQP_URL:
-#     raise ValueError("❌ Ошибка: переменная окружения AMQP_URL или необходимые переменные RabbitMQ не заданы!")
+#   raise ValueError("❌ Ошибка: переменная окружения AMQP_URL или необходимые переменные RabbitMQ не заданы!")
 
 GATEWAY_BOT_SECRET = os.getenv("GATEWAY_BOT_SECRET")

@@ -2,9 +2,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any, Tuple
 
+from game_server.contracts.api_models.discord.config_management_requests import GuildConfigSyncRequest
+from game_server.contracts.api_models.discord.entity_management_requests import GetDiscordEntitiesRequest, UnifiedEntityBatchDeleteRequest, UnifiedEntitySyncRequest
 
 
-from game_server.common_contracts.api_models.discord_api import GetDiscordEntitiesRequest, GuildConfigSyncRequest, UnifiedEntityBatchDeleteRequest, UnifiedEntitySyncRequest
 
 
 

@@ -1,24 +1,28 @@
-# game_server/game_services/game_world_state_orchestrator.py
-
 import sys
 from contextlib import asynccontextmanager
-
+import logging
 from fastapi import FastAPI, Response, status, HTTPException
 
-from game_server.config.logging.logging_setup import app_logger as logger
+# 🔥 ИЗМЕНЕНИЕ: Импортируем функции инициализации/остановки DI-контейнера
+from game_server.core.di_container import initialize_di_container, shutdown_di_container
 
-# <<< ИЗМЕНЕНО: Импортируем агрегатор и сборщик для этого сервиса
-from game_server.core.dependency_aggregator import initialize_all_dependencies, shutdown_all_dependencies
-from game_server.core.service_builders import build_game_world_dependencies
+# 🔥 УДАЛЕНО: Больше не нужен service_builders
+# from game_server.core.service_builders import build_game_world_dependencies
 
-# --- Импортируем наши главные координаторы ---
-from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.coordinator_pre_start import GeneratorPreStart
-from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_run.coordinator_orchestrator import CoordinatorOrchestrator
+# Импорты для главных координаторов (теперь они будут браться из inject)
+from game_server.Logic.ApplicationLogic.world_orchestrator.pre_start.coordinator_pre_start import PreStartCoordinator
+from game_server.Logic.ApplicationLogic.world_orchestrator.runtime.runtime_coordinator import RuntimeCoordinator
 from game_server.game_services.command_center.coordinator_command.coordinator_listener import CoordinatorListener
-from game_server.game_services.command_center.coordinator_command import coordinator_config
+from game_server.game_services.command_center.coordinator_command import coordinator_config # Оставляем импорт config, если он нужен для других целей (например, констант)
 
-# --- Импорты фабрики сессий и движок для FastAPI Lifespan ---
-from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
+# Импорты для инфраструктуры
+from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal # Если нужен для типизации
+from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus # Если нужен для типизации
+
+
+
+
+import inject # 🔥 Импортируем inject
 
 
 @asynccontextmanager
@@ -26,74 +30,70 @@ async def lifespan_event_handler(app: FastAPI):
     """
     Управляет жизненным циклом сервиса: инициализация и корректное завершение.
     """
-    logger.info("🚀 ЗАПУСК ГЛАВНОГО ОРКЕСТРАТОРА ИГРОВОГО МИРА...")
-    
-    runtime_coordinator = None
+    current_logger: logging.Logger = logging.getLogger(__name__) # Или inject.instance(logging.Logger) если DI уже настроен для этого уровня
+
+    current_logger.info("🚀 ЗАПУСК ГЛАВНОГО ОРКЕСТРАТОРА ИГРОВОГО МИРА...")
+
+    runtime_coordinator_listener = None
     
     try:
-        # <<< НАЧАЛО ИЗМЕНЕНИЙ
-        # 1. Инициализируем ВСЕ инфраструктурные зависимости ОДИН РАЗ
-        await initialize_all_dependencies()
+        # 🔥 ИЗМЕНЕНИЕ: Инициализируем DI-контейнер, который сам инициализирует все зависимости
+        # Это также обеспечит правильное связывание логгера.
+        await initialize_di_container()
 
-        # 2. Вызываем СБОРЩИК, который подготовит нужный нам набор зависимостей
-        game_world_deps = await build_game_world_dependencies()
-        
-        # 3. Сохраняем готовый набор в стейт приложения
-        app.state.dependencies = game_world_deps
-        # КОНЕЦ ИЗМЕНЕНИЙ >>>
+        # 🔥 ИЗМЕНЕНИЕ: Получаем оркестраторы и другие необходимые глобальные зависимости напрямую из inject
+        pre_start_coordinator: PreStartCoordinator = inject.instance(PreStartCoordinator)
+        runtime_coordinator_instance: RuntimeCoordinator = inject.instance(RuntimeCoordinator) # Класс RuntimeCoordinator
+        message_bus: IMessageBus = inject.instance(IMessageBus) # Получаем из inject
 
-        logger.info("--- ✅ ВСЕ ГЛОБАЛЬНЫЕ ЗАВИСИМОСТИ ОРКЕСТРАТОРА УСПЕШНО ЗАПУЩЕНЫ ---")
+
+        current_logger.info("--- ✅ ВСЕ ГЛОБАЛЬНЫЕ ЗАВИСИМОСТИ ОРКЕСТРАТОРА УСПЕШНО ЗАПУЩЕНЫ ---")
 
         # --- ЭТАП 1: РЕЖИМ ПРЕДСТАРТА ---
-        logger.info("--- ⚙️ Вход в режим ПРЕДСТАРТА (Pre-Start Mode) ---")
+        current_logger.info("--- ⚙️ Вход в режим ПРЕДСТАРТА (Pre-Start Mode) ---")
 
-        # GeneratorPreStart требует специфического набора зависимостей, извлекаем их
-        generator_coordinator = GeneratorPreStart(
-            repository_manager=game_world_deps["repository_manager"],
-            # Примечание: GeneratorPreStart может также потребовать рефакторинга,
-            # чтобы принимать весь словарь 'dependencies' для унификации.
-            app_cache_managers=game_world_deps, # Передаем весь словарь, т.к. он ожидает несколько менеджеров
-            arq_redis_pool=game_world_deps["arq_redis_pool"]
-        )
-        app.state.generator_coordinator = generator_coordinator
+        # 🔥 ИЗМЕНЕНИЕ: Используем полученный из inject pre_start_coordinator
+        app.state.generator_coordinator = pre_start_coordinator # Сохраняем для доступа в app.state
 
-        pre_start_successful = await app.state.generator_coordinator.pre_start_mode()
+        pre_start_successful = await app.state.generator_coordinator.run_pre_start_sequence()
 
         if not pre_start_successful:
-            logger.critical("🚨 Предстартовый режим завершился с ошибкой. Оркестратор не будет запущен.")
+            current_logger.critical("🚨 Предстартовый режим завершился с ошибкой. Оркестратор не будет запущен.")
             sys.exit(1)
 
-        logger.info("--- ✅ Предстартовый режим успешно завершен ---")
+        current_logger.info("--- ✅ Предстартовый режим успешно завершен ---")
 
         # --- ЭТАП 2: РЕЖИМ ОСНОВНОЙ РАБОТЫ (Runtime Mode) ---
-        logger.info("--- ⚙️ Вход в режим ОСНОВНОЙ РАБОТЫ (Runtime Mode) ---")
+        current_logger.info("--- ⚙️ Вход в режим ОСНОВНОЙ РАБОТЫ (Runtime Mode) ---")
 
-        coordinator_orchestrator = CoordinatorOrchestrator(dependencies=game_world_deps)
+        # 🔥 ИЗМЕНЕНИЕ: Используем полученный из inject runtime_coordinator_instance
+        coordinator_orchestrator = runtime_coordinator_instance
         
-        runtime_coordinator = CoordinatorListener(
-            message_bus=game_world_deps["message_bus"],
-            config=coordinator_config,
+        # 🔥 ИЗМЕНЕНИЕ: УДАЛИТЬ 'config=coordinator_config'
+        runtime_coordinator_listener = CoordinatorListener(
+            message_bus=message_bus, # Используем message_bus из inject
+            # config=coordinator_config, # <-- УДАЛИТЬ ЭТУ СТРОКУ
             orchestrator=coordinator_orchestrator
         )
-        app.state.runtime_coordinator = runtime_coordinator
+        app.state.runtime_coordinator = runtime_coordinator_listener # Сохраняем для доступа в app.state
 
-        runtime_coordinator.start() 
-        logger.info("--- ✅ Рантайм-координатор запущен и слушает команды ---")
+        runtime_coordinator_listener.start() 
+        current_logger.info("--- ✅ Рантайм-координатор запущен и слушает команды ---")
 
         yield
 
     finally:
         # --- SHUTDOWN ---
-        logger.info("--- 🛑 Начало процесса корректного завершения работы Главного Оркестратора ---")
+        current_logger.info("--- 🛑 Начало процесса корректного завершения работы Главного Оркестратора ---")
 
-        if runtime_coordinator:
-            await runtime_coordinator.stop()
-            logger.info("✅ Рантайм-координатор остановлен.")
+        if runtime_coordinator_listener:
+            await runtime_coordinator_listener.stop()
+            current_logger.info("✅ Рантайм-координатор остановлен.")
             
-        # <<< ИЗМЕНЕНО: Вызываем общую функцию остановки без аргументов
-        await shutdown_all_dependencies()
+        # 🔥 ИЗМЕНЕНИЕ: Вызываем общую функцию остановки DI-контейнера
+        await shutdown_di_container()
         
-        logger.info("--- ✅ Все сервисы Главного Оркестратора корректно остановлены. ---")
+        current_logger.info("--- ✅ Все сервисы Главного Оркестратора корректно остановлены. ---")
 
 
 app = FastAPI(
@@ -106,15 +106,17 @@ app = FastAPI(
 @app.get("/health", summary="Проверка состояния оркестратора")
 async def health_check():
     """Проверяет, что оркестратор запущен и отвечает."""
-    # <<< ИЗМЕНЕНО: Проверки теперь смотрят в единый словарь зависимостей
-    if (hasattr(app.state, 'dependencies') and app.state.dependencies and
-        "repository_manager" in app.state.dependencies and
-        "redis_batch_store" in app.state.dependencies and
-        "arq_redis_pool" in app.state.dependencies and
-        "message_bus" in app.state.dependencies and
-        hasattr(app.state, 'runtime_coordinator') and app.state.runtime_coordinator is not None):
-        
+    # 🔥 ИЗМЕНЕНИЕ: Проверки теперь смотрят в единый DI-контейнер через inject.instance()
+    # Это более надежный способ, чем проверять app.state.dependencies напрямую,
+    # так как inject гарантирует наличие зависимостей, если они сконфигурированы.
+    try:
+        # Попытка получить ключевые зависимости, чтобы убедиться, что inject работает
+        inject.instance(IMessageBus)
+        inject.instance(PreStartCoordinator)
+        inject.instance(RuntimeCoordinator)
+        inject.instance(logging.Logger) # Проверим, что логгер доступен
+
+        # Если дошли сюда, значит, основные зависимости доступны через inject
         return Response(status_code=status.HTTP_200_OK, content="Orchestrator is healthy.")
-    else:
-        logger.error("Health check failed: Core components not fully initialized.")
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Orchestrator is not fully initialized.")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Orchestrator is not fully initialized or DI container is not ready.")

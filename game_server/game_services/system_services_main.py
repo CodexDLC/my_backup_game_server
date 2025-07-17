@@ -3,19 +3,18 @@
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from typing import Dict, Any
+import logging
 
-# <<< ИЗМЕНЕНО: Импортируем агрегатор и сборщик для этого сервиса
-from game_server.core.dependency_aggregator import initialize_all_dependencies, shutdown_all_dependencies
-from game_server.core.service_builders import build_system_services_dependencies
-from game_server.config.logging.logging_setup import app_logger as logger
+# Импортируем функции инициализации/остановки DI-контейнера
+from game_server.core.di_container import initialize_di_container, shutdown_di_container
 
-# Остальные импорты остаются без изменений
-from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
-from game_server.game_services.command_center.system_services_command import system_services_config
+# Импорты для классов, которые мы будем получать из DI
 from game_server.game_services.command_center.system_services_command.system_services_listener import SystemServicesCommandListener
-from game_server.Logic.ApplicationLogic.SystemServices.system_services_orchestrator import SystemServicesOrchestrator
-from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus
+
+import inject
+
+# Получаем корневой логгер на случай, если DI еще не инициализирован
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -25,47 +24,39 @@ async def lifespan(app: FastAPI):
     """
     logger.info("--- 🚀 Запуск микросервиса SystemServices ---")
     
-    command_listener = None
+    command_listener: SystemServicesCommandListener | None = None
+    current_logger = logger 
     
     try:
-        # <<< НАЧАЛО ИЗМЕНЕНИЙ
-        # 1. Инициализируем ВСЕ инфраструктурные зависимости ОДИН РАЗ
-        await initialize_all_dependencies()
+        # 1. Инициализируем DI-контейнер
+        await initialize_di_container()
 
-        # 2. Вызываем СБОРЩИК, который подготовит нужный нам набор зависимостей
-        system_deps = await build_system_services_dependencies()
+        # 2. Получаем все необходимые зависимости напрямую из inject
+        command_listener = inject.instance(SystemServicesCommandListener)
+        current_logger = inject.instance(logging.Logger)
 
-        # 3. Сохраняем готовый набор в стейт приложения
-        app.state.dependencies = system_deps
-        message_bus: IMessageBus = system_deps["message_bus"]
-        # КОНЕЦ ИЗМЕНЕНИЙ >>>
-
-        # 4. Создаем экземпляр ОРКЕСТРАТОРА, передав ему готовый набор зависимостей
-        orchestrator = SystemServicesOrchestrator(dependencies=system_deps)
-        
-        # 5. Создаем экземпляр СЛУШАТЕЛЯ, передав ему оркестратор
-        command_listener = SystemServicesCommandListener(
-            message_bus=message_bus,
-            config=system_services_config,
-            orchestrator=orchestrator
-        )
-        
-        # 6. Запускаем слушателя
+        # 3. Запускаем прослушивание команд
+        # ИСПРАВЛЕНО: Вызываем правильный метод start() и убираем await
         command_listener.start()
-        logger.info("--- ✅ Сервис SystemServices успешно запущен и готов к работе ---")
+        current_logger.info("✅ Слушатель команд SystemServices запущен.")
+        
         yield
 
     finally:
         # --- SHUTDOWN ---
-        logger.info("--- 🛑 Начало процесса корректного завершения работы сервиса SystemServices ---")
+        current_logger.info("--- 🛑 Начало процесса корректного завершения работы сервиса SystemServices ---")
+        
         if command_listener:
             await command_listener.stop()
-            logger.info("🔗 SystemServicesCommandListener остановлен.")
+            current_logger.info("🔗 SystemServicesCommandListener остановлен.")
         
-        # <<< ИЗМЕНЕНО: Вызываем общую функцию остановки без аргументов
-        await shutdown_all_dependencies()
+        await shutdown_di_container()
         
-        logger.info("--- ✅ Сервис SystemServices корректно остановлен ---")
+        current_logger.info("--- ✅ Сервис SystemServices корректно остановлен ---")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="System Services Microservice",
+    description="Handles system-level commands and operations.",
+    lifespan=lifespan
+)

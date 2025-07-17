@@ -29,3 +29,12 @@ class IGameShardRepository(ABC):
     async def update_current_players_sync(self, discord_guild_id: int, actual_count: int) -> Optional[GameShard]: pass
     @abstractmethod
     async def delete_shard(self, shard_id: int) -> bool: pass
+    # 🔥 НОВОЕ: Добавляем абстрактный метод get_all_active_shards
+    @abstractmethod
+    async def get_all_active_shards(self) -> List[Any]: # Замените Any на GameShard
+        """
+        Получает список всех активных шардов.
+        """
+        pass
+    
+    

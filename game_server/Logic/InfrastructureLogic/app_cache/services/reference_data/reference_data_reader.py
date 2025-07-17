@@ -4,6 +4,7 @@ import logging
 import random
 from typing import Dict, Any, List, Optional, Tuple, Type, TypeVar, Union
 
+import inject
 import msgpack
 
 from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
@@ -12,7 +13,11 @@ from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import
 from pydantic import BaseModel
 
 from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_reference_data_reader import IReferenceDataReader
-from game_server.config.constants.redis_key.reference_data_keys import REDIS_KEY_GENERATOR_BACKGROUND_STORIES, REDIS_KEY_GENERATOR_ITEM_BASE, REDIS_KEY_GENERATOR_MATERIALS, REDIS_KEY_GENERATOR_MODIFIERS, REDIS_KEY_GENERATOR_PERSONALITIES, REDIS_KEY_GENERATOR_SKILLS, REDIS_KEY_GENERATOR_SUFFIXES
+from game_server.config.constants.redis_key.reference_data_keys import (
+    REDIS_KEY_GENERATOR_BACKGROUND_STORIES, REDIS_KEY_GENERATOR_ITEM_BASE, REDIS_KEY_GENERATOR_MATERIALS,
+    REDIS_KEY_GENERATOR_MODIFIERS, REDIS_KEY_GENERATOR_PERSONALITIES, REDIS_KEY_GENERATOR_SKILLS,
+    REDIS_KEY_GENERATOR_SUFFIXES, REDIS_KEY_WORLD_CONNECTIONS # Убедитесь, что REDIS_KEY_WORLD_CONNECTIONS импортирован
+)
 
 
 PydanticDtoType = TypeVar('PydanticDtoType', bound=BaseModel)
@@ -20,8 +25,11 @@ PydanticDtoType = TypeVar('PydanticDtoType', bound=BaseModel)
 logger = logging.getLogger(__name__)
 
 class ReferenceDataReader(IReferenceDataReader):
-    def __init__(self, redis_client: CentralRedisClient):
-        self.redis = redis_client
+    
+    # 👇 ВОТ РЕШЕНИЕ: ДОБАВЛЯЕМ ДЕКОРАТОР
+    @inject.autoparams('central_redis_client', 'logger')
+    def __init__(self, central_redis_client: CentralRedisClient, logger: logging.Logger):
+        self.redis = central_redis_client
         self.logger = logger
         self.logger.info(f"✨ {self.__class__.__name__} инициализирован.")
 
@@ -38,7 +46,6 @@ class ReferenceDataReader(IReferenceDataReader):
     async def get_all_modifiers(self) -> Dict[str, Any]:
         return await self._get_full_hash_msgpack_data(REDIS_KEY_GENERATOR_MODIFIERS)
 
-    # <<< ИСПРАВЛЕНО: Методы теперь вызывают _get_full_hash_msgpack_data
     async def get_all_background_stories(self) -> Dict[str, Any]:
         return await self._get_full_hash_msgpack_data(REDIS_KEY_GENERATOR_BACKGROUND_STORIES)
 
@@ -51,6 +58,41 @@ class ReferenceDataReader(IReferenceDataReader):
     async def get_all_inventory_rules(self) -> Dict[str, Any]:
         # Предполагаем, что этот ключ также хранит msgpack
         return await self._get_full_hash_msgpack_data("REDIS_KEY_GENERATOR_INVENTORY_RULES") or {}
+
+    # НОВОЕ: Добавляем метод get_cached_data для универсального чтения
+    async def get_cached_data(self, redis_key: str, is_hash_data: bool = True) -> Optional[Union[Dict[str, Any], List[Any]]]:
+        """
+        Получает кэшированные данные из Redis, используя соответствующие MsgPack методы.
+        :param redis_key: Ключ Redis.
+        :param is_hash_data: True, если данные хранятся как HASH, False, если как STRING (по умолчанию True).
+        :return: Десериализованные данные или None.
+        """
+        self.logger.debug(f"Получение кэшированных данных для ключа '{redis_key}'. Тип: {'HASH' if is_hash_data else 'STRING'}.")
+        try:
+            if is_hash_data:
+                cached_data = await self.redis.hgetall_msgpack(redis_key)
+            else:
+                cached_data = await self.redis.get_msgpack(redis_key)
+            
+            if cached_data:
+                self.logger.debug(f"Кэшированные данные для '{redis_key}' найдены.")
+            else:
+                self.logger.debug(f"Кэшированные данные для '{redis_key}' не найдены или пусты.")
+            return cached_data
+        except Exception as e:
+            self.logger.error(f"Ошибка при получении кэшированных данных для ключа '{redis_key}': {e}", exc_info=True)
+            return None
+
+    async def get_world_connections_data(self) -> List[Dict[str, Any]]:
+        """
+        Получает данные о связях между локациями из Redis.
+        Эти данные хранятся как MsgPack-сериализованный список в Redis String.
+        """
+        connections_list = await self.get_cached_data(REDIS_KEY_WORLD_CONNECTIONS, is_hash_data=False)
+        if connections_list is None:
+            self.logger.warning(f"Данные о связях мира (ключ: {REDIS_KEY_WORLD_CONNECTIONS}) не найдены в Redis или пусты.")
+            return []
+        return connections_list
 
     # --- Вспомогательные методы ---
     async def _get_full_hash_json_data(self, redis_key: str) -> Dict[str, Any]:
@@ -82,7 +124,6 @@ class ReferenceDataReader(IReferenceDataReader):
         default_id: Optional[Any] = None
     ) -> Optional[Any]:
         try:
-            # <<< ИСПРАВЛЕНО: Вызываем правильный метод для получения данных
             data_dict = await self._get_full_hash_msgpack_data(redis_key) 
             if not data_dict:
                 self.logger.warning(f"Кэш для ключа '{redis_key}' пуст или не найден.")

@@ -191,8 +191,10 @@ class RabbitMQMessageBus(IMessageBus):
         future = asyncio.get_running_loop().create_future()
         self._rpc_futures[correlation_id] = future
         
-        # 🔥 ИЗМЕНЕНИЕ: Используем кастомный default для msgpack.dumps здесь тоже
-        message_body = msgpack.dumps(payload, default=msgpack_default, use_bin_type=True) 
+        # 🔥 ИСПРАВЛЕНО: Оборачиваем RPC payload в create_message
+        full_rpc_message = create_message(payload=payload) # <-- ЭТА СТРОКА ДОЛЖНА БЫТЬ ДОБАВЛЕНА
+
+        message_body = msgpack.dumps(full_rpc_message, default=msgpack_default, use_bin_type=True) # <-- ИСПОЛЬЗУЕМ full_rpc_message
 
         logger.debug(f"Выполнение RPC-вызова в очередь '{queue_name}' с correlation_id: {correlation_id}")
 
@@ -217,6 +219,36 @@ class RabbitMQMessageBus(IMessageBus):
             self._rpc_futures.pop(correlation_id, None)
             logger.error(f"Ошибка во время RPC-вызова: {e}", exc_info=True)
             raise
+
+    # ... (publish_rpc_response) ...
+    async def publish_rpc_response(self, reply_to: str, response_data: Dict[str, Any], correlation_id: str):
+        """
+        Публикует RPC-ответ в указанную очередь reply_to.
+        response_data: Словарь с данными ответа.
+        correlation_id: Correlation ID из входящего запроса.
+        """
+        if not self.channel or self.channel.is_closed:
+            raise ConnectionError("Канал RabbitMQ не активен или закрыт.")
+
+        if not reply_to:
+            logger.warning(f"Попытка отправить RPC-ответ без 'reply_to' для correlation_id: {correlation_id}. Ответ не будет опубликован.")
+            return
+
+        # 🔥 ИСПРАВЛЕНО: Оборачиваем RPC response_data в create_message
+        full_rpc_response = create_message(payload=response_data) # <-- ЭТА СТРОКА ДОЛЖНА БЫТЬ ДОБАВЛЕНА
+
+        response_body = msgpack.dumps(full_rpc_response, default=msgpack_default, use_bin_type=True) # <-- ИСПОЛЬЗУЕМ full_rpc_response
+
+        await self.channel.default_exchange.publish(
+            Message(
+                body=response_body,
+                content_type="application/msgpack",
+                correlation_id=correlation_id,
+            ),
+            routing_key=reply_to
+        )
+        logger.debug(f"RPC-ответ для CorrID {correlation_id} опубликован в очередь '{reply_to}' (MsgPack)")
+
 
     async def close(self):
         """

@@ -37,6 +37,7 @@ class LoggerConfig:
         self.error_log_file = os.path.join(self.log_dir, f'{container_id}_error.log')
         self.critical_log_file = os.path.join(self.log_dir, f'{container_id}_critical.log')
         self.exception_log_file = os.path.join(self.log_dir, f'{container_id}_exception.log')
+
         # Если вы используете общий файл для всех логов (как я ошибочно делал раньше),
         # его тоже можно определить: self.main_log_file = os.path.join(self.log_dir, f'{container_id}_app.log')
 
@@ -45,8 +46,8 @@ class LoggerConfig:
         self.backup_count = 3
 
         # Уровни логирования для разных обработчиков
-        self.console_log_level = logging.INFO    # Логи INFO и выше в консоль
-        self.debug_log_level = logging.DEBUG     # Логи DEBUG и выше в debug_log_file
+        self.console_log_level = logging.INFO     # ◄◄◄ ИЗМЕНЕНИЕ ЗДЕСЬ. Теперь логи DEBUG и выше в консоль
+        self.debug_log_level = logging.DEBUG       # Логи DEBUG и выше в debug_log_file
         self.info_log_level = logging.INFO       # Логи INFO и выше в info_log_file
         self.warning_log_level = logging.WARNING # Логи WARNING и выше в warning_log_file
         self.error_log_level = logging.ERROR     # Логи ERROR и выше в error_log_file
@@ -58,7 +59,10 @@ class LoggerConfig:
         # Получаем главный логгер приложения
         self.app_logger = logging.getLogger("game_server_app_logger") 
         self.app_logger.setLevel(logging.DEBUG) # Устанавливаем общий уровень для логгера на самый низкий
-        
+        # 🔥 ДОБАВЛЕНО: Настройка уровней логирования для Motor и PyMongo
+        logging.getLogger('motor').setLevel(logging.INFO) # Или logging.DEBUG для более детальных логов
+        logging.getLogger('pymongo').setLevel(logging.INFO) # Или logging.DEBUG для более детальных логов
+                
         self._disable_sqlalchemy_logs()
 
     def get_logger(self):
@@ -105,8 +109,11 @@ def get_file_handler(path, level, max_size, backups):
         logging.getLogger(__name__).error(f"Не удалось создать директорию логов или установить права для '{log_dir}': {e}", exc_info=True) 
 
     file_handler = RotatingFileHandler(path, maxBytes=max_size, backupCount=backups, encoding='utf-8')
+    # 🔥 ИЗМЕНЕНИЕ ЗДЕСЬ: Добавляем %(exc_text)s в форматтер для файла
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s\n%(exc_text)s' # <-- ДОБАВЛЕНО \n%(exc_text)s
+    ))
     file_handler.setLevel(level)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     return file_handler
 
 

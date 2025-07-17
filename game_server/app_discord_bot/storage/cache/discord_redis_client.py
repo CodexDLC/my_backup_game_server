@@ -2,13 +2,10 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any, List, Optional, Union
 import redis.asyncio as aioredis
 
 from game_server.app_discord_bot.config.discord_settings import REDIS_BOT_LOCAL_PASSWORD, REDIS_BOT_LOCAL_POOL_SIZE, REDIS_BOT_LOCAL_URL
-
-# Импортируем специфичные для бота настройки Redis из общего файла настроек проекта
-
 
 
 class DiscordRedisClient:
@@ -18,11 +15,9 @@ class DiscordRedisClient:
     """
     def __init__(
         self,
-        # 🔥 ИЗМЕНЕНО: Возвращены значения по умолчанию
         redis_url: str = REDIS_BOT_LOCAL_URL,
         max_connections: int = REDIS_BOT_LOCAL_POOL_SIZE,
-        # 🔥 ИЗМЕНЕНО: Значение по умолчанию для пароля теперь берется из настроек
-        redis_password: Optional[str] = REDIS_BOT_LOCAL_PASSWORD # Теперь берем из настроек
+        redis_password: Optional[str] = REDIS_BOT_LOCAL_PASSWORD
     ):
         self.logger = logging.getLogger("discord_redis_client")
         try:
@@ -93,7 +88,13 @@ class DiscordRedisClient:
     async def hset(self, key: str, field: str, value: str):
         """Установка поля в хэше."""
         await self.redis.hset(key, field, value)
-
+        
+    # 👇 ДОБАВЬТЕ ЭТОТ НОВЫЙ МЕТОД
+    async def hmset(self, key: str, data: dict):
+        if not data:
+            return
+        await self.redis.hset(key, mapping=data)
+        
     async def hget(self, key: str, field: str):
         """Получение поля из хэша."""
         return await self.redis.hget(key, field)
@@ -167,8 +168,6 @@ class DiscordRedisClient:
 
     async def set_json(self, key: str, value: dict):
         """Сериализует dict в JSON и сохраняет в Redis."""
-        # Здесь предполагается, что RedisJSON модуль установлен и используется,
-        # но даже без него это будет работать, сохраняя JSON-строку.
         await self.redis.set(key, json.dumps(value))
 
     async def get_json(self, key: str) -> Optional[dict]:
@@ -180,16 +179,62 @@ class DiscordRedisClient:
         """Возвращает default, если ключа нет."""
         value = await self.redis.get(key)
         return value if value is not None else default
+    
+            # ДОБАВЬТЕ ЭТОТ МЕТОД
+    async def hmset(self, key: str, data: dict):
+        """Устанавливает несколько полей в хеше за один раз."""
+        # Используем пайплайн для эффективности
+        async with self.redis.pipeline() as pipe:
+            for field, value in data.items():
+                pipe.hset(key, field, value)
+            await pipe.execute()
+
+    # ДОБАВЬТЕ ЭТОТ МЕТОД
+    async def sadd(self, key: str, *members):
+        """Добавляет один или несколько элементов в множество (Set)."""
+        if not members:
+            return
+        await self.redis.sadd(key, *members)
+
+    async def srem(self, key: str, *members):
+        """Удаляет один или несколько элементов из множества (Set)."""
+        if not members:
+            return
+        await self.redis.srem(key, *members)
+        
 
     async def set_with_ttl(self, key: str, value: str, ttl: int) -> None:
         """
         Устанавливает значение ключа с заданным временем жизни (TTL) в секундах.
         """
+        print(f"--- REDIS DEBUG --- Вызван set_with_ttl для ключа: {key}")
+        print(f"--- REDIS DEBUG --- Полученный TTL: {ttl}, ЕГО ТИП: {type(ttl)}")
+      
         try:
             await self.redis.set(key, value, ex=ttl)
             self.logger.debug(f"Ключ '{key}' установлен с TTL: {ttl}s")
         except Exception as e:
             self.logger.error(f"Ошибка при установке ключа '{key}' с TTL: {e}", exc_info=True)
+            
+    async def eval(self, script: Union[str, bytes], keys: List[Any] = None, args: List[Any] = None) -> Any:
+        """
+        Выполняет Lua-скрипт на сервере Redis.
+        Делегирует вызов базовому Redis-клиенту.
+        """
+        if keys is None:
+            keys = []
+        if args is None:
+            args = []
+        try:
+            # Важно: eval ожидает ключи и аргументы в байтах, если decode_responses=False
+            encoded_keys = [k.encode('utf-8') if isinstance(k, str) else k for k in keys]
+            encoded_args = [a.encode('utf-8') if isinstance(a, str) else a for a in args]
+
+            # 🔥 ИЗМЕНЕНО: Передаем numkeys (количество ключей) и распаковываем списки keys и args
+            result = await self.redis.eval(script, len(encoded_keys), *encoded_keys, *encoded_args)
+            return result
+        except Exception as e:
+            raise
 
 # Создаем единственный экземпляр клиента для локального Redis бота
 discord_redis_client = DiscordRedisClient()
@@ -200,14 +245,11 @@ if __name__ == "__main__":
     import os
     from dotenv import load_dotenv
 
-    # Загружаем переменные окружения для теста
     load_dotenv(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '.env')))
 
     async def test_discord_redis_client():
         print("Тестирование DiscordRedisClient...")
         try:
-            # Убедитесь, что REDIS_BOT_LOCAL_URL установлен в .env
-            # Например, REDIS_BOT_LOCAL_URL=redis://localhost:6379/0
             client = DiscordRedisClient() 
             await client.set("test_bot_key", "hello from discord bot's local redis")
             value = await client.get("test_bot_key")
@@ -228,6 +270,12 @@ if __name__ == "__main__":
         finally:
             if 'client' in locals() and hasattr(client, 'close'):
                 await client.close()
-            print("Соединение с локальным Redis бота закрыто (если было открыто).")
+            print("Соединение с локальным Redis бота закрыто (если было открыто).")           
+            
+            
+            
+            
 
     asyncio.run(test_discord_redis_client())
+    
+    

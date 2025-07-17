@@ -1,5 +1,8 @@
 # game_server/Logic/InfrastructureLogic/app_cache/services/session/session_manager.py
 
+import logging
+
+import inject
 from game_server.config.logging.logging_setup import app_logger as logger
 from typing import Optional
 
@@ -13,10 +16,11 @@ class RedisSessionManager(ISessionManager):
     """
     Реализация менеджера сессий, использующая Redis в качестве хранилища.
     """
-
-    def __init__(self, redis_client: CentralRedisClient):
+    @inject.autoparams()
+    def __init__(self, redis_client: CentralRedisClient, logger: logging.Logger):
         self.redis_client = redis_client
-        logger.info(f"✨ {self.__class__.__name__} (v2) инициализирован.")
+        self.logger = logger
+        self.logger.info(f"✨ {self.__class__.__name__} (v2) инициализирован.")
 
     async def save_session(self, client_id: str, token: str) -> None:
         """

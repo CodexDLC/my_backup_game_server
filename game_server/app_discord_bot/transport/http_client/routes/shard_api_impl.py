@@ -5,10 +5,11 @@ from typing import Optional, Dict, Any, Tuple
 from pydantic import BaseModel # Импортируем BaseModel для универсальности
 
 # 🔥 ИЗМЕНЕНИЕ: Импортируем SaveShardCommandDTO вместо RegisterGameShardRequest
-from game_server.common_contracts.dtos.shard_dtos import SaveShardCommandDTO # ИЛИ game_server.common_contracts.api_models.system_api.RegisterGameShardRequest, если SaveShardCommandDTO будет использоваться как команда
+
 
 from game_server.config.logging.logging_setup import app_logger as logger
 from game_server.app_discord_bot.transport.http_client.interfaces.i_shard_api import IShardAPIRoutes
+from game_server.contracts.dtos.shard.commands import SaveShardCommandDTO
 
 
 class ShardAPIRoutesImpl(IShardAPIRoutes):

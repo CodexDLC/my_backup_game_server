@@ -1,174 +1,137 @@
-# app/services/admin/hub_layout_service.py
+# game_server/app_discord_bot/app/services/admin/hub_layout_service.py
 
 from typing import Dict, Any, List
 import discord
 import uuid
 from pydantic import ValidationError
+import logging
+import inject
 
 from game_server.app_discord_bot.app.services.utils.request_helper import RequestHelper
-from game_server.common_contracts.api_models.discord_api import UnifiedEntitySyncRequest
-from game_server.config.logging.logging_setup import app_logger as logger
+
 from game_server.app_discord_bot.config.assets.data.channels_config import CHANNELS_CONFIG
-from .base_discord_operations import BaseDiscordOperations
-# Добавляем импорты CacheSyncManager
+from game_server.app_discord_bot.app.services.admin.base_discord_operations import BaseDiscordOperations
 from game_server.app_discord_bot.app.services.utils.cache_sync_manager import CacheSyncManager
-# Добавляем импорт RedisKeys
 from game_server.app_discord_bot.storage.cache.constant.constant_key import RedisKeys
-from game_server.app_discord_bot.storage.cache.bot_cache_initializer import BotCache
+from game_server.app_discord_bot.storage.cache.managers.guild_config_manager import GuildConfigManager
+from game_server.contracts.api_models.discord.entity_management_requests import UnifiedEntitySyncRequest
+from game_server.contracts.shared_models.base_responses import ResponseStatus
+from game_server.contracts.shared_models.websocket_base_models import WebSocketMessage, WebSocketResponsePayload
+
 
 
 class HubLayoutService:
-    """
-    Сервисный слой для управления лейаутом Хаб-сервера.
-    Отвечает за создание структуры в Discord и отправку всех сущностей
-    на бэкенд единым пакетом для синхронизации.
-    """
-    def __init__(self, bot):
+    @inject.autoparams()
+    def __init__(
+        self,
+        bot: discord.Client,
+        base_ops: BaseDiscordOperations,
+        request_helper: RequestHelper,
+        guild_config_manager: GuildConfigManager,
+        cache_sync_manager: CacheSyncManager,
+        logger: logging.Logger,
+    ):
         self.bot = bot
-        self.base_ops = BaseDiscordOperations(bot)
+        self.base_ops = base_ops
         self.channels_config = CHANNELS_CONFIG
-        if not hasattr(bot, 'request_helper'):
-            logger.error("RequestHelper не инициализирован в объекте бота. Убедитесь, что он настроен в main.py.")
-            raise RuntimeError("RequestHelper не инициализирован.")
-        self.request_helper: RequestHelper = bot.request_helper
-
-        # Добавляем доступ к менеджеру кэша
-        if not hasattr(bot, 'cache_manager') or not isinstance(bot.cache_manager, BotCache):
-            logger.critical("BotCache не инициализирован в объекте бота.")
-            raise RuntimeError("BotCache не инициализирован.")
-        self.guild_config_manager = bot.cache_manager.guild_config
-
-        # РЕФАКТОРИНГ: Получаем CacheSyncManager из объекта bot
-        if not hasattr(bot, 'sync_manager'):
-            logger.critical("CacheSyncManager (sync_manager) не инициализирован в объекте бота. Убедитесь, что он настроен через UtilsInitializer в main.py.")
-            raise RuntimeError("CacheSyncManager не инициализирован.")
-        self.cache_sync_manager: CacheSyncManager = bot.sync_manager
-
-
-    async def setup_hub_layout(self, guild_id: int) -> Dict[str, Any]:
+        self.request_helper = request_helper
+        self.guild_config_manager = guild_config_manager
+        self.cache_sync_manager = cache_sync_manager
+        self.logger = logger
+        self.permissions_sets = self.channels_config.get("permissions_sets", {})
+        # 🔥 НОВОЕ: Карта для определения, какой набор прав к какой роли относится
+        self.ROLE_PERMISSION_MAP = {
+            "admin_only": "Admin",
+            "moderator_only": "Moderator"
+        }
+        
+    async def setup_hub_layout(self, guild_id: int, roles: Dict[str, discord.Role]) -> Dict[str, Any]:
         """
-        Разворачивает полную структуру хаб-сервера в Discord и синхронизирует
-        ее с бэкендом одним запросом.
-        РЕФАКТОРИНГ: После синхронизации с БД, кэширует в локальный Redis и затем полностью
-        синхронизирует локальный кэш гильдии с бэкенд-Redis.
+        Разворачивает структуру хаб-сервера.
+        🔥 ИЗМЕНЕНИЕ: Принимает словарь 'roles' с созданными системными ролями.
         """
         guild = await self.base_ops.get_guild_by_id(guild_id)
-        if not guild:
-            raise ValueError(f"Discord сервер с ID {guild_id} не найден.")
+        if not guild: raise ValueError(f"Discord server with ID {guild_id} not found.")
 
         hub_layout = self.channels_config.get("hub_layout")
-        if not hub_layout:
-            raise ValueError("Конфигурация 'hub_layout' не найдена. Проверьте channels_config.py")
+        if not hub_layout: raise ValueError("Конфигурация 'hub_layout' не найдена.")
 
-        logger.info(f"Начало развертывания Hub Layout для гильдии {guild_id}.")
-
+        self.logger.info(f"Начало развертывания Hub Layout для гильдии {guild_id}.")
         entities_to_sync: List[Dict[str, Any]] = []
         created_categories: Dict[str, discord.CategoryChannel] = {}
+        cached_hub_layout_for_redis: Dict[str, Any] = {"categories": {}}
 
-        # РЕФАКТОРИНГ: Инициализируем структуру для кэширования в Redis
-        cached_hub_layout_for_redis: Dict[str, Any] = {
-            "categories": {}
-        }
+        # --- ОБЩАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ ПРАВ ---
+        def _prepare_overwrites(permissions_key: str) -> Dict[discord.Role, discord.PermissionOverwrite]:
+            overwrites = {}
+            everyone_role = guild.default_role
+            permission_values = self.permissions_sets.get(permissions_key, {})
 
-
-        # --- Шаг 1: Создаем категории в Discord и готовим их для синхронизации ---
-        for category_name, category_data in hub_layout.items():
-            if not isinstance(category_data, dict) or category_data.get('type') != 'category':
-                continue
+            role_name_for_key = self.ROLE_PERMISSION_MAP.get(permissions_key)
+            if role_name_for_key:
+                target_role = roles.get(role_name_for_key)
+                if target_role:
+                    overwrites[everyone_role] = discord.PermissionOverwrite(view_channel=False)
+                    overwrites[target_role] = discord.PermissionOverwrite(**permission_values)
+                else:
+                    self.logger.warning(f"Роль '{role_name_for_key}' не найдена. Канал будет полностью приватным.")
+                    overwrites[everyone_role] = discord.PermissionOverwrite(view_channel=False)
+            else:
+                overwrites[everyone_role] = discord.PermissionOverwrite(**permission_values)
             
+            return overwrites
+
+        # Шаг 1: Создаем категории
+        for category_name, category_data in hub_layout.items():
+            if not isinstance(category_data, dict) or category_data.get('type') != 'category': continue
             try:
                 permissions_key = category_data.get('permissions')
-                permissions_data = {}
-                if isinstance(permissions_key, str):
-                    permissions_data = self.channels_config.get('permissions_sets', {}).get(permissions_key, {})
-                elif isinstance(permissions_key, dict):
-                    permissions_data = permissions_key
-
-                category_channel = await self.base_ops.create_discord_category(
-                    guild, category_name, permissions=permissions_data
-                )
+                category_overwrites = _prepare_overwrites(permissions_key)
+                
+                category_channel = await self.base_ops.create_discord_category(guild, category_name, overwrites=category_overwrites)
                 created_categories[category_name] = category_channel
                 
-                entities_to_sync.append({
-                    "discord_id": category_channel.id,
-                    "entity_type": "category",
-                    "name": category_channel.name,
-                    "description": category_data.get('description'),
-                    "parent_id": None,
-                    "permissions": permissions_key,
-                    "access_code": None,
-                    "guild_id": guild_id
-                })
-                # РЕФАКТОРИНГ: Добавляем категорию в структуру для Redis
-                cached_hub_layout_for_redis["categories"][category_name] = {
-                    "discord_id": category_channel.id,
-                    "name": category_channel.name,
-                    "channels": {} # Подготовка для каналов внутри
-                }
-
+                # ... остальная логика кэширования и синхронизации ...
+                entities_to_sync.append({"discord_id": category_channel.id, "entity_type": "category", "name": category_channel.name, "description": category_data.get('description'), "permissions": permissions_key, "guild_id": guild_id})
+                cached_hub_layout_for_redis["categories"][category_name] = {"discord_id": category_channel.id, "name": category_channel.name, "channels": {}}
             except Exception as e:
-                logger.error(f"Ошибка при создании категории '{category_name}': {e}", exc_info=True)
+                self.logger.error(f"Ошибка при создании категории '{category_name}': {e}", exc_info=True)
                 raise
 
-        # --- Шаг 2: Создаем каналы внутри категорий и готовим их для синхронизации ---
+        # Шаг 2: Создаем каналы
         for category_name, category_data in hub_layout.items():
-            if "channels" not in category_data:
-                continue
-
+            if "channels" not in category_data: continue
             parent_category = created_categories.get(category_name)
             if not parent_category:
-                logger.warning(f"Категория-родитель '{category_name}' не найдена, пропускаем дочерние каналы.")
+                self.logger.warning(f"Категория-родитель '{category_name}' не найдена, пропускаем дочерние каналы.")
                 continue
-
+            
             for channel_name, channel_info in category_data["channels"].items():
                 try:
-                    entity_type_for_channel = channel_info.get('type', 'text')
-                    if entity_type_for_channel == 'text':
-                        entity_type_for_channel = 'text_channel'
-
-                    channel_permissions_key = channel_info.get('permissions')
-                    channel_permissions_data = {}
-                    if isinstance(channel_permissions_key, str):
-                        channel_permissions_data = self.channels_config.get('permissions_sets', {}).get(channel_permissions_key, {})
-                    elif isinstance(channel_permissions_key, dict):
-                        channel_permissions_data = channel_permissions_key
-
-
+                    permissions_key = channel_info.get('permissions')
+                    channel_overwrites = _prepare_overwrites(permissions_key)
+                    
+                    channel_type_str = channel_info.get('type', 'text')
                     channel_obj = await self.base_ops.create_discord_channel(
-                        guild, channel_name, entity_type_for_channel,
-                        parent_category=parent_category, permissions=channel_permissions_data,
+                        guild, channel_name, channel_type_str,
+                        parent_category=parent_category, overwrites=channel_overwrites,
                         description=channel_info.get('description')
                     )
                     if channel_obj:
-                        entities_to_sync.append({
-                            "discord_id": channel_obj.id,
-                            "entity_type": entity_type_for_channel,
-                            "name": channel_obj.name,
-                            "description": channel_info.get('description'),
-                            "parent_id": parent_category.id,
-                            "permissions": channel_permissions_key,
-                            "access_code": None,
-                            "guild_id": guild_id
-                        })
-                        # РЕФАКТОРИНГ: Добавляем канал в структуру для Redis
-                        if category_name in cached_hub_layout_for_redis["categories"]:
-                            cached_hub_layout_for_redis["categories"][category_name]["channels"][channel_name] = {
-                                "discord_id": channel_obj.id,
-                                "name": channel_obj.name,
-                                "parent_id": parent_category.id
-                            }
-
-
+                        # ... остальная логика кэширования и синхронизации ...
+                        entity_type = 'forum' if channel_type_str == 'forum' else ('news' if channel_type_str == 'news' else 'text_channel')
+                        entities_to_sync.append({"discord_id": channel_obj.id, "entity_type": entity_type, "name": channel_obj.name, "description": channel_info.get('description'), "parent_id": parent_category.id, "permissions": permissions_key, "guild_id": guild_id})
+                        cached_hub_layout_for_redis["categories"][category_name]["channels"][channel_name] = {"discord_id": channel_obj.id, "name": channel_obj.name, "parent_id": parent_category.id}
                 except Exception as e:
-                    logger.error(f"Ошибка при создании канала '{channel_name}': {e}", exc_info=True)
+                    self.logger.error(f"Ошибка при создании канала '{channel_name}': {e}", exc_info=True)
                     raise
                 
         # --- Шаг 3: Отправка ВСЕХ собранных сущностей на бэкенд одним запросом ---
         if not entities_to_sync:
-            logger.warning("Не было создано ни одной сущности для синхронизации.")
+            self.logger.warning("Не было создано ни одной сущности для синхронизации.")
             return {"status": "success", "message": "Нет сущностей для синхронизации."}
 
-        logger.info(f"Отправка {len(entities_to_sync)} сущностей на бэкенд для синхронизации...")
+        self.logger.info(f"Отправка {len(entities_to_sync)} сущностей на бэкенд для синхронизации...")
         
         discord_context = {
             "user_id": self.bot.user.id,
@@ -177,56 +140,59 @@ class HubLayoutService:
         }
 
         try:
-            # Pydantic DTO уже должен иметь поле client_id, если бэкенд его ожидает.
-            # Мы не добавляем его здесь, чтобы не менять сигнатуру, если она не требует client_id.
             request_payload = UnifiedEntitySyncRequest(guild_id=guild_id, entities_data=entities_to_sync)
 
-            logger.info("HubLayoutService: Pydantic-модель UnifiedEntitySyncRequest успешно создана.")
+            self.logger.info("HubLayoutService: Pydantic-модель UnifiedEntitySyncRequest успешно создана.")
 
-            response, retrieved_context = await self.request_helper.send_and_await_response(
+            raw_ws_dict, _ = await self.request_helper.send_and_await_response(
                 api_method=self.request_helper.http_client_gateway.discord.sync_entities,
                 request_payload=request_payload,
                 correlation_id=request_payload.correlation_id,
                 discord_context=discord_context
             )
+            
+            full_message = WebSocketMessage(**raw_ws_dict)
+            response_payload = WebSocketResponsePayload(**full_message.payload)
 
-            # Проверяем response.get('status') == 'success'
-            if response and response.get("status") == "success":
-                logger.info("Синхронизация Hub Layout с бэкендом успешно завершена.")
+            if response_payload.status == ResponseStatus.SUCCESS:
+                self.logger.info("Синхронизация Hub Layout с бэкендом успешно завершена.")
                 
                 # РЕФАКТОРИНГ: Шаг 4: Кэширование конфигурации Hub Layout в Redis (локально)
                 try:
-                    if cached_hub_layout_for_redis["categories"]: # Проверяем, есть ли категории для кэширования
+                    if cached_hub_layout_for_redis["categories"]:
                         await self.guild_config_manager.set_field(
                             guild_id=guild_id,
-                            field_name=RedisKeys.FIELD_HUB_LAYOUT_CONFIG, # Используем новую константу
-                            data=cached_hub_layout_for_redis # Сохраняем собранные данные
+                            # 👇 Добавляем новый аргумент
+                            shard_type="hub",
+                            field_name=RedisKeys.FIELD_HUB_LAYOUT_CONFIG,
+                            data=cached_hub_layout_for_redis
                         )
-                        logger.success(f"Поле '{RedisKeys.FIELD_HUB_LAYOUT_CONFIG}' для гильдии {guild_id} сохранено в кэше.")
+                        self.logger.success(f"Поле '{RedisKeys.FIELD_HUB_LAYOUT_CONFIG}' для гильдии {guild_id} сохранено в кэше.")
 
                         # РЕФАКТОРИНГ: Шаг 5: Запускаем синхронизацию полной конфигурации гильдии с бэкендом
-                        logger.info(f"Запускаем синхронизацию полной конфигурации гильдии {guild_id} с бэкендом через CacheSyncManager после развертывания Hub Layout...")
-                        sync_success_to_backend = await self.cache_sync_manager.sync_guild_config_to_backend(guild_id)
+                        self.logger.info(f"Запускаем синхронизацию полной конфигурации гильдии {guild_id} с бэкендом через CacheSyncManager после развертывания Hub Layout...")
+                        # 🔥 ИЗМЕНЕНИЕ: Добавлен аргумент shard_type="hub"
+                        sync_success_to_backend = await self.cache_sync_manager.sync_guild_config_to_backend(guild_id, shard_type="hub")
                         if sync_success_to_backend:
-                            logger.success(f"Полная конфигурация гильдии {guild_id} успешно синхронизирована с бэкендом после развертывания Hub Layout.")
+                            self.logger.success(f"Полная конфигурация гильдии {guild_id} успешно синхронизирована с бэкендом после развертывания Hub Layout.")
                         else:
-                            logger.error(f"Ошибка при синхронизации полной конфигурации гильдии {guild_id} с бэкендом после развертывания Hub Layout.")
+                            self.logger.error(f"Ошибка при синхронизации полной конфигурации гильдии {guild_id} с бэкендом после развертывания Hub Layout.")
 
                     else:
-                        logger.warning(f"Нет данных о Hub Layout для кэширования для гильдии {guild_id}.")
+                        self.logger.warning(f"Нет данных о Hub Layout для кэширования для гильдии {guild_id}.")
 
                 except Exception as e:
-                    logger.error(f"Не удалось закэшировать Hub Layout для гильдии {guild_id} или синхронизировать с бэкендом: {e}", exc_info=True)
+                    self.logger.error(f"Не удалось закэшировать Hub Layout для гильдии {guild_id} или синхронизировать с бэкендом: {e}", exc_info=True)
 
 
-                return {"status": "success", "message": response.get('message'), "details": response.get('data')}
+                return {"status": "success", "message": response_payload.message, "details": response_payload.data}
             else:
-                error_msg = response.get('message') if response else "Нет ответа от сервера"
-                logger.error(f"Получен ответ с ошибкой, контекст: {retrieved_context}. Ошибка: {error_msg}")
-                raise RuntimeError(f"Бэкенд вернул ошибку при синхронизации: {error_msg}")
+                error_msg = response_payload.error.message if response_payload.error else "Бэкенд вернул ошибку при синхронизации."
+                raise RuntimeError(error_msg)
+            
         except ValidationError as e:
-            logger.error(f"HubLayoutService: Ошибка валидации Pydantic для UnifiedEntitySyncRequest: {e.errors()}", exc_info=True)
+            self.logger.error(f"HubLayoutService: Ошибка валидации Pydantic для UnifiedEntitySyncRequest: {e.errors()}", exc_info=True)
             raise RuntimeError(f"Ошибка валидации данных для синхронизации: {e.errors()}")
         except Exception as e:
-            logger.error(f"Критическая ошибка при вызове API синхронизации: {e}", exc_info=True)
+            self.logger.error(f"Критическая ошибка при вызове API синхронизации: {e}", exc_info=True)
             raise

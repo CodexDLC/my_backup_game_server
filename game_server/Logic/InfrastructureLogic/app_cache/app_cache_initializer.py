@@ -1,53 +1,28 @@
 # game_server/Logic/InfrastructureLogic/app_cache/app_cache_initializer.py
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Type
 
 # Импортируем CentralRedisClient
 from .central_redis_client import CentralRedisClient
 
-# Импорт всех классов менеджеров
-from .services.shard_count.shard_count_cache_manager import ShardCountCacheManager
-from .services.task_queue.redis_batch_store import RedisBatchStore
-# НОВОЕ: Импорт TaskQueueCacheManager
-
-from .services.character.character_cache_manager import CharacterCacheManager
-from .services.item.item_cache_manager import ItemCacheManager
-from .services.reference_data.reference_data_cache_manager import ReferenceDataCacheManager
-from .services.reference_data.reference_data_reader import ReferenceDataReader
-from .services.discord.backend_guild_config_manager import BackendGuildConfigManager
-from .interfaces.interfaces_session_cache import ISessionManager
-from .services.session.session_manager import RedisSessionManager
-
 # Импортируем настройки Redis
 from game_server.config.settings_core import REDIS_URL, REDIS_POOL_SIZE, REDIS_PASSWORD
-
-# Импортируем геттер для RepositoryManager, так как он является зависимостью
-from game_server.Logic.InfrastructureLogic.app_post.app_post_initializer import get_repository_manager_instance
 from game_server.config.logging.logging_setup import app_logger as logger
 
-# Глобальные переменные модуля
-central_redis_client_instance: Optional[CentralRedisClient] = None
-_initialized_managers: Dict[str, Any] = {}
+# 🔥 УДАЛЕНО: Импорт _async_singletons_instances из di_container
+# from game_server.core.di_container import _async_singletons_instances
 
 
-async def initialize_app_cache_managers() -> bool:
+async def initialize_app_cache_managers() -> Optional[CentralRedisClient]: # 🔥 ИЗМЕНЕНИЕ: Теперь возвращает CentralRedisClient
     """
-    Инициализирует все менеджеры кэша. Теперь он сам импортирует нужные зависимости,
-    когда они требуются (через get_repository_manager_instance).
+    Инициализирует CentralRedisClient.
     """
-    global central_redis_client_instance
+    logger.info("🔧 Инициализация CentralRedisClient для кэш-менеджеров...")
 
-    # Проверяем, чтобы не было повторной инициализации
-    if _initialized_managers:
-        logger.warning("Менеджеры кэша уже инициализированы. Пропуск.")
-        return True
-
-    logger.info("🔧 Инициализация всех менеджеров кэша и Redis-сервисов...")
-
+    central_redis_client_instance = None # Инициализируем None для обработки ошибок
     try:
         # 1. Инициализация CentralRedisClient
-        logger.info("🔧 Подключение CentralRedisClient...")
         central_redis_client_instance = CentralRedisClient(
             redis_url=REDIS_URL,
             max_connections=REDIS_POOL_SIZE,
@@ -55,77 +30,32 @@ async def initialize_app_cache_managers() -> bool:
         )
         await central_redis_client_instance.connect()
         logger.info("✅ CentralRedisClient успешно инициализирован.")
-        _initialized_managers["central_redis_client"] = central_redis_client_instance
-
+        
+        # DEBUG-проверка (оставляем, если нужна)
         if not hasattr(central_redis_client_instance, 'hgetall_msgpack'):
             logger.critical("DEBUG: !!! CENTRAL_REDIS_CLIENT НЕ ИМЕЕТ hgetall_msgpack ПРИ ИНИЦИАЛИЗАЦИИ CACHE MANAGERS !!!")
             raise AttributeError(f"DEBUG: Global CentralRedisClient from module '{central_redis_client_instance.__class__.__module__}' has no attribute 'hgetall_msgpack'")
         logger.critical("--- DEBUG: CentralRedisClient Проверка завершена ---")
-        # 🔥🔥🔥 КОНЕЦ ОТЛАДОЧНОГО КОДА В initialize_app_cache_managers 🔥🔥🔥
 
-
-        # 2. Инициализация остальных менеджеров, которые зависят только от Redis
-        _initialized_managers["redis_batch_store"] = RedisBatchStore(redis_client=central_redis_client_instance)
-        # НОВОЕ: Инициализация TaskQueueCacheManager
-        _initialized_managers["character_cache_manager"] = CharacterCacheManager(redis_client=central_redis_client_instance)
-        _initialized_managers["item_cache_manager"] = ItemCacheManager(redis_client=central_redis_client_instance)
-        _initialized_managers["reference_data_reader"] = ReferenceDataReader(redis_client=central_redis_client_instance)
-        _initialized_managers["shard_count_cache_manager"] = ShardCountCacheManager(redis_client=central_redis_client_instance)
-        _initialized_managers["session_manager"] = RedisSessionManager(redis_client=central_redis_client_instance)
-        _initialized_managers["backend_guild_config_manager"] = BackendGuildConfigManager(redis_client=central_redis_client_instance)
-        logger.info("✅ Базовые менеджеры кэша инициализированы.")
-        
-        # 3. Инициализация менеджеров, у которых есть дополнительные зависимости
-        logger.info("🔧 Инициализация ReferenceDataCacheManager...")
-        repository_manager = get_repository_manager_instance()
-        _initialized_managers["reference_data_cache_manager"] = ReferenceDataCacheManager(
-            repository_manager=repository_manager,
-            redis_client=central_redis_client_instance
-        )
-        logger.info("✅ ReferenceDataCacheManager инициализирован.")
-        
-        logger.info("✅ Все менеджеры кэша и Redis-сервисов успешно инициализированы.")
-        return True
+        logger.info("✅ Инициализация CentralRedisClient для кэш-менеджеров завершена.")
+        return central_redis_client_instance # 🔥 ИЗМЕНЕНИЕ: Возвращаем экземпляр
     except Exception as e:
-        logger.critical(f"🚨 Критическая ошибка при инициализации менеджеров кэша: {e}", exc_info=True)
+        logger.critical(f"🚨 Критическая ошибка при инициализации CentralRedisClient: {e}", exc_info=True)
         if central_redis_client_instance:
             await central_redis_client_instance.close()
             logger.warning("CentralRedisClient закрыт после ошибки инициализации менеджеров.")
-        return False
-
-
-def get_initialized_app_cache_managers() -> Dict[str, Any]:
-    if not _initialized_managers:
-        logger.error("🚫 Менеджеры кэша не инициализированы. Вызовите initialize_app_cache_managers() сначала.")
-        raise RuntimeError("App cache managers are not initialized.")
-    return _initialized_managers
-
-
-def get_redis_client() -> CentralRedisClient:
-    if central_redis_client_instance is None:
-        raise RuntimeError("Redis client is not initialized. Ensure lifespan startup event has run.")
-    return central_redis_client_instance
+        return None # 🔥 ИЗМЕНЕНИЕ: Возвращаем None при ошибке
 
 
 async def shutdown_app_cache_managers() -> None:
-    global central_redis_client_instance
-    global _initialized_managers
-
-    logger.info("🛑 Завершение работы менеджеров кэша и Redis-сервисов...")
-    if central_redis_client_instance:
-        await central_redis_client_instance.close()
-    
-    central_redis_client_instance = None
-    _initialized_managers = {}
-    logger.info("✅ Завершение работы менеджеров кэша выполнено.")
-
-    
-def get_session_manager_instance() -> ISessionManager:
     """
-    Возвращает инициализированный экземпляр RedisSessionManager.
+    Завершает работу CentralRedisClient.
     """
-    try:
-        return _initialized_managers["session_manager"]
-    except KeyError:
-        logger.error("🚫 RedisSessionManager не инициализирован. Вызовите initialize_app_cache_managers() сначала.")
-        raise RuntimeError("RedisSessionManager is not initialized.")
+    logger.info("🛑 Завершение работы CentralRedisClient...")
+    # 🔥 ИЗМЕНЕНИЕ: Теперь нужно будет получить CentralRedisClient из inject.instance()
+    # или передать его сюда, если он не управляется inject'ом для завершения.
+    # Для избежания циклического импорта, эта функция не должна получать его из _async_singletons_instances.
+    # Вместо этого, логика закрытия будет в di_container.py, который получит его через inject.instance().
+    # Здесь можно оставить заглушку или логику, которая не требует доступа к _async_singletons_instances.
+    logger.info("✅ CentralRedisClient завершение работы (логика в di_container).")
+

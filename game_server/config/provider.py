@@ -1,3 +1,6 @@
+# game_server/config/provider.py
+
+
 """
 Главный провайдер конфигурации.
 """
@@ -7,7 +10,7 @@ from .constants import character as character_constants
 from .constants import coordinator as coordinator_constants
 from .constants import generator as generator_constants
 from .constants import item as item_constants
-from .constants import redis as redis_constants
+from .constants import redis as redis_constants # 🔥 ИЗМЕНЕНИЕ: Импортируем redis.py (для TTL констант)
 from .constants import seeds as seeds_constants
 from .constants import arq as arq_constants
 
@@ -15,11 +18,8 @@ from .constants import arq as arq_constants
 # --- Импорт всех модулей с настройками ---
 from .settings.process import prestart as prestart_settings
 from .settings.process import runtime as runtime_settings
-from .settings import redis_setting as redis_settings_module
-# 🔥 НОВЫЙ ИМПОРТ: Импортируем настройки генератора персонажей
 from .settings.character import generator_settings as character_generator_settings
-# 🔥 ИСПРАВЛЕННЫЙ ИМПОРТ: Импортируем settings_core.py, который находится на том же уровне
-from . import settings_core as core_settings_module # <--- ВОТ ЭТО ИЗМЕНЕНИЕ!
+from . import settings_core as core_settings_module
 
 
 class _Constants:
@@ -29,7 +29,7 @@ class _Constants:
         self.coordinator = coordinator_constants
         self.generator = generator_constants
         self.item = item_constants
-        self.redis = redis_constants
+        self.redis = redis_constants # 🔥 ИЗМЕНЕНИЕ: Теперь это константы TTL из constants/redis.py
         self.seeds = seeds_constants
         self.arq = arq_constants
         
@@ -38,11 +38,8 @@ class _Settings:
     def __init__(self):
         self.prestart = prestart_settings
         self.runtime = runtime_settings
-        self.redis = redis_settings_module
-        # 🔥 НОВОЕ: Добавляем настройки генератора персонажей
         self.character = character_generator_settings
-        # 🔥 НОВОЕ: Добавляем импортированные настройки из settings_core
-        self.core = core_settings_module
+        self.core = core_settings_module # 🔥 НОВОЕ: Добавляем импортированные настройки из settings_core
 
 
 class ConfigProvider:

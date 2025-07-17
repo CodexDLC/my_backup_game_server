@@ -97,3 +97,6 @@ numba
 
 aio-pika
 pymongo
+motor
+
+inject

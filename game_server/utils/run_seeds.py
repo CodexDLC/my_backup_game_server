@@ -4,7 +4,8 @@ import asyncio
 # Убедитесь, что 'engine' импортируется из вашего проекта, например:
 
 # Добавьте импорт вашей фабрики сессий, используемой в проекте:
-from game_server.Logic.ApplicationLogic.start_orcestrator.coordinator_pre_start.load_seeds.seeds_manager import SeedsManager
+
+from game_server.Logic.ApplicationLogic.world_orchestrator.workers.load_kesh_database.load_seeds.seeds_manager import SeedsManager
 from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
 
 from game_server.database.models import models

@@ -4,6 +4,8 @@ import logging
 import json
 from typing import Any, Dict, Optional
 
+import inject
+
 from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
 from game_server.config.settings.redis_setting import DEFAULT_TTL_CHARACTER_SNAPSHOT_OFFLINE, DEFAULT_TTL_CHARACTER_SNAPSHOT_ONLINE
 from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_character_cache import ICharacterCacheManager
@@ -24,9 +26,11 @@ class CharacterCacheManager(ICharacterCacheManager):
     Высокоуровневый менеджер для кэширования и управления данными ПЕРСОНАЖЕЙ в Redis.
     Оперирует Hash-объектами персонажей и глобальной статистикой мира.
     """
-    def __init__(self, redis_client: CentralRedisClient):
+    @inject.autoparams()
+    def __init__(self, redis_client: CentralRedisClient, logger: logging.Logger): # <--- ИЗМЕНЕНИЕ ЗДЕСЬ
         self.redis = redis_client
-        logger.info("✅ CharacterCacheManager (v2) инициализирован.")
+        self.logger = logger # <--- ДОБАВЛЕНО: Сохраняем логгер
+        self.logger.info("✅ CharacterCacheManager (v2) инициализирован.")
 
     # --- Методы для управления данными персонажей ---
 

@@ -10,7 +10,7 @@ from game_server.app_discord_bot.transport.http_client.interfaces.i_state_entity
 
 # 🔥 ВАЖНО: Убедитесь, что GetStateEntityByKeyRequest (и другие модели, если используются здесь)
 # импортированы из правильного "common_contracts" пути после перемещения файлов
-from game_server.common_contracts.api_models.system_api import GetStateEntityByKeyRequest
+
 
 
 # 🔥 ВОЗВРАЩАЕМ НАСЛЕДОВАНИЕ ОТ IStateEntityAPIRoutes

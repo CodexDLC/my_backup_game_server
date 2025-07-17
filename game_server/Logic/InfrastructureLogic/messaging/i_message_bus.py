@@ -51,3 +51,12 @@ class IMessageBus(ABC):
     async def bind_queue(self, queue_name: str, exchange_name: str, routing_key: str):
         """Привязывает очередь к обменнику."""
         pass
+
+    @abstractmethod
+    async def publish_rpc_response(self, reply_to: str, response_data: Dict[str, Any], correlation_id: str):
+        """
+        Публикует RPC-ответ в указанную очередь reply_to.
+        response_data: Словарь с данными ответа.
+        correlation_id: Correlation ID из входящего запроса.
+        """
+        pass

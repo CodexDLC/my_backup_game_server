@@ -136,7 +136,7 @@ class AccountGameData(Base):
     
     characters_json: Mapped[dict] = mapped_column(JSONB, default=lambda: [])
     account_cards_data: Mapped[dict] = mapped_column(JSONB, default=lambda: {})
-    shard_id: Mapped[Optional[str]] = mapped_column(String(50))
+    shard_id: Mapped[Optional[int]] = mapped_column(BigInteger, ForeignKey('game_shards.discord_guild_id', ondelete='SET NULL'), nullable=True)
     
     last_login_game: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
     total_playtime_seconds: Mapped[int] = mapped_column(BigInteger, default=0)
@@ -488,13 +488,15 @@ class XpTickData(Base):
 class Character(Base):
     __tablename__ = 'characters'
 
-    character_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    character_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
 
     account_id: Mapped[int] = mapped_column(ForeignKey('account_info.account_id', ondelete='CASCADE'), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     surname: Mapped[Optional[str]] = mapped_column(String(100))
 
-    # ✅ НОВОЕ: Внешний ключ для связи с Clan (Clan.clan_id)
+    # ✅ НОВОЕ: Добавляем поле gender
+    gender: Mapped[Optional[str]] = mapped_column(String(50), nullable=True) # Можно сделать nullable=False и добавить default, если пол всегда известен
+
     clan_id: Mapped[Optional[int]] = mapped_column(ForeignKey('bloodlines_clan.clan_id', ondelete='SET NULL'))
     creature_type_id: Mapped[int] = mapped_column(ForeignKey('creature_types.creature_type_id', ondelete='RESTRICT'), nullable=False)
     personality_id: Mapped[Optional[int]] = mapped_column(ForeignKey('personalities.personality_id', ondelete='SET NULL'))
@@ -509,16 +511,12 @@ class Character(Base):
     # Связи (Relationship)
     account_info: Mapped['AccountInfo'] = relationship('AccountInfo', back_populates='characters')
 
-    # ✅ НОВОЕ: Связь с Clan
     clan: Mapped[Optional['Clan']] = relationship('Clan', back_populates='characters')
 
-    # Связь с Personality
     personality: Mapped[Optional['Personality']] = relationship('Personality', back_populates='characters')
 
-    # Связь с BackgroundStory
     background_story: Mapped[Optional['BackgroundStory']] = relationship('BackgroundStory', back_populates='characters')
 
-    # Связь с AutoSession (один-к-одному)
     auto_session: Mapped[Optional['AutoSession']] = relationship(
         'AutoSession',
         back_populates='character',
@@ -526,10 +524,8 @@ class Character(Base):
         primaryjoin="AutoSession.character_id == Character.character_id"
     )
 
-    # Связь с CharacterSkills (один персонаж - много навыков)
     character_skills: Mapped[List['CharacterSkills']] = relationship('CharacterSkills', back_populates='character')
 
-    # Связь с CharacterSpecial (один-к-одному)
     special_stats: Mapped[Optional['CharacterSpecial']] = relationship(
         'CharacterSpecial',
         back_populates='character',
@@ -537,11 +533,10 @@ class Character(Base):
         primaryjoin="CharacterSpecial.character_id == Character.character_id"
     )
 
-
     def __repr__(self):
-        # Изменено __repr__ так, чтобы не обращаться к self.creature_type
         return (f"<Персонаж(id={self.character_id}, имя='{self.name}', "
-                f"creature_type_id={self.creature_type_id}, " # Теперь используем только ID
+                f"gender='{self.gender}', " # Добавлено gender в repr
+                f"creature_type_id={self.creature_type_id}, "
                 f"статус='{self.status}')>")
 
 
@@ -1168,37 +1163,74 @@ class GameLocation(Base):
     """
     __tablename__ = 'game_locations'
 
-    access_key: Mapped[str] = mapped_column(String(255), primary_key=True)
-    # ИЗМЕНЕНИЕ ЗДЕСЬ: Убрано primary_key=True из 'id'
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), server_default=text('gen_random_uuid()'), nullable=False, unique=True)    
-    skeleton_template_id: Mapped[str] = mapped_column(String(100), nullable=False)    
-    location_type: Mapped[str] = mapped_column(String(50), nullable=False)    
+    # access_key теперь будет location_id
+    access_key: Mapped[str] = mapped_column(String(255), primary_key=True) # Это будет location_id
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), server_default=text('gen_random_uuid()'), nullable=False, unique=True)
+    
+    skeleton_template_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    
+    # 🔥 ИЗМЕНЕНИЕ: location_type переименован в specific_category
+    specific_category: Mapped[str] = mapped_column(String(50), nullable=False)
+    
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(TEXT)
-    parent_access_key: Mapped[Optional[str]] = mapped_column(
+    
+    # parent_access_key переименован в parent_id
+    parent_id: Mapped[Optional[str]] = mapped_column( # 🔥 ИЗМЕНЕНИЕ
         String(255),
-        ForeignKey('game_locations.access_key', ondelete='CASCADE'),
+        ForeignKey('game_locations.access_key', ondelete='CASCADE'), # ForeignKey все еще ссылается на access_key
         nullable=True
-    ) 
-    is_peaceful: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False)
-    visibility: Mapped[str] = mapped_column(String(50), nullable=False)    
+    )    
+   
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text('now()'))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=text('now()'))
     
+    # 🔥 НОВОЕ ПОЛЕ: unified_display_type
+    unified_display_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True) # Может быть null, если не задан
+
+    # 🔥 НОВОЕ ПОЛЕ: presentation (JSONB для PostgreSQL)
+    presentation: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True) # Словарь для image_url, icon_emoji
+
+    # 🔥 НОВОЕ ПОЛЕ: entry_point_location_id
+    entry_point_location_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+    # 🔥 НОВОЕ ПОЛЕ: flavor_text_options (JSONB для списка строк)
+    flavor_text_options: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True) # Список строк
+
+    # 🔥 НОВОЕ ПОЛЕ: tags (JSONB для списка строк)
+    tags: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True) # Список строк
+
+    # Отношения остаются прежними, но ссылаются на access_key и parent_id
     parent_location: Mapped[Optional['GameLocation']] = relationship(
         'GameLocation', remote_side=[access_key], back_populates='child_locations'
     )
     child_locations: Mapped[List['GameLocation']] = relationship(
         'GameLocation', back_populates='parent_location'
-    )    
+    ) 
 
+    # Метод to_dict нужно будет обновить, чтобы он включал новые поля
     def to_dict(self):
+        # Лучше явно перечислить поля, которые вы хотите включить,
+        # или использовать более универсальный подход, если полей много.
+        # Для JSONB полей, SQLAlchemy обычно возвращает их как Python dict/list.
         return {
-            column.name: str(getattr(self, column.name)) if isinstance(getattr(self, column.name), uuid.UUID) else getattr(self, column.name)
-            for column in self.__table__.columns
+            "access_key": self.access_key,
+            "id": str(self.id),
+            "skeleton_template_id": self.skeleton_template_id,
+            "specific_category": self.specific_category, # Изменено
+            "name": self.name,
+            "description": self.description,
+            "parent_id": self.parent_id, # Изменено
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "unified_display_type": self.unified_display_type, # Новое
+            "presentation": self.presentation, # Новое
+            "entry_point_location_id": self.entry_point_location_id, # Новое
+            "flavor_text_options": self.flavor_text_options, # Новое
+            "tags": self.tags, # Новое
         }
 
     def __repr__(self):
-        return (f"<GameLocation(access_key='{self.access_key}', type='{self.location_type}', "
-                f"name='{self.name}', parent_key='{self.parent_access_key}', "
-                f"skeleton_id='{self.skeleton_template_id}')>")
+        return (f"<GameLocation(access_key='{self.access_key}', specific_category='{self.specific_category}', "
+                f"name='{self.name}', parent_id='{self.parent_id}', "
+                f"unified_display_type='{self.unified_display_type}')>") # Изменено

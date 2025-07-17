@@ -1,6 +1,9 @@
 # game_server\Logic\InfrastructureLogic\app_cache\services\discord\backend_guild_config_manager.py
 import json
+import logging
 from typing import Dict, Any, Optional, List
+
+import inject
 
 from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
 # 🔥 ИЗМЕНЕНИЕ: Импортируем наш новый интерфейс
@@ -15,12 +18,14 @@ class BackendGuildConfigManager(IBackendGuildConfigManager):
     Менеджер кэша на стороне БЭКЕНДА для работы с копией конфигурации,
     полученной от Discord-бота.
     """
-    def __init__(self, redis_client: CentralRedisClient, ttl: int = -1):
+    @inject.autoparams()
+    def __init__(self, redis_client: CentralRedisClient, logger: logging.Logger, ttl: int = -1):
         self.redis_client = redis_client
+        self.logger = logger
         self.ttl = ttl
         self.KEY_PATTERN = KEY_GUILD_CONFIG_HASH
-        logger.info("✨ BackendGuildConfigManager инициализирован.")
-
+        self.logger.info("✨ BackendGuildConfigManager инициализирован.")
+        
     async def _get_key(self, guild_id: int) -> str:
         """Формирует ключ Redis для Hash конфигурации гильдии."""
         return self.KEY_PATTERN.format(guild_id=guild_id)

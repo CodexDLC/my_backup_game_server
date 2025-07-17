@@ -1,51 +1,45 @@
-# transport/http_client/http_manager.py
+# game_server/app_discord_bot/transport/http_client/http_manager.py
 import aiohttp
-from game_server.config.logging.logging_setup import app_logger as logger
-from game_server.app_discord_bot.transport.http_client.interfaces.i_auth_api import IAuthAPIRoutes
 from game_server.app_discord_bot.transport.http_client.interfaces.i_discord_api import IDiscordAPIRoutes
 from game_server.app_discord_bot.transport.http_client.interfaces.i_gateway_api import IGatewayAPIRoutes
 from game_server.app_discord_bot.transport.http_client.interfaces.i_shard_api import IShardAPIRoutes
 from game_server.app_discord_bot.transport.http_client.interfaces.i_state_entity_api import IStateEntityAPIRoutes
+from game_server.config.logging.logging_setup import app_logger as logger
+from game_server.app_discord_bot.transport.http_client.routes.auth_api_impl import AuthAPIRoutesImpl
+from game_server.app_discord_bot.transport.http_client.routes.discord_api_impl import DiscordAPIRoutesImpl
+from game_server.app_discord_bot.transport.http_client.routes.gateway_api_impl import GatewayAPIRoutesImpl
+from game_server.app_discord_bot.transport.http_client.routes.shard_api_impl import ShardAPIRoutesImpl
+from game_server.app_discord_bot.transport.http_client.routes.state_entity_api_impl import StateEntityAPIRoutesImpl
 
-# --- Импортируем ИНТЕРФЕЙСЫ для типизации ---
+# 🔥 НОВОЕ: Импортируем сам модуль discord_settings, чтобы получать константы напрямую
+from game_server.app_discord_bot.config import discord_settings
 
-
-# --- Импортируем РЕАЛИЗАЦИИ для инстанцирования ---
-from .routes.auth_api_impl import AuthAPIRoutesImpl
-from .routes.discord_api_impl import DiscordAPIRoutesImpl
-from .routes.gateway_api_impl import GatewayAPIRoutesImpl
-from .routes.shard_api_impl import ShardAPIRoutesImpl
-from .routes.state_entity_api_impl import StateEntityAPIRoutesImpl
 
 class HTTPManager:
-    """Центральный менеджер, который агрегирует все API-менеджеры."""
-    # Типизируем свойства через ИНТЕРФЕЙСЫ
-    auth: IAuthAPIRoutes
+    auth: AuthAPIRoutesImpl
     discord: IDiscordAPIRoutes
     gateway: IGatewayAPIRoutes
     shard: IShardAPIRoutes
     state_entity: IStateEntityAPIRoutes
 
-    def __init__(self, session: aiohttp.ClientSession, base_url: str):
-        if not base_url:
-            raise ValueError("Base API URL is not set.")
+    # 🔥 ИЗМЕНЕНИЕ: Теперь принимаем конкретные URL и имя бота как аргументы
+    def __init__(self, session: aiohttp.ClientSession, base_http_api_url: str, bot_name_for_gateway: str):
+        self._session = session
+        self._base_http_api_url = base_http_api_url
+        self._bot_name_for_gateway = bot_name_for_gateway
 
-        # Инициализируем свойства через РЕАЛИЗАЦИИ
-        self.auth = AuthAPIRoutesImpl(session=session, base_url=base_url)
-        self.discord = DiscordAPIRoutesImpl(session=session, base_url=base_url)
-        self.gateway = GatewayAPIRoutesImpl(session=session, base_url=base_url)
-        self.shard = ShardAPIRoutesImpl(session=session, base_url=base_url)
-        self.state_entity = StateEntityAPIRoutesImpl(session=session, base_url=base_url)
+        # Инициализируем свойства через РЕАЛИЗАЦИИ, используя переданные аргументы
+        self.auth = AuthAPIRoutesImpl(session, self._base_http_api_url, self._bot_name_for_gateway)
+        self.discord = DiscordAPIRoutesImpl(session, self._base_http_api_url)
+        self.gateway = GatewayAPIRoutesImpl(session, self._base_http_api_url)
+        self.shard = ShardAPIRoutesImpl(session, self._base_http_api_url)
+        self.state_entity = StateEntityAPIRoutesImpl(session, self._base_http_api_url)
         
         logger.info("Все доменные API-менеджеры инициализированы.")
 
 # Фабричная функция для создания экземпляра
-async def create_http_manager(base_url: str) -> HTTPManager:
-    """Создает aiohttp.ClientSession и инициализирует HTTPManager."""
-    session = aiohttp.ClientSession(
-        headers={"Content-Type": "application/json", "Accept": "application/json"}
-    )
-    manager = HTTPManager(session=session, base_url=base_url)
-    # Сохраняем сессию для корректного закрытия
+# 🔥 ИЗМЕНЕНИЕ: Принимаем нужные константы напрямую
+async def create_http_manager(session: aiohttp.ClientSession, base_http_api_url: str, bot_name_for_gateway: str) -> HTTPManager:
+    manager = HTTPManager(session=session, base_http_api_url=base_http_api_url, bot_name_for_gateway=bot_name_for_gateway)
     setattr(manager, '_session_to_close', session)
     return manager

@@ -2,6 +2,8 @@
 import logging
 from typing import Optional
 
+import inject
+
 from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
 from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_shard_count_cache import IShardCountCacheManager
 from game_server.config.logging.logging_setup import app_logger as logger
@@ -15,10 +17,12 @@ class ShardCountCacheManager(IShardCountCacheManager):
     Менеджер для работы со счетчиками игроков на шарадах в Redis.
     Использует Hash для хранения статистики по каждому шарду.
     """
-    def __init__(self, redis_client: CentralRedisClient):
+    @inject.autoparams()
+    def __init__(self, redis_client: CentralRedisClient, logger: logging.Logger): # <--- ИЗМЕНЕНИЕ ЗДЕСЬ
         self.redis = redis_client
-        logger.info("✅ ShardCountCacheManager (v2) инициализирован.")
-
+        self.logger = logger # <--- ДОБАВЛЕНО: Сохраняем логгер
+        self.logger.info("✅ ShardCountCacheManager (v2) инициализирован.")
+        
     async def get_shard_player_count(self, discord_guild_id: int) -> int:
         """
         Получает текущее количество игроков для заданного шарда из поля в Hash.

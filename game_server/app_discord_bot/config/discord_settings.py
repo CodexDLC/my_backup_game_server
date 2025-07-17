@@ -19,8 +19,6 @@ if not GAME_SERVER_API:
 # API_URL для Discord-бота теперь явно ссылается на GAME_SERVER_API
 API_URL = GAME_SERVER_API
 
-RANDOM_API_URL = os.getenv("RANDOM_API_URL")
-
 # --- ИЗМЕНЕНИЕ ЗДЕСЬ: GATEWAY_URL берется из GAME_SERVER_API ---
 GATEWAY_URL = os.getenv("GAME_SERVER_API_WEBSOCKET") # Теперь GATEWAY_URL будет использовать новый полный URL
 # -------------------------------------------------------------
@@ -61,3 +59,5 @@ MAX_RETRY_SLEEP = int(os.getenv("MAX_RETRY_SLEEP", 60))
 
 
 BOT_NAME_FOR_GATEWAY = "test_ordobot_instance_1"
+
+print(f"--- SETTINGS DEBUG --- BOT_NAME_FOR_GATEWAY is set to: '{BOT_NAME_FOR_GATEWAY}'")

@@ -1,58 +1,58 @@
 # game_server/Logic/InfrastructureLogic/app_post/app_post_initializer.py
 
 import logging
-from typing import Optional
+from typing import Dict, Any
 
-# ИЗМЕНЕНО: Мы импортируем фабрику сессий напрямую здесь
-
-
-from game_server.Logic.InfrastructureLogic.app_post.repository_manager import RepositoryManager
+# Используем существующую фабрику сессий из db_instance.py
 from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
 from game_server.config.logging.logging_setup import app_logger as logger
 
+# 🔥 УДАЛЕНО: Импорты интерфейсов и реализаций репозиториев больше не нужны здесь,
+# так как они используются только в DI-модулях для связывания.
+# from .repository_groups.game_shards.interfaces_game_shards import IGameShardRepository
+# from .repository_groups.accounts.interfaces_accounts import IAccountGameDataRepository, IAccountInfoRepository
+# ... и все остальные импорты интерфейсов и реализаций репозиториев
 
-# Глобальная переменная для хранения единственного экземпляра RepositoryManager
-_repository_manager_instance: Optional[RepositoryManager] = None
 
-# ИЗМЕНЕНО: Функция больше не принимает аргументов
-async def initialize_app_post_managers() -> bool:
+# 🔥 УДАЛЕНО: Глобальный словарь для хранения экземпляров репозиториев больше не нужен.
+# _initialized_repositories: Dict[str, Any] = {}
+
+
+async def initialize_postgres_repositories() -> bool:
     """
-    Инициализирует RepositoryManager. Теперь он сам импортирует фабрику сессий.
-    Должен быть вызван один раз при старте приложения.
+    Инициализирует фабрику сессий PostgreSQL.
+    Вызывается один раз при старте приложения.
     """
-    global _repository_manager_instance
-
-    logger.info("🔧 Инициализация менеджеров PostgreSQL (RepositoryManager)...")
-
+    # 🔥 ИЗМЕНЕНИЕ: Логика инициализации репозиториев перенесена в DI-контейнер.
+    # Эта функция теперь отвечает только за то, чтобы AsyncSessionLocal был готов к использованию.
+    # Поскольку AsyncSessionLocal импортируется, его фабрика уже доступна.
+    # Если бы здесь требовалась явная инициализация пула соединений, она была бы здесь.
+    
+    logger.info("🔧 Инициализация фабрики сессий PostgreSQL...")
     try:
-        if _repository_manager_instance is None:
-            # ИЗМЕНЕНО: Используем импортированный AsyncSessionLocal напрямую
-            _repository_manager_instance = RepositoryManager(db_session_factory=AsyncSessionLocal)
-            
-            logger.info("✅ RepositoryManager успешно инициализирован.")
+        # Просто убеждаемся, что AsyncSessionLocal доступен и не вызывает ошибок при импорте.
+        # Реальное подключение к БД происходит при первом использовании сессии или при создании движка.
+        # Если у вас есть явный метод connect() для движка, вызовите его здесь.
+        # Например: await engine.connect() if engine else pass
+        if AsyncSessionLocal: # Простая проверка, что класс существует
+            logger.info("✅ Фабрика сессий PostgreSQL успешно инициализирована.")
+            return True
         else:
-            logger.warning("RepositoryManager уже инициализирован. Пропуск повторной инициализации.")
-        return True
+            logger.critical("🚨 Критическая ошибка: AsyncSessionLocal не доступен.")
+            return False
     except Exception as e:
-        logger.critical(f"🚨 Критическая ошибка при инициализации RepositoryManager: {e}", exc_info=True)
-        _repository_manager_instance = None
+        logger.critical(f"🚨 Критическая ошибка при инициализации фабрики сессий PostgreSQL: {e}", exc_info=True)
         return False
 
-def get_repository_manager_instance() -> RepositoryManager:
-    """
-    Возвращает инициализированный экземпляр RepositoryManager.
-    Должна быть вызвана ТОЛЬКО после initialize_app_post_managers().
-    """
-    if _repository_manager_instance is None:
-        logger.error("🚫 RepositoryManager не инициализирован. Вызовите initialize_app_post_managers() сначала.")
-        raise RuntimeError("RepositoryManager is not initialized.")
-    return _repository_manager_instance
 
-async def shutdown_app_post_managers() -> None:
+async def shutdown_postgres_repositories() -> None:
     """
-    Обнуляет экземпляр менеджера при завершении работы.
+    Завершает работу ресурсов PostgreSQL (например, пула соединений).
     """
-    global _repository_manager_instance
-    logger.info("🛑 Завершение работы менеджеров PostgreSQL...")
-    _repository_manager_instance = None
-    logger.info("✅ Менеджеры PostgreSQL завершены.")
+    # 🔥 ИЗМЕНЕНИЕ: Логика завершения работы репозиториев перенесена в DI-контейнер.
+    # Здесь мы только логируем и, возможно, закрываем глобальный движок, если он есть.
+    logger.info("🛑 Завершение работы фабрики сессий PostgreSQL...")
+    # Если engine управляется глобально и имеет метод dispose(), его можно вызвать здесь.
+    # if engine:
+    #     await engine.dispose()
+    logger.info("✅ Фабрика сессий PostgreSQL завершена.")

@@ -2,7 +2,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 
-from game_server.common_contracts.api_models.gateway_api import BotAcknowledgementRequest
+from game_server.contracts.api_models.gateway.requests import BotAcknowledgementRequest
+
+
 
 
 

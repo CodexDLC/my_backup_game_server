@@ -1,11 +1,12 @@
 # transport/http_client/routes/gateway_api_impl.py
 import aiohttp
 from typing import Optional, Dict, Any
-from game_server.common_contracts.api_models.gateway_api import BotAcknowledgementRequest
+
 from game_server.config.logging.logging_setup import app_logger as logger
 
 
 from game_server.app_discord_bot.transport.http_client.interfaces.i_gateway_api import IGatewayAPIRoutes
+from game_server.contracts.api_models.gateway.requests import BotAcknowledgementRequest
 
 
 class GatewayAPIRoutesImpl(IGatewayAPIRoutes):

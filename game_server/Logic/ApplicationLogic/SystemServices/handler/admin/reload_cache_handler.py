@@ -1,33 +1,35 @@
 # game_server/Logic/ApplicationLogic/SystemServices/handler/admin/reload_cache_handler.py
+# Version: 0.001
 
+import logging # ▼▼▼ НОВЫЙ ИМПОРТ: logging ▼▼▼
 from typing import Dict, Any
+import inject # ▼▼▼ НОВЫЙ ИМПОРТ: inject ▼▼▼
 
 from game_server.Logic.ApplicationLogic.SystemServices.handler.i_system_handler import ISystemServiceHandler
-from game_server.common_contracts.dtos.Admin_dtos import AdminOperationResultDTO, ReloadCacheCommandDTO
-
-# Импортируем интерфейс (можно будет создать более общий ICommandHandler в будущем)
-
-
-# DTO для команды и результата
 
 
 # Зависимости, которые нужны этому обработчику
 from game_server.Logic.InfrastructureLogic.app_cache.services.reference_data.reference_data_cache_manager import ReferenceDataCacheManager
 from game_server.Logic.ApplicationLogic.SystemServices.system.cache_management.reloaders import perform_location_connections_reload
+from game_server.contracts.dtos.admin.commands import ReloadCacheCommandDTO
+from game_server.contracts.dtos.admin.results import AdminOperationResultDTO
 
 
 class AdminReloadCacheHandler(ISystemServiceHandler):
     """
     Обработчик для выполнения команды на перезагрузку определенного типа кэша.
     """
-    def __init__(self, dependencies: Dict[str, Any]):
-        super().__init__(dependencies)
-        try:
-            # Извлекаем нужную нам зависимость - менеджер кэша справочных данных
-            self.reference_data_cache_manager: ReferenceDataCacheManager = dependencies['app_cache_managers']['reference_data_cache_manager']
-        except KeyError as e:
-            self.logger.critical(f"Критическая ошибка: В {self.__class__.__name__} не передана зависимость {e}.")
-            raise
+    # ▼▼▼ ИСПОЛЬЗУЕМ @inject.autoparams() И ЯВНО ОБЪЯВЛЯЕМ ЗАВИСИМОСТИ ▼▼▼
+    @inject.autoparams()
+    def __init__(self, logger: logging.Logger, reference_data_cache_manager: ReferenceDataCacheManager):
+        self._logger = logger
+        self.reference_data_cache_manager: ReferenceDataCacheManager = reference_data_cache_manager
+        self._logger.info("AdminReloadCacheHandler инициализирован.")
+
+    # ▼▼▼ РЕАЛИЗАЦИЯ АБСТРАКТНОГО СВОЙСТВА logger ИЗ ISystemServiceHandler ▼▼▼
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
 
     async def process(self, command_dto: ReloadCacheCommandDTO) -> AdminOperationResultDTO:
         """

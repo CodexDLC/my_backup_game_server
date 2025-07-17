@@ -2,8 +2,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 
-from game_server.common_contracts.api_models.system_api import GetStateEntityByKeyRequest
-from game_server.common_contracts.shared_models.api_contracts import BaseRequest
+from game_server.contracts.api_models.system.requests import GetStateEntityByKeyRequest
+from game_server.contracts.shared_models.base_requests import BaseRequest
+
 
 
 

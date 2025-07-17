@@ -1,42 +1,26 @@
+# game_server/app_discord_bot/app/ui/components/selects/character_select.py
+
 import discord
-from typing import List, Dict, Any
+from discord.ui import Select
+from discord.ext import commands
+from typing import List, Optional
 
-class CharacterSelect(discord.ui.Select):
-    """
-    Специализированный выпадающий список для выбора игрового персонажа.
-    Предполагается, что на вход всегда подается непустой список персонажей.
-    """
-    def __init__(self, characters: List[Dict[str, Any]]):
-        """
-        Инициализирует список выбора персонажей.
+from game_server.contracts.dtos.character.data_models import CharacterDTO # Убедитесь, что CharacterDTO импортирован
 
-        Args:
-            characters (List[Dict[str, Any]]): Список словарей, где каждый словарь 
-                                              представляет одного персонажа.
-                                              Ожидаемые ключи: 'id', 'name', 'level', 'class'.
-        """
-        
-        options: List[discord.SelectOption] = []
-        for char in characters:
-            options.append(discord.SelectOption(
-                label=char.get('name', 'Безымянный'),
-                value=str(char.get('id', 'error_id')), # Value должен быть строкой
-                description=f"{char.get('class', 'Класс не указан')}, {char.get('level', '?')} уровень",
-                emoji="👤"
-            ))
-
+class CharacterSelect(Select):
+    def __init__(self, characters: List[CharacterDTO]):
         super().__init__(
-            placeholder="Выберите вашего персонажа для входа...",
+            placeholder="Выберите персонажа для входа в мир...",
             min_values=1,
             max_values=1,
-            options=options
+            options=[
+                discord.SelectOption(
+                    # Отображаем только имя персонажа
+                    label=getattr(char, 'name', 'Безымянный'),
+                    # ИЗМЕНЕНО: Удалено поле description
+                    value=str(char.character_id) # ID персонажа как строка для value (скрытое значение)
+                )
+                for char in characters
+            ]
         )
-
-    async def callback(self, interaction: discord.Interaction):
-        """
-        Вызывается, когда пользователь делает выбор.
-        Делегирует обработку родительскому View, передавая ID персонажа.
-        """
-        if self.values: # self.values[0] будет содержать ID выбранного персонажа.
-            if hasattr(self.view, 'on_character_select'):
-                await self.view.on_character_select(interaction, self.values[0])
+        self.characters = characters # Сохраняем список персонажей

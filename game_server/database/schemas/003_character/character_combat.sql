@@ -5,39 +5,10 @@
 -- Эта таблица НЕ ПРЕДНАЗНАЧЕНА для создания в реальной базе данных.
 -- Все ее данные будут вычисляться или храниться в динамическом слепке персонажа в MongoDB.
 
-CREATE TABLE IF NOT EXISTS combat_parameters_reference (
-    -- Уникальный строковый ключ для идентификации параметра
-    parameter_key VARCHAR(100) PRIMARY KEY,
-
-    -- Отображаемое имя параметра (для удобства чтения и документации)
-    display_name VARCHAR(255) NOT NULL,
-
-    -- Подробное описание параметра и его назначения в игре
-    description TEXT,
-
-    -- Категория, к которой относится параметр (например, "Магическая атака", "Физическая защита", "Состояние")
-    category VARCHAR(50) NOT NULL,
-
-    -- Ожидаемый тип данных этого параметра (для валидации и типизации в коде)
-    data_type VARCHAR(50) NOT NULL, -- (e.g., 'INTEGER', 'DOUBLE PRECISION', 'BOOLEAN')
-
-    -- Единицы измерения параметра, если применимо (например, 'HP', '%', 'урон')
-    unit VARCHAR(20),
-
-    -- Флаг, указывающий, является ли параметр производным (вычисляемым) от других характеристик
-    -- True: вычисляется из статов, экипировки, баффов (например, crit_chance, total_physical_attack)
-    -- False: является базовым состоянием (current_health, current_energy)
-    is_derived BOOLEAN DEFAULT TRUE NOT NULL,
-
-    -- Флаг, указывающий, отображается ли этот параметр игроку в UI
-    is_player_displayable BOOLEAN DEFAULT TRUE NOT NULL,
-
-    -- Флаг, указывающий, является ли эффект параметра отрицательным (для стилизации UI)
-    is_negative_effect BOOLEAN DEFAULT FALSE NOT NULL
-);
 
 -- Пример вставки данных (необязательно, но полезно для шпаргалки)
-INSERT INTO combat_parameters_reference (parameter_key, display_name, description, category, data_type, unit, is_derived, is_player_displayable, is_negative_effect) VALUES
+INSERT INTO combat_parameters_reference 
+(parameter_key, display_name, description, category, data_type, unit, is_derived, is_player_displayable, is_negative_effect) VALUES
 ('current_health', 'Текущее здоровье', 'Текущее количество очков здоровья персонажа.', 'Состояние', 'INTEGER', 'HP', FALSE, TRUE, FALSE),
 ('max_health', 'Максимальное здоровье', 'Максимально возможное количество очков здоровья персонажа.', 'Состояние', 'INTEGER', 'HP', TRUE, TRUE, FALSE),
 ('current_energy', 'Текущая энергия', 'Текущее количество очков энергии (маны/выносливости) персонажа.', 'Состояние', 'INTEGER', 'Энергия', FALSE, TRUE, FALSE),

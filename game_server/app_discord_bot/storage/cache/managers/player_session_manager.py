@@ -1,28 +1,28 @@
 # game_server/app_discord_bot/storage/cache/managers/player_session_manager.py
+
 import json
+import logging
+import inject  # <-- 1. Добавьте этот импорт
 from typing import Dict, Any, Optional
 
 from game_server.app_discord_bot.storage.cache.constant.constant_key import RedisKeys
 from game_server.app_discord_bot.storage.cache.constant.setting_manager import AuthTokenSettings
 from game_server.app_discord_bot.storage.cache.discord_redis_client import DiscordRedisClient
-# Интерфейс тоже нужно будет переименовать на IPlayerSessionManager
-from game_server.app_discord_bot.storage.cache.interfaces.player_session_manager_interface import IPlayerSessionManager 
-from game_server.config.logging.logging_setup import app_logger as logger
+from game_server.app_discord_bot.storage.cache.interfaces.player_session_manager_interface import IPlayerSessionManager
 
-
-# 🔥 ИЗМЕНЕНИЕ: Класс переименован и его назначение изменилось
-class PlayerSessionManager(IPlayerSessionManager): # IPlayerShardDataManager тоже следует переименовать
+class PlayerSessionManager(IPlayerSessionManager):
     """
-    Менеджер кэша для хранения "живых" сессий игроков, которые находятся онлайн на шарде.
-    Работает с Redis Hash, где каждое поле - это сессия отдельного игрока.
+    Менеджер кэша для хранения "живых" сессий игроков...
     """
-    def __init__(self, redis_client: DiscordRedisClient, ttl: int = AuthTokenSettings.DEFAULT_TTL_SECONDS):
+    # 👇 2. Добавьте этот декоратор
+    @inject.autoparams()
+    def __init__(self, redis_client: DiscordRedisClient, logger: logging.Logger, ttl: int = AuthTokenSettings.DEFAULT_TTL_SECONDS):
         self.redis_client = redis_client
-        # TTL для сессии - как долго хранить данные сессии после последнего обновления.
-        self.ttl = ttl 
-        # 🔥 ИЗМЕНЕНИЕ: Работаем с новым ключом для сессий
-        self.KEY_PATTERN = RedisKeys.PLAYER_SESSION_HASH
-        logger.info("✨ PlayerSessionManager инициализирован.")
+        self.logger = logger
+        self.ttl = ttl
+        self.KEY_PATTERN = RedisKeys.CHARACTER_SESSION_HASH
+        self.logger.info("✨ PlayerSessionManager инициализирован.")
+
 
     # 🔥 ИЗМЕНЕНИЕ: Ключ теперь зависит только от guild_id
     async def _get_key(self, guild_id: int) -> str:
@@ -47,9 +47,9 @@ class PlayerSessionManager(IPlayerSessionManager): # IPlayerShardDataManager т�
             # При каждом обновлении сессии можно продлевать жизнь всего Hash
             if self.ttl > 0:
                 await self.redis_client.expire(key, self.ttl)
-            logger.debug(f"Сессия игрока {account_id} на шарде {guild_id} сохранена/обновлена.")
+            self.logger.debug(f"Сессия игрока {account_id} на шарде {guild_id} сохранена/обновлена.")
         except Exception as e:
-            logger.error(f"Ошибка при сохранении сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
+            self.logger.error(f"Ошибка при сохранении сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
 
     # 🔥 ИЗМЕНЕНИЕ: Новый метод для получения сессии
     async def get_player_session(
@@ -68,10 +68,10 @@ class PlayerSessionManager(IPlayerSessionManager): # IPlayerShardDataManager т�
                 return json.loads(data_str)
             return None
         except json.JSONDecodeError as e:
-            logger.error(f"Ошибка декодирования JSON для сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
+            self.logger.error(f"Ошибка декодирования JSON для сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
             return None
         except Exception as e:
-            logger.error(f"Ошибка при извлечении сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
+            self.logger.error(f"Ошибка при извлечении сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
             return None
             
     # 🔥 ИЗМЕНЕНИЕ: Новый метод для получения всех активных сессий на шарде
@@ -87,7 +87,7 @@ class PlayerSessionManager(IPlayerSessionManager): # IPlayerShardDataManager т�
             all_sessions = {acc_id: json.loads(session_str) for acc_id, session_str in all_sessions_str.items()}
             return all_sessions
         except Exception as e:
-            logger.error(f"Ошибка при получении всех сессий с шарда {guild_id}: {e}", exc_info=True)
+            self.logger.error(f"Ошибка при получении всех сессий с шарда {guild_id}: {e}", exc_info=True)
             return None
 
     # 🔥 ИЗМЕНЕНИЕ: Новый метод для удаления сессии (когда игрок выходит из игры)
@@ -103,6 +103,6 @@ class PlayerSessionManager(IPlayerSessionManager): # IPlayerShardDataManager т�
         field_name = str(account_id)
         try:
             await self.redis_client.hdel(key, field_name)
-            logger.debug(f"Сессия игрока {account_id} на шарде {guild_id} удалена из кэша.")
+            self.logger.debug(f"Сессия игрока {account_id} на шарде {guild_id} удалена из кэша.")
         except Exception as e:
-            logger.error(f"Ошибка при удалении сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)
+            self.logger.error(f"Ошибка при удалении сессии игрока {account_id} на шарде {guild_id}: {e}", exc_info=True)

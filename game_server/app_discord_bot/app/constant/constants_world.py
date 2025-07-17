@@ -1,7 +1,7 @@
 # Discord_API\constant\constants_world.py
 
 HUB_GUILD_ID = 1366038189147684906
-REGISTRATION_CHANNEL_ID = 1384961119633932398
+REGISTRATION_CHANNEL_ID = 1389330563411738634
 
 # --- Диапазоны Access Codes для публичных/общедоступных локаций ---
 # Каналы с access_code в этом диапазоне будут получать роль "Онлайн".
@@ -77,7 +77,7 @@ DEFAULT_DENY_PERMISSIONS = {
 DEFAULT_ALLOW_READ_ONLY_PERMISSIONS = {
     "view_channel": True,
     "read_messages": True,
-    "read_message_history": False,
+    "read_message_history": True,
 }
 
 # Разрешения для ролей, которым нужен просмотр, чтение и взаимодействие с кнопками/реакциями (без возможности отправки сообщений).

@@ -29,8 +29,9 @@ AUTH_SERVICE_TASK_CHANNEL = "auth_service:tasks"
 # ======================================================================
 
 # --- Пути к YAML-файлам (в идеале, их стоит вынести в отдельный settings-файл) ---
-ITEM_BASE_YAML_PATH: str = "game_server/Logic/ApplicationLogic/start_orcestrator/coordinator_pre_start/data/item_base"
-LOCATION_CONNECTIONS_YAML_PATH: str = "game_server/Logic/ApplicationLogic/start_orcestrator/coordinator_pre_start/data/world"
+ITEM_BASE_YAML_PATH: str = "game_server/Logic/ApplicationLogic/world_orchestrator/workers/load_kesh_database/data/item_base"
+LOCATION_CONNECTIONS_YAML_PATH: str = "game_server/Logic/ApplicationLogic/world_orchestrator/workers/load_kesh_database/data/world"
+
 
 
 # --- Ключи для кэширования эталонного пула предметов ---

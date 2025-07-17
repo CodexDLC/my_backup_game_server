@@ -1,0 +1,77 @@
+# contracts/db_models/mongo/character/character_data_models.py
+
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any
+
+# --- Вспомогательные модели для каждого вложенного блока ---
+
+class CoreDataDTO(BaseModel):
+    """DTO для основных данных персонажа."""
+    name: str
+    surname: Optional[str] = None
+    gender: str
+    creature_type: Dict[str, Any]
+    personality: Optional[Dict[str, Any]] = None
+    background_story: Optional[Dict[str, Any]] = None
+
+class LocationDTO(BaseModel):
+    """DTO для данных о местоположении."""
+    current_location_id: str
+    current_region_id: str
+
+class VitalsDTO(BaseModel):
+    """DTO для жизненных показателей (здоровье, мана)."""
+    current_hp: int
+    max_hp: int
+    current_mana: int
+    max_mana: int
+
+class StatsDTO(BaseModel):
+    """DTO для базовых характеристик (S.P.E.C.I.A.L.)."""
+    base: Dict[str, int]
+
+class ItemsDTO(BaseModel):
+    """DTO для предметов (экипировка и инвентарь)."""
+    equipped: List[Any] = []
+    in_bags: List[Any] = []
+
+class QuestsDTO(BaseModel):
+    """DTO для квестов."""
+    active: List[Any] = []
+    completed: List[Any] = []
+
+class SessionDTO(BaseModel):
+    """DTO для данных сессии."""
+    status: str
+    last_login_at: str
+    last_logout_at: Optional[str] = None
+    total_playtime_seconds: int
+
+# --- Главная модель документа персонажа ---
+
+class CharacterDocumentDTO(BaseModel):
+    """
+    Главная DTO модель, описывающая полную структуру документа персонажа в MongoDB.
+    """
+    id: int = Field(..., alias="_id")
+    account_id: int
+    clan_id: Optional[int] = None
+
+    # --- Вложенные объекты ---
+    core: CoreDataDTO
+    location: LocationDTO
+    vitals: VitalsDTO
+    stats: StatsDTO
+    derived_stats: Dict[str, float] # Производные характеристики (увороты, криты и т.д.)
+    abilities: List[Any] = []
+    items: ItemsDTO
+    skills: List[Dict[str, Any]]
+    quests: QuestsDTO
+    reputation: Dict[str, int]
+    session: SessionDTO
+
+    class Config:
+        # Позволяет Pydantic корректно работать с полем "_id" из MongoDB
+        allow_population_by_field_name = True
+        # Игнорировать лишние поля при парсинге, если они вдруг появятся
+        extra = 'ignore'

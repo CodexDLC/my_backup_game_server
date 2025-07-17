@@ -1,39 +1,41 @@
 # game_server/Logic/ApplicationLogic/SystemServices/system_services_orchestrator.py
+# Version: 0.007 # Увеличиваем версию для учета изменений в обработчиках и транзакциях
 
 import logging
-from typing import Dict, Any, Optional, Type
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from typing import Dict, Any, Optional, Type, Callable # Добавлен Callable
 from pydantic import BaseModel
 
-from game_server.common_contracts.dtos.base_dtos import BaseCommandDTO, BaseResultDTO
-from game_server.common_contracts.shared_models.api_contracts import WebSocketMessage, WebSocketResponsePayload, ResponseStatus, ErrorDetail
+from game_server.contracts.shared_models.base_commands_results import BaseCommandDTO, BaseResultDTO
 from game_server.config.settings.rabbitmq.rabbitmq_names import Exchanges, RoutingKeys
 from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus
-
+from game_server.contracts.shared_models.base_responses import ErrorDetail, ResponseStatus
+from game_server.contracts.shared_models.websocket_base_models import WebSocketMessage, WebSocketResponsePayload
 from game_server.game_services.command_center.system_services_command import system_services_config
 from game_server.Logic.ApplicationLogic.SystemServices.handler.i_system_handler import ISystemServiceHandler
 
 
+
+import inject
+
 class SystemServicesOrchestrator:
     """
     Стандартизированный оркестратор для микросервиса SystemServices.
-    Диспетчеризует команды на соответствующие обработчики и публикует результаты.
-    Больше НЕ управляет транзакциями базы данных (это ответственность репозиториев).
+    Диспетчеризует команды на соответствующие обработчики.
+    Управление транзакциями делегируется самим обработчикам (через @transactional).
     """
-    def __init__(self, dependencies: Dict[str, Any]):
-        self.dependencies = dependencies
-        self.logger = dependencies.get('logger', logging.getLogger(__name__))
-        self.message_bus: IMessageBus = dependencies.get('message_bus')
-        # ИЗМЕНЕНО: db_session_factory больше не нужен оркестратору
-        # self.db_session_factory: Type[AsyncSession] = dependencies.get('db_session_factory')
-        # if not self.db_session_factory:
-        #     self.logger.critical("Критическая ошибка: 'db_session_factory' не передан в зависимости оркестратора.")
-        #     raise RuntimeError("'db_session_factory' is missing in orchestrator dependencies.")
-
+    @inject.autoparams()
+    def __init__(
+        self,
+        logger: logging.Logger,
+        message_bus: IMessageBus,
+        # 🔥 УДАЛЕНО: session_factory не нужен в оркестраторе
+    ):
+        self.logger = logger
+        self.message_bus = message_bus
+        # self._session_factory = session_factory # 🔥 УДАЛЕНО
 
         self.handlers: Dict[str, ISystemServiceHandler] = {
-            command_name: info["handler"](dependencies=self.dependencies)
+            command_name: inject.instance(info["handler"])
             for command_name, info in system_services_config.COMMAND_HANDLER_MAPPING.items()
         }
         self.logger.info(f"SystemServicesOrchestrator инициализирован с {len(self.handlers)} обработчиками.")
@@ -41,7 +43,7 @@ class SystemServicesOrchestrator:
     async def process_command(self, validated_dto: BaseCommandDTO):
         """
         Главный метод-диспетчер. Получает DTO, находит обработчик и запускает его.
-        Больше НЕ оборачивает выполнение обработчика в транзакцию базы данных.
+        Транзакция управляется самим обработчиком (через @transactional).
         """
         command_type = validated_dto.command
         handler = self.handlers.get(command_type)
@@ -59,13 +61,15 @@ class SystemServicesOrchestrator:
             await self._publish_response(error_result)
             return
 
-        self.logger.info(f"Делегирование команды '{command_type}' обработчику...")
+        self.logger.info(f"Делегирование команды '{command_type}' обработчику (CorrID: {validated_dto.correlation_id}).")
+        
         result_dto: Optional[BaseResultDTO] = None 
         
+        # 🔥 ИЗМЕНЕНО: Просто вызываем process обработчика.
+        # Декоратор @transactional на методе process обработчика позаботится о сессии и транзакции.
         try:
-            # Обработчик теперь не получает сессию напрямую, он будет использовать репозитории,
-            # которые сами управляют своими сессиями и коммитами.
-            result_dto = await handler.process(validated_dto)
+            result_dto = await handler.process(command_dto=validated_dto) # <--- Вызываем без явной сессии
+            self.logger.info(f"Команда '{command_type}' успешно обработана. Результат: {'Успех' if result_dto.success else 'Ошибка'}.")
             
         except Exception as e:
             self.logger.exception(f"Критическая ошибка при обработке команды '{command_type}' (CorrID: {validated_dto.correlation_id}).")
@@ -102,7 +106,7 @@ class SystemServicesOrchestrator:
             if isinstance(result_dto.data, list):
                 response_data_for_ws = {"entities": [item.model_dump() for item in result_dto.data if isinstance(item, BaseModel)]}
             elif isinstance(result_dto.data, BaseModel):
-                response_data_for_ws = result_dto.data.model_dump() # Это должно работать
+                response_data_for_ws = result_dto.data.model_dump()
             elif isinstance(result_dto.data, dict):
                 response_data_for_ws = result_dto.data
             else:
@@ -113,9 +117,10 @@ class SystemServicesOrchestrator:
             request_id=result_dto.correlation_id,
             status=ResponseStatus.SUCCESS if result_dto.success else ResponseStatus.FAILURE,
             message=result_dto.message,
-            data=response_data_for_ws, # THIS is the data field of WebSocketResponsePayload
+            data=response_data_for_ws,
             error=result_dto.error
         )
+        self.logger.debug(f"DEBUG: SystemServicesOrchestrator: Сформирован response_payload: {response_payload.model_dump_json()}")
 
         websocket_message = WebSocketMessage(
             type="RESPONSE",
@@ -123,21 +128,23 @@ class SystemServicesOrchestrator:
             trace_id=result_dto.trace_id,
             span_id=result_dto.span_id,
             client_id=client_id_for_delivery,
-            payload=response_payload, # THIS is the payload field of WebSocketMessage
+            payload=response_payload,
         )
+        self.logger.debug(f"DEBUG: SystemServicesOrchestrator: Сформирован websocket_message: {websocket_message.model_dump_json()}")
 
-        # НОВОЕ: Добавляем логирование полного JSON-сообщения перед публикацией
         full_message_to_publish = websocket_message.model_dump(mode='json')
-        self.logger.critical(f"ДИАГНОСТИКА: Полное сообщение, отправляемое в RabbitMQ (Correlation ID: {result_dto.correlation_id}): {full_message_to_publish}")
+        self.logger.debug(f"DEBUG: SystemServicesOrchestrator: Полное сообщение для публикации (JSON): {full_message_to_publish}")
+
 
         domain = getattr(result_dto, 'domain', 'system')
         action = getattr(result_dto, 'action', 'default')
         status_str = "success" if result_dto.success else "failure"
         routing_key = f"{RoutingKeys.RESPONSE_PREFIX}.{domain}.{action}.{status_str}"
 
+        self.logger.debug(f"DEBUG: SystemServicesOrchestrator: Публикация в exchange '{Exchanges.EVENTS}' с routing_key '{routing_key}'.")
         await self.message_bus.publish(
             exchange_name=Exchanges.EVENTS,
             routing_key=routing_key,
-            message=full_message_to_publish # Используем переменную с полным сообщением
+            message=full_message_to_publish
         )
         self.logger.info(f"Ответ для CorrID {result_dto.correlation_id} опубликован в {Exchanges.EVENTS} с ключом '{routing_key}'.")

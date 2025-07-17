@@ -2,10 +2,13 @@
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ConnectionFailure
-from game_server.config.settings import MONGO_URI, MONGO_DB_NAME
-import logging
 
-logger = logging.getLogger(__name__)
+from game_server.config.logging.logging_setup import app_logger as logger
+
+# Импортируем настройки MongoDB из settings_core
+from game_server.config.settings_core import MONGO_URI, MONGO_DB_NAME # ДОБАВЛЕНО
+
+
 
 # Глобальная переменная для клиента MongoDB
 # Она будет инициализирована при запуске приложения
@@ -55,14 +58,3 @@ def get_mongo_database():
         logger.error("MongoDB клиент не инициализирован. Вызовите init_mongo_client() перед использованием.")
         raise RuntimeError("MongoDB клиент не инициализирован.")
     return mongo_database
-
-# Если вы используете FastAPI или другой фреймворк, где есть события startup/shutdown:
-# Например, для FastAPI:
-# @app.on_event("startup")
-# async def startup_db_client():
-#     await init_mongo_client()
-
-# @app.on_event("shutdown")
-# async def shutdown_db_client():
-#     await close_mongo_client()
-

@@ -11,3 +11,4 @@ loguru
 colorlog
 prometheus-client
 psutil
+inject

@@ -7,10 +7,11 @@ from typing import Annotated
 from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus
 from game_server.app_gateway.rest_api_dependencies import get_message_bus_dependency
 # Добавляем импорт GuildConfigDeleteRequest
-from game_server.common_contracts.api_models.discord_api import GuildConfigSyncRequest, GuildConfigDeleteRequest
-from game_server.common_contracts.shared_models.api_contracts import APIResponse, SuccessResponse
+
 from game_server.config.settings.rabbitmq.rabbitmq_names import Exchanges, RoutingKeys
 from game_server.config.logging.logging_setup import app_logger as logger
+from game_server.contracts.api_models.discord.config_management_requests import GuildConfigDeleteRequest, GuildConfigSyncRequest
+from game_server.contracts.shared_models.base_responses import APIResponse, SuccessResponse
 
 
 router = APIRouter(tags=["Discord Management"])

@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict, Optional, List
 import json
+import inject # 🔥 ДОБАВЛЕНО: Импортируем inject
 
 from game_server.Logic.InfrastructureLogic.app_cache.central_redis_client import CentralRedisClient
 from game_server.config.settings.redis_setting import DEFAULT_TTL_ITEM_INSTANCE_CACHE
@@ -19,9 +20,12 @@ class ItemCacheManager(IItemCacheManager):
     Высокоуровневый менеджер для кэширования данных экземпляров предметов в Redis.
     Оперирует Hash-объектами для каждого экземпляра предмета.
     """
-    def __init__(self, redis_client: CentralRedisClient):
+    # 🔥 ДОБАВЛЕНО: Декоратор @inject.autoparams()
+    @inject.autoparams()
+    def __init__(self, redis_client: CentralRedisClient, logger: logging.Logger):
         self.redis = redis_client
-        logger.info("✅ ItemCacheManager (v2) инициализирован.")
+        self.logger = logger
+        self.logger.info("✅ ItemCacheManager (v2) инициализирован.")
 
     async def get_item_instance_data(self, item_uuid: str) -> Optional[Dict[str, Any]]:
         # 🔥 ИЗМЕНЕНИЕ: Используем новый шаблон ключа

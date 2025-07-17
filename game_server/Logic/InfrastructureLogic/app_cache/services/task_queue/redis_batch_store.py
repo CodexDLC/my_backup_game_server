@@ -1,5 +1,6 @@
 # game_server/Logic/InfrastructureLogic/app_cache/services/task_queue/redis_batch_store.py
 
+import inject
 import msgpack
 # import json # Больше не нужен, если все в MsgPack
 import logging
@@ -16,9 +17,11 @@ class RedisBatchStore(IRedisBatchStore):
     Универсальный класс для низкоуровневого сохранения и загрузки данных батчей в Redis.
     Использует Redis HASH для хранения, сериализуя ВСЕ значения с MsgPack.
     """
-    def __init__(self, redis_client: CentralRedisClient):
+    @inject.autoparams()
+    def __init__(self, redis_client: CentralRedisClient, logger: logging.Logger):
         self.redis = redis_client
-        logger.info("✅ RedisBatchStore инициализирован.")
+        self.logger = logger
+        self.logger.info("✅ RedisBatchStore инициализирован.")
 
     async def save_batch(self, key_template: str, batch_id: str, batch_data: Dict[str, Any], ttl_seconds: int) -> bool:
         redis_key = key_template.format(batch_id=batch_id)

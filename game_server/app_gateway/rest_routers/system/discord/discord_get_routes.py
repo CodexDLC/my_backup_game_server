@@ -8,10 +8,11 @@ from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessa
 from game_server.app_gateway.rest_api_dependencies import get_message_bus_dependency
 from game_server.config.settings.rabbitmq.rabbitmq_names import Exchanges, RoutingKeys
 from game_server.config.logging.logging_setup import app_logger as logger
+from game_server.contracts.api_models.discord.entity_management_requests import GetDiscordEntitiesRequest
+from game_server.contracts.shared_models.base_responses import APIResponse, SuccessResponse
 
 # Импорты моделей запроса и ответа
-from game_server.common_contracts.api_models.discord_api import GetDiscordEntitiesRequest
-from game_server.common_contracts.shared_models.api_contracts import APIResponse, SuccessResponse
+
 
 router = APIRouter(tags=["Discord Management"])
 

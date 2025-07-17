@@ -10,8 +10,9 @@ from aio_pika import IncomingMessage
 from game_server.config.logging.logging_setup import app_logger as logger
 from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus
 from game_server.app_gateway.gateway.client_connection_manager import ClientConnectionManager
-from game_server.common_contracts.shared_models.api_contracts import WebSocketMessage, WebSocketResponsePayload
+
 from game_server.config.settings.rabbitmq.rabbitmq_names import Queues
+from game_server.contracts.shared_models.websocket_base_models import WebSocketMessage
 
 
 class OutboundWebSocketDispatcher:

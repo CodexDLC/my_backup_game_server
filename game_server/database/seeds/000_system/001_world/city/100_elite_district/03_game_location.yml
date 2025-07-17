@@ -8,74 +8,143 @@ data:
   # =================================================================
   # 1. Основные под-зоны Квартала (parent: 100)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "110"
-    parent_access_key: "100"
-    location_type: "NEIGHBORHOOD"
+  - location_id: "110"
+    parent_id: "100"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Дворянский район"
     description: "Широкие, чистые проспекты, ухоженные парки и фасады великолепных особняков. Воздух здесь кажется более чистым."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Пройти на Площадь Правосудия"
+        target_location_id: "120"
+      - label: "Выйти на Аллею Рассвета"
+        target_location_id: "130"
+    child_location_ids:
+      - "111"
+      - "112"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "NEIGHBORHOOD"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "120"
-    parent_access_key: "100"
-    location_type: "PLAZA"
+  - location_id: "120"
+    parent_id: "100"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Административная площадь"
     description: "Центральная площадь квартала, вымощенная белым камнем. В центре — большой фонтан."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Пройти в Дворянский район"
+        target_location_id: "110"
+      - label: "Свернуть на Аллею Рассвета"
+        target_location_id: "130"
+      - label: "Спуститься в Торговый Посад"
+        target_location_id: "300"
+    child_location_ids:
+      - "121"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "PLAZA"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "130"
-    parent_access_key: "100"
-    location_type: "AVENUE"
+  - location_id: "130"
+    parent_id: "100"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Храмовая аллея"
     description: "Величественная аллея, ведущая к главному храму города."
-    is_peaceful: true
-    visibility: "public"
+    exits:
+      - label: "Выйти в Дворянский район"
+        target_location_id: "110"
+      - label: "Пройти на Площадь Правосудия"
+        target_location_id: "120"
+      - label: "Пройти в Академию Охотников"
+        target_location_id: "200"
+    child_location_ids:
+      - "131"
+    entry_point_location_id: null
+    unified_display_type: "EXTERNAL_LOCATION"
+    specific_category: "AVENUE"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 2. Декоративные здания в Дворянском районе (parent: 110)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "111"
-    parent_access_key: "110"
-    location_type: "BUILDING"
+  - location_id: "111"
+    parent_id: "110"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Особняк рода 'Серебряный Грифон'"
     description: "Величественное здание за высокой оградой. Двери закрыты для посторонних."
-    is_peaceful: true
-    visibility: "private" # Игроки видят, но войти не могут
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "BUILDING"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
-  - skeleton_template_id: "main_world_v1"
-    access_key: "112"
-    parent_access_key: "110"
-    location_type: "BUILDING"
+  - location_id: "112"
+    parent_id: "110"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Элитный клуб 'Тихая Беседа'"
     description: "Место, где знать ведет дела. Вход только по специальным приглашениям."
-    is_peaceful: true
-    visibility: "private"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "BUILDING"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 3. Декоративные здания на Административной площади (parent: 120)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "121"
-    parent_access_key: "120"
-    location_type: "BUILDING"
+  - location_id: "121"
+    parent_id: "120"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Городская Ратуша"
     description: "Центр власти города. Пока что игроки смогут войти только в приемную."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "BUILDING"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
 
   # =================================================================
   # 4. Декоративные здания на Храмовой аллее (parent: 130)
   # =================================================================
-  - skeleton_template_id: "main_world_v1"
-    access_key: "131"
-    parent_access_key: "130"
-    location_type: "BUILDING"
+  - location_id: "131"
+    parent_id: "130"
+    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
     name: "Главный Храм"
     description: "Огромный храм, посвященный пока еще безымянному главному божеству. Двери открыты для всех верующих."
-    is_peaceful: true
-    visibility: "public"
+    exits: []
+    child_location_ids: []
+    entry_point_location_id: null
+    unified_display_type: "INTERNAL_LOCATION"
+    specific_category: "BUILDING"
+    presentation:
+      image_url: null
+      icon_emoji: null
+    flavor_text_options: []
+    tags: []
