@@ -56,18 +56,33 @@ class SyncDiscordEntitiesHandler(ISystemServiceHandler):
         discord_entity_repo = self._discord_repo_factory(session)
 
         try:
+            # Получаем все сущности и создаем ДВА словаря для поиска
             existing_db_entities = await discord_entity_repo.get_discord_entities_by_guild_id(guild_id)
             existing_by_discord_id = {entity.discord_id: entity for entity in existing_db_entities if entity.discord_id}
+            # ▼▼▼ НОВЫЙ СЛОВАРЬ ДЛЯ ПОИСКА ПО УНИКАЛЬНОМУ КОДУ ▼▼▼
+            existing_by_access_code = {entity.access_code: entity for entity in existing_db_entities if entity.access_code}
 
             for item_command in entities_data:
                 discord_id = item_command.discord_id
+                # Предполагаем, что access_code также приходит в данных
+                access_code = item_command.access_code
                 item_data_dict = item_command.model_dump(exclude_unset=True)
 
-                if discord_id and discord_id in existing_by_discord_id:
+                # ▼▼▼ НОВАЯ, БОЛЕЕ НАДЕЖНАЯ ЛОГИКА ПРОВЕРКИ ▼▼▼
+                entity_to_update = None
+                # Сначала ищем по более надежному access_code
+                if access_code and access_code in existing_by_access_code:
+                    entity_to_update = existing_by_access_code[access_code]
+                # Если не нашли, ищем по discord_id
+                elif discord_id and discord_id in existing_by_discord_id:
+                    entity_to_update = existing_by_discord_id[discord_id]
+
+
+                if entity_to_update:
+                    # Если нашли сущность для обновления, используем ее ID
                     try:
-                        updated_entity = await discord_entity_repo.update_discord_entity_by_discord_id(
-                            guild_id=guild_id,
-                            discord_id=discord_id,
+                        updated_entity = await discord_entity_repo.update_discord_entity_by_id(
+                            entity_id=entity_to_update.id, # Обновляем по ID найденной сущности
                             updates=item_data_dict
                         )
                         if updated_entity:

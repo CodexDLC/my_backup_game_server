@@ -1,14 +1,14 @@
 # game_server/Logic/ApplicationLogic/auth_service/Handlers/discord_hub_handler.py
 
 import logging
-from typing import Dict, Any, Union, Callable # Добавлен Callable
+from typing import Dict, Any, Union, Callable
 import inject
-from datetime import datetime, timezone
+from datetime import datetime, timezone # Добавлен timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_server.contracts.dtos.auth.commands import HubRoutingCommandDTO
 from game_server.contracts.dtos.system.results import HubRoutingResultDTO, HubRoutingResultData
-from game_server.contracts.shared_models.base_responses import ErrorDetail # Добавлен AsyncSession
+from game_server.contracts.shared_models.base_responses import ErrorDetail
 
 from .i_auth_handler import IAuthHandler
 
@@ -21,11 +21,11 @@ from game_server.Logic.InfrastructureLogic.app_post.repository_groups.accounts.i
 
 class DiscordHubHandler(IAuthHandler):
     """
-    Регестрация аккаунта через дискорд сервер по дискорд айди
+    Регистрация аккаунта через дискорд сервер по дискорд айди
     
     """
-    @inject.autoparams( # Удаляем 'logger' из autoparams, если он там был
-        'session_factory', # Оставляем остальные параметры
+    @inject.autoparams(
+        'session_factory',
         'identifiers_service',
         'account_creator',
         'shard_manager',
@@ -33,14 +33,13 @@ class DiscordHubHandler(IAuthHandler):
     )
     def __init__(
         self,
-        # logger: logging.Logger, # <--- УБИРАЕМ логгер из параметров конструктора
         session_factory: Callable[[], AsyncSession],
         identifiers_service: IdentifiersServise,
         account_creator: AccountCreator,
         shard_manager: ShardOrchestrator,
         account_game_data_repo_factory: Callable[[AsyncSession], IAccountGameDataRepository],
     ):
-        self.logger = inject.instance(logging.Logger) # <-- ЯВНО получаем логгер через inject.instance()
+        self.logger = inject.instance(logging.Logger)
         self._session_factory = session_factory
         self.identifiers_service = identifiers_service
         self.account_creator = account_creator
@@ -48,43 +47,37 @@ class DiscordHubHandler(IAuthHandler):
         self._account_game_data_repo_factory = account_game_data_repo_factory
         self.logger.info("✅ DiscordHubHandler инициализирован.")
         
-    async def process(self, dto: HubRoutingCommandDTO) -> Union[HubRoutingResultDTO]: # Убрал HubRoutingResultDTO из Union, если он дублируется
-        self.logger.info(f"Начало процесса маршрутизации для discord_id: {dto.discord_user_id} (Correlation ID: {dto.correlation_id})")
+    async def process(self, dto: HubRoutingCommandDTO) -> Union[HubRoutingResultDTO]:
+        self.logger.info(f"Начало процесса маршрутизации для discord_id: {dto.payload.discord_user_id} (Correlation ID: {dto.correlation_id})")
 
         try:
             account_id = None
             assigned_shard_id = None
 
-            async with self._session_factory() as session: # <--- Открываем сессию для всей транзакции
-                # Создаем экземпляр репозитория с активной сессией
-                account_game_data_repo = self._account_game_data_repo_factory(session) # <--- Создаем репозиторий здесь
+            async with self._session_factory() as session:
+                account_game_data_repo = self._account_game_data_repo_factory(session)
 
                 # Шаг 1: Поиск существующего аккаунта
-                # Если identifiers_service использует репозитории, они также должны быть рефакторены
                 account_id = await self.identifiers_service.get_account_id_by_linked_platform(
-                    session=session, # <--- Вот здесь нужно передавать сессию!
+                    session=session, # <--- ПЕРЕДАЕМ СЕССИЮ СЮДА!
                     platform_name='discord',
-                    platform_id=dto.discord_user_id
+                    platform_id=dto.payload.discord_user_id
                 )
 
                 # Шаг 2: Создание нового аккаунта (если необходимо)
                 if not account_id:
-                    self.logger.info(f"Аккаунт для discord_id {dto.discord_user_id} не найден. Создание нового. (Correlation ID: {dto.correlation_id})")
-                    # account_creator.create_new_discord_account должен управлять своей сессией или принимать её
-                    # Если account_creator управляет своей сессией, то session не нужно передавать.
-                    # Если account_creator принимает сессию, то:
-                    account_id, assigned_shard_id = await self.account_creator.create_new_discord_account(dto) # <--- Проверить, что этот метод не ожидает сессию здесь
+                    self.logger.info(f"Аккаунт для discord_id {dto.payload.discord_user_id} не найден. Создание нового. (Correlation ID: {dto.correlation_id})")
+                    # Вызов create_new_discord_account теперь должен передавать session
+                    account_id, assigned_shard_id = await self.account_creator.create_new_discord_account(session, dto) # <--- ИСПРАВЛЕНИЕ ЗДЕСЬ
 
                 else:
                     self.logger.info(f"Найден существующий аккаунт: {account_id} (Correlation ID: {dto.correlation_id})")
-                    # Используем созданный репозиторий
                     account_game_data = await account_game_data_repo.get_account_game_data(account_id)
 
                     if account_game_data is None:
                         self.logger.warning(f"AccountGameData не найдена для существующего account_id: {account_id}. Попытка создания. (Correlation ID: {dto.correlation_id})")
                         try:
-                            # Используем созданный репозиторий
-                            account_game_data = await account_game_data_repo.create_account_game_data(account_id=account_id)
+                            account_game_data = await account_game_data_repo.create_account_game_data(account_id=account_id) # <--- Возможно, здесь тоже нужна сессия, если create_account_game_data ее принимает
                             if account_game_data:
                                 self.logger.info(f"AccountGameData успешно создана для account_id: {account_id}. (Correlation ID: {dto.correlation_id})")
                             else:
@@ -112,8 +105,8 @@ class DiscordHubHandler(IAuthHandler):
 
                     if account_game_data.shard_id is None:
                         self.logger.info(f"Аккаунт {account_id} без прописки. Назначение нового шарда. (Correlation ID: {dto.correlation_id})")
-                        # shard_manager должен управлять своей сессией или принимать её
                         assigned_shard_id = await self.shard_manager.get_or_assign_shard_for_account(
+                            session=session, # <--- ПЕРЕДАЕМ СЕССИЮ СЮДА!
                             account_id=account_id
                         )
                         if assigned_shard_id is None:
@@ -129,15 +122,13 @@ class DiscordHubHandler(IAuthHandler):
                             )
                         account_game_data.shard_id = assigned_shard_id
                         account_game_data.last_login_game = datetime.now(timezone.utc)
-                        # Используем созданный репозиторий
                         await account_game_data_repo.update_shard_id(account_id, assigned_shard_id)
-                        await account_game_data_repo.update_last_login_game(account_id)
+                        await account_game_data_repo.update_last_login_game(account_id) # <--- Возможно, здесь тоже нужна сессия
                         self.logger.info(f"Игроку {account_id} назначена новая прописка на шард: {assigned_shard_id} (Correlation ID: {dto.correlation_id})")
                     else:
                         assigned_shard_id = account_game_data.shard_id
                         self.logger.info(f"Аккаунт {account_id} уже имеет прописку на шарде: {assigned_shard_id} (Correlation ID: {dto.correlation_id})")
-                        # Используем созданный репозиторий
-                        await account_game_data_repo.update_last_login_game(account_id)
+                        await account_game_data_repo.update_last_login_game(account_id) # <--- Возможно, здесь тоже нужна сессия
 
                 if assigned_shard_id is None:
                     msg = f"Не удалось определить шард для игрока {account_id}. (Correlation ID: {dto.correlation_id})."
@@ -153,7 +144,7 @@ class DiscordHubHandler(IAuthHandler):
 
                 self.logger.info(f"Игроку {account_id} обработана прописка на шард: {assigned_shard_id} (Correlation ID: {dto.correlation_id})")
 
-                await session.commit() # <--- Коммит транзакции
+                await session.commit()
                 self.logger.info(f"Транзакция для DiscordHubHandler для аккаунта {account_id} успешно закоммичена.")
 
                 return HubRoutingResultDTO(
@@ -166,16 +157,10 @@ class DiscordHubHandler(IAuthHandler):
                 )
 
         except Exception as e:
-            self.logger.exception(f"Непредвиденная ошибка при маршрутизации для discord_id {dto.discord_user_id} (Correlation ID: {dto.correlation_id})")
+            self.logger.exception(f"Непредвиденная ошибка при маршрутизации для discord_id {dto.payload.discord_user_id} (Correlation ID: {dto.correlation_id})")
             
-            # Поскольку здесь обрабатывается исключение, и мы находимся внутри async with,
-            # нужно убедиться, что откат транзакции произойдет.
-            # Если async with session гарантирует откат при выходе с исключением, то явно не нужно.
-            # Однако, если HubRoutingResultDTO возвращается до того, как блок async with завершится,
-            # и вы не хотите коммита, то нужно сделать rollback.
-            # Для надежности:
             if session.in_transaction():
-                await session.rollback() # <--- Явный откат
+                await session.rollback()
             
             return HubRoutingResultDTO(
                 correlation_id=dto.correlation_id,

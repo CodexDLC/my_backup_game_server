@@ -1,7 +1,6 @@
 # Discord_API\constant\constants_world.py
 
-HUB_GUILD_ID = 1366038189147684906
-REGISTRATION_CHANNEL_ID = 1389330563411738634
+
 
 # --- Диапазоны Access Codes для публичных/общедоступных локаций ---
 # Каналы с access_code в этом диапазоне будут получать роль "Онлайн".

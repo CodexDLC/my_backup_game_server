@@ -6,11 +6,12 @@ import logging
 import inject
 from typing import Tuple, Union
 
+from game_server.app_discord_bot.config.discord_settings import HUB_GUILD_ID
 from game_server.app_discord_bot.storage.cache.managers.account_data_manager import AccountDataManager
 from game_server.app_discord_bot.app.services.admin.base_discord_operations import BaseDiscordOperations
 from game_server.app_discord_bot.storage.cache.managers.guild_config_manager import GuildConfigManager
 
-from game_server.app_discord_bot.app.constant.constants_world import HUB_GUILD_ID
+
 from game_server.app_discord_bot.app.services.utils.request_helper import RequestHelper
 # 🔥 НОВОЕ: Импортируем PlayerEventsHandler, так как он будет вызываться здесь
 from game_server.app_discord_bot.app.events.player_events_handler import PlayerEventsHandler

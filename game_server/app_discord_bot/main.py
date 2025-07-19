@@ -74,7 +74,7 @@ class GameBot(commands.Bot):
         self.request_helper = inject.instance(RequestHelper)
         self.sync_manager = inject.instance(CacheSyncManager)
         self.ws_manager = inject.instance(WebSocketManager) 
-        self.ui_initializer = inject.instance(UIInitializer) # 🔥 НОВОЕ: Получаем UIInitializer
+        # self.ui_initializer = inject.instance(UIInitializer) # 🔥 НОВОЕ: Получаем UIInitializer
 
         logger.info("✅ Все основные менеджеры и сервисы успешно инициализированы через DI.")
         
@@ -100,6 +100,8 @@ class GameBot(commands.Bot):
         Вызывается, когда бот полностью готов и подключен к Discord.
         Здесь self.user доступен.
         """
+        print("Этот новый фаил - on_ready запущен!") # <--- ИЛИ ДОБАВЛЕНО ЗДЕСЬ
+        
         logger.info(f"✅ Вошел как {self.user.name} (ID: {self.user.id})") # Теперь этот лог будет первым
             
         logger.info("--- on_ready: ЗАПУСК WS MANAGER ---")
@@ -123,12 +125,12 @@ class GameBot(commands.Bot):
             
         logger.debug("--- on_ready: БЛОК ЗАПУСКА WS MANAGER ЗАВЕРШЕН ---")
         
-        # 🔥 НОВОЕ: Инициализация постоянных View здесь, после того как бот полностью готов.
-        # Это важно, так как bot.add_view() лучше вызывать после полного подключения.
-        if self.ui_initializer:
-            await self.ui_initializer.initialize_persistent_views()
-        else:
-            logger.critical("❌ UIInitializer не был инициализирован в setup_hook!")
+        # # 🔥 НОВОЕ: Инициализация постоянных View здесь, после того как бот полностью готов.
+        # # Это важно, так как bot.add_view() лучше вызывать после полного подключения.
+        # if self.ui_initializer:
+        #     await self.ui_initializer.initialize_persistent_views()
+        # else:
+        #     logger.critical("❌ UIInitializer не был инициализирован в setup_hook!")
             
     async def close(self):
         logger.info("Начало процесса корректного завершения работы...")

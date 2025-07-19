@@ -35,10 +35,18 @@ class ValidateTokenRpcCommandDTO(BaseCommandDTO):
     token: str = Field(..., description="Токен для валидации.")
     client_type: Literal["DISCORD_BOT", "PLAYER", "ADMIN"] = Field(None, description="Тип клиента.")
 
+# 1. Создайте новый класс для вложенных данных
 class HubRoutingPayload(BaseModel):
-    """Данные для команды маршрутизации пользователя из хаба."""
-    discord_user_id: str = Field(..., description="Глобальный ID пользователя Discord.")
-    guild_id: int = Field(..., description="ID Discord-сервера (хаба), откуда пришел запрос.")
+    discord_user_id: str
+    guild_id: str
+    # Добавить поле 'command' сюда, чтобы оно дублировалось,
+    # как в других работающих DTO.
+    command: Literal["discord_hub_registered"] = Field("discord_hub_registered", description="Идентификатор команды.")
+
+    
+class HubRoutingRequest(BaseCommandDTO):
+    command: str = "discord_hub_registered"
+    payload: HubRoutingPayload
 
 
 # 2. Обновленный DTO команды

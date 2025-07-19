@@ -61,3 +61,8 @@ MAX_RETRY_SLEEP = int(os.getenv("MAX_RETRY_SLEEP", 60))
 BOT_NAME_FOR_GATEWAY = "test_ordobot_instance_1"
 
 print(f"--- SETTINGS DEBUG --- BOT_NAME_FOR_GATEWAY is set to: '{BOT_NAME_FOR_GATEWAY}'")
+
+
+
+HUB_GUILD_ID = int(os.getenv("HUB_GUILD_ID", 1342133536370720810))
+REGISTRATION_CHANNEL_ID = int(os.getenv("REGISTRATION_CHANNEL_ID"))

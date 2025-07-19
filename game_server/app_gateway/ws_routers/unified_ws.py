@@ -128,10 +128,9 @@ async def unified_websocket_endpoint(
 
             if websocket_msg.type == "COMMAND":
                 # 1. Извлекаем "обертку" команды
-                command_wrapper = websocket_msg.payload
-                
-                logger.debug(f"DEBUG: Содержимое 'command_wrapper': {command_wrapper}")
-                
+                command_wrapper = websocket_msg.payload                                
+                logger.debug(f"DEBUG: Содержимое 'command_wrapper': {command_wrapper}")    
+                            
                 # 2. Извлекаем саму "чистую" команду
                 actual_command_dto = command_wrapper['payload']
                 actual_command_dto['client_id'] = client_id

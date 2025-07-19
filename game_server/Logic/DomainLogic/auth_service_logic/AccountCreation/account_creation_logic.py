@@ -9,7 +9,7 @@ import inject
 from game_server.Logic.DomainLogic.auth_service_logic.utils.account_helpers import generate_auth_token, generate_next_guest_username
 from game_server.Logic.InfrastructureLogic.app_post.repository_groups.accounts.interfaces_accounts import IAccountGameDataRepository, IAccountInfoRepository
 from game_server.Logic.CoreServices.services.identifiers_servise import IdentifiersServise
-from game_server.Logic.ApplicationLogic.shared_logic.ShardManagement.shard_management_logic import ShardOrchestrator # Эта зависимость останется, но ее метод может быть изменен
+from game_server.Logic.ApplicationLogic.shared_logic.ShardManagement.shard_management_logic import ShardOrchestrator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from game_server.contracts.dtos.auth.commands import HubRoutingCommandDTO
@@ -54,7 +54,7 @@ class AccountCreator:
         :return: Кортеж (account_id, assigned_shard_id).
         :raises RuntimeError: Если не удалось назначить шард.
         """
-        self.logger.info(f"Начало создания нового аккаунта для discord_id: {dto.discord_user_id} в рамках внешней транзакции.")
+        self.logger.info(f"Начало создания нового аккаунта для discord_id: {dto.payload.discord_user_id} в рамках внешней транзакции.") # <--- ИСПРАВЛЕНО
         
         # Создаем экземпляры репозиториев с активной сессией
         account_info_repo = self._account_info_repo_factory(session)
@@ -66,7 +66,7 @@ class AccountCreator:
         
         account_info_data = {
             "username": username,
-            "linked_platforms": {"discord": dto.discord_user_id},
+            "linked_platforms": {"discord": dto.payload.discord_user_id}, # <--- ИСПРАВЛЕНО
             "auth_token": await generate_auth_token()
         }
         new_account_info = await account_info_repo.create_account(account_info_data)

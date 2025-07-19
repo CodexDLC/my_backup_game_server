@@ -49,7 +49,7 @@ class UIInitializer:
                     # Если View не имеет bot_instance в __init__ (или сам использует @inject.autoparams())
                     # inject.call попытается разрешить все зависимости конструктора.
                     # В этом случае bot_instance должен быть забинжен в DI-контейнере.
-                    view_instance = inject.call(ViewClass) # Предполагается, что bot будет разрешен через DI, если нужен.
+                    view_instance = inject.call() # Предполагается, что bot будет разрешен через DI, если нужен.
                                                           # Если ViewClass все еще требует 'bot' напрямую,
                                                           # убедитесь, что он забинжен как discord.Client.
                 self.bot.add_view(view_instance)

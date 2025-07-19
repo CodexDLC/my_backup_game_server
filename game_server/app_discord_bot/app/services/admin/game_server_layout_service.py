@@ -7,6 +7,7 @@ import copy
 import logging
 import inject
 
+# Убедитесь, что эти константы импортированы корректно и содержат нужные разрешения
 from game_server.app_discord_bot.app.constant.constants_world import DEFAULT_ALLOW_BUTTON_INTERACTION_PERMISSIONS, DEFAULT_DENY_PERMISSIONS
 from game_server.app_discord_bot.app.services.utils.request_helper import RequestHelper
 from game_server.app_discord_bot.storage.cache.constant.constant_key import RedisKeys
@@ -56,6 +57,33 @@ class GameServerLayoutService:
         guild = await self.base_ops.get_guild_by_id(guild_id)
         if not guild: raise ValueError(f"Discord server with ID {guild_id} not found.")
 
+        # ====================================================================
+        # НОВОЕ: Получаем объект роли самого бота и определяем его базовые права
+        # ====================================================================
+        bot_member = guild.get_member(self.bot.user.id)
+        if not bot_member:
+            # Это очень маловероятно, если бот уже залогинен и вызывает эту функцию
+            self.logger.critical(f"Бот не найден как участник гильдии {guild_id}. Убедитесь, что он добавлен на сервер.")
+            raise RuntimeError(f"Бот не найден как участник гильдии {guild_id}. Убедитесь, что он добавлен на сервер.")
+        
+        # Получаем самую высокую роль бота. Обычно это его собственная роль.
+        # Это важно для иерархии разрешений.
+        bot_role = bot_member.top_role 
+
+        # Определяем набор разрешений, которые бот ГАРАНТИРОВАННО должен иметь на ЛЮБОМ создаваемом канале.
+        # Эти разрешения будут явно установлены для роли бота, переопределяя другие настройки.
+        bot_core_channel_permissions = discord.PermissionOverwrite(
+            read_messages=True,         # Читать сообщения
+            send_messages=True,         # Отправлять сообщения
+            manage_messages=True,       # Управлять (редактировать/удалять) сообщения
+            read_message_history=True,  # Читать историю сообщений
+            embed_links=True,           # Встраивать ссылки (если бот их использует)
+            attach_files=True,          # Прикреплять файлы (если бот их отправляет)
+            add_reactions=True,         # Добавлять реакции
+            view_channel=True           # Видеть канал (если он может быть скрыт от других)
+        )
+        # ====================================================================
+
         game_layout_config = self.channels_config.get("game_server_layout")
         if not game_layout_config: raise ValueError("Конфигурация 'game_server_layout' не найдена.")
 
@@ -66,42 +94,57 @@ class GameServerLayoutService:
         player_channel_category_ids_map: Dict[str, int] = {}
         cached_layout_for_redis: Dict[str, Any] = {"categories": {}, "player_channel_categories": {}}
 
-        # ИЗМЕНЕНИЕ: Добавляем параметр `channel_name`
+        # ИЗМЕНЕНИЕ: Внутренняя функция _prepare_overwrites теперь будет использовать bot_role и bot_core_channel_permissions из внешнего скоупа.
         def _prepare_overwrites(permissions_key: str, channel_name: Optional[str] = None) -> Dict[discord.Role, discord.PermissionOverwrite]:
             overwrites = {}
             everyone_role = guild.default_role
-            online_role = roles.get(ONLINE_ROLE) # Получаем объект роли "Online player status"
+            online_role = roles.get(ONLINE_ROLE) 
             
             # СПЕЦИАЛЬНАЯ ЛОГИКА ДЛЯ КАНАЛА "ПРИЁМНАЯ"
             if channel_name == "reception":
                 # Используем предопределенный набор разрешений для @everyone
                 overwrites[everyone_role] = discord.PermissionOverwrite(**DEFAULT_ALLOW_BUTTON_INTERACTION_PERMISSIONS)
                 
-                # Роль Online player status: Просмотр = ЗАПРЕТИТЬ
+                # Запрещаем просмотр канала для роли "Online player status"
                 if online_role:
                     overwrites[online_role] = discord.PermissionOverwrite(view_channel=False)
                 else:
                     self.logger.warning(f"Роль '{ONLINE_ROLE}' не найдена. Канал 'приёмная' может быть виден онлайн-игрокам.")
-                
-                # Offline player status наследует от @everyone, поэтому для нее можно ничего специально не настраивать, она и так будет видеть канал.
-                return overwrites
-
+            
             # СУЩЕСТВУЮЩАЯ ЛОГИКА ДЛЯ ДРУГИХ КАНАЛОВ
-            permission_values = self.permissions_sets.get(permissions_key, {})
-            
-            role_name_for_key = self.ROLE_PERMISSION_MAP.get(permissions_key)
-            if role_name_for_key:
-                target_role = roles.get(role_name_for_key)
-                if target_role:
-                    # Устанавливаем view_channel=False для @everyone по умолчанию для приватных каналов
-                    overwrites[everyone_role] = discord.PermissionOverwrite(**DEFAULT_DENY_PERMISSIONS) # Или явно view_channel=False
-                    overwrites[target_role] = discord.PermissionOverwrite(**permission_values)
-                else:
-                    self.logger.warning(f"Роль '{role_name_for_key}' не найдена. Канал будет полностью приватным.")
-                    overwrites[everyone_role] = discord.PermissionOverwrite(**DEFAULT_DENY_PERMISSIONS) # Явно скрываем
             else:
-                overwrites[everyone_role] = discord.PermissionOverwrite(**permission_values)
+                permission_values = self.permissions_sets.get(permissions_key, {})
+                
+                role_name_for_key = self.ROLE_PERMISSION_MAP.get(permissions_key)
+                if role_name_for_key:
+                    target_role = roles.get(role_name_for_key)
+                    # По умолчанию скрываем от @everyone, если канал приватный для целевой роли
+                    overwrites[everyone_role] = discord.PermissionOverwrite(**DEFAULT_DENY_PERMISSIONS)
+                    if target_role:
+                        overwrites[target_role] = discord.PermissionOverwrite(**permission_values)
+                    else:
+                        self.logger.warning(f"Роль '{role_name_for_key}' не найдена. Канал будет полностью приватным.")
+                        overwrites[everyone_role] = discord.PermissionOverwrite(**DEFAULT_DENY_PERMISSIONS) # Явно скрываем
+                else:
+                    overwrites[everyone_role] = discord.PermissionOverwrite(**permission_values)
             
+            # ====================================================================
+            # НОВОЕ: ГАРАНТИРУЕМ ПРАВА БОТА НАД ВСЕМИ ОСТАЛЬНЫМИ НАСТРОЙКАМИ
+            # Этот блок будет выполнен для КАЖДОГО создаваемого канала (и категории)
+            # и явно установит права для роли бота, переопределяя потенциальные запреты.
+            # ====================================================================
+            if bot_role: # Убедимся, что роль бота получена
+                # Получаем текущие права для бота, если они уже были установлены ранее в логике _prepare_overwrites
+                current_bot_overwrite = overwrites.get(bot_role, discord.PermissionOverwrite())
+                
+                # Объединяем текущие права бота с необходимыми базовыми правами,
+                # чтобы гарантировать, что все нужные права разрешены, и никакие из них не запрещены.
+                # Используем побитовые операции для корректного объединения разрешений.
+                combined_allow = current_bot_overwrite.pair()[0] | bot_core_channel_permissions.pair()[0]
+                combined_deny = current_bot_overwrite.pair()[1] & ~bot_core_channel_permissions.pair()[0] # Убираем потенциальные запреты, которые конфликтуют с needed_allows
+                
+                overwrites[bot_role] = discord.PermissionOverwrite.from_pair(combined_allow, combined_deny)
+                
             return overwrites
         # Шаг 1: Создание категорий
         all_categories_config = list(game_layout_config.items()) + [

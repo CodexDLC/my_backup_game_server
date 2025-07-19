@@ -5,11 +5,12 @@ from discord.ext import commands
 
 
 from game_server.app_discord_bot.app.services.utils.role_finder import RoleFinder
+from game_server.app_discord_bot.config.discord_settings import HUB_GUILD_ID, REGISTRATION_CHANNEL_ID
 from game_server.config.logging.logging_setup import app_logger as logger
-from game_server.app_discord_bot.app.constant.constants_world import HUB_GUILD_ID, REGISTRATION_CHANNEL_ID
+
 # 👇 ИМПОРТЫ НОВЫХ ФЛОУ
-from .flows.hub_registration_flow import execute_hub_registration_flow
-from .flows.shard_login_flow import execute_shard_login_flow
+from ..flows.hub_registration_flow import execute_hub_registration_flow
+from ..flows.shard_login_flow import execute_shard_login_flow
 
 # Импорты всех необходимых зависимостей
 from game_server.app_discord_bot.storage.cache.interfaces.account_data_manager_interface import IAccountDataManager

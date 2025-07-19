@@ -132,7 +132,7 @@ class AccountInfoRepositoryImpl(IAccountInfoRepository):
         # 🔥 ИЗМЕНЕНИЕ: Используем текущую сессию
         query = fselect(AccountInfo.username).where(AccountInfo.username.like("Гость%"))
         result = await self._session.execute(query)
-        return [u for u, in result.scalars().all()]
+        return list(result.scalars().all())
 
     async def get_account_by_auth_token(self, auth_token: str) -> Optional[AccountInfo]:
         """Получает аккаунт по токену аутентификации."""

@@ -1,8 +1,8 @@
-"""Apply consolidated schema updates and sync DDL with models
+"""chek
 
-Revision ID: 09017359b072
+Revision ID: 0ee9ce6bf003
 Revises: 
-Create Date: 2025-06-16 14:48:22.445089
+Create Date: 2025-07-17 23:00:12.769588
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '09017359b072'
+revision: str = '0ee9ce6bf003'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -101,6 +101,26 @@ def upgrade() -> None:
     sa.Column('channel_id', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('guild_id', 'access_key', name='discord_bindings_pkey')
     )
+    op.create_table('discord_entities',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('guild_id', sa.BigInteger(), nullable=False),
+    sa.Column('discord_id', sa.BigInteger(), nullable=False),
+    sa.Column('entity_type', sa.String(length=50), nullable=False),
+    sa.Column('name', sa.String(length=100), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=True),
+    sa.Column('parent_id', sa.BigInteger(), nullable=True),
+    sa.Column('permissions', sa.String(length=50), nullable=True),
+    sa.Column('access_code', sa.String(length=50), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('guild_id', 'access_code', name='uq_guild_access_code'),
+    sa.UniqueConstraint('guild_id', 'discord_id', name='uq_guild_discord_id')
+    )
+    op.create_index(op.f('ix_discord_entities_access_code'), 'discord_entities', ['access_code'], unique=False)
+    op.create_index(op.f('ix_discord_entities_discord_id'), 'discord_entities', ['discord_id'], unique=False)
+    op.create_index(op.f('ix_discord_entities_entity_type'), 'discord_entities', ['entity_type'], unique=False)
+    op.create_index(op.f('ix_discord_entities_guild_id'), 'discord_entities', ['guild_id'], unique=False)
     op.create_table('elite_monsters',
     sa.Column('monster_instance_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('monster_template_id', sa.Integer(), nullable=False),
@@ -147,6 +167,39 @@ def upgrade() -> None:
     sa.Column('slot', sa.String(length=50), nullable=True),
     sa.Column('enchantment_effect', sa.JSON(), nullable=True),
     sa.PrimaryKeyConstraint('character_id', name='equipped_items_pkey')
+    )
+    op.create_table('game_locations',
+    sa.Column('access_key', sa.String(length=255), nullable=False),
+    sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
+    sa.Column('skeleton_template_id', sa.String(length=100), nullable=False),
+    sa.Column('specific_category', sa.String(length=50), nullable=False),
+    sa.Column('name', sa.String(length=255), nullable=False),
+    sa.Column('description', sa.TEXT(), nullable=True),
+    sa.Column('parent_id', sa.String(length=255), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('unified_display_type', sa.String(length=50), nullable=True),
+    sa.Column('presentation', sa.JSON(), nullable=True),
+    sa.Column('entry_point_location_id', sa.String(length=255), nullable=True),
+    sa.Column('flavor_text_options', sa.JSON(), nullable=True),
+    sa.Column('tags', sa.JSON(), nullable=True),
+    sa.ForeignKeyConstraint(['parent_id'], ['game_locations.access_key'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('access_key'),
+    sa.UniqueConstraint('id')
+    )
+    op.create_table('game_shards',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('shard_name', sa.String(length=100), nullable=False),
+    sa.Column('discord_guild_id', sa.BigInteger(), nullable=False),
+    sa.Column('current_players', sa.Integer(), nullable=False),
+    sa.Column('max_players', sa.Integer(), nullable=False),
+    sa.Column('is_admin_enabled', sa.Boolean(), nullable=False),
+    sa.Column('is_system_active', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('discord_guild_id'),
+    sa.UniqueConstraint('shard_name')
     )
     op.create_table('instanced_items',
     sa.Column('instance_id', sa.Integer(), autoincrement=True, nullable=False),
@@ -238,14 +291,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('personality_id'),
     sa.UniqueConstraint('name')
     )
-    op.create_table('regions',
-    sa.Column('access_key', sa.String(length=255), nullable=False),
-    sa.Column('id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
-    sa.Column('world_id', sa.UUID(), nullable=False),
-    sa.Column('region_name', sa.String(length=255), nullable=False),
-    sa.Column('description', sa.TEXT(), nullable=True),
-    sa.PrimaryKeyConstraint('access_key')
-    )
     op.create_table('reputation',
     sa.Column('character_id', sa.Integer(), nullable=False),
     sa.Column('reputation_value', sa.Integer(), server_default=sa.text('0'), nullable=False),
@@ -292,13 +337,16 @@ def upgrade() -> None:
     sa.UniqueConstraint('stat_key', 'affected_property', 'effect_type', name='uq_stat_property_effect_type')
     )
     op.create_table('state_entities',
-    sa.Column('access_code', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('code_name', sa.TEXT(), nullable=False),
-    sa.Column('ui_type', sa.TEXT(), nullable=False),
-    sa.Column('description', sa.TEXT(), server_default=sa.text("''::text"), nullable=True),
-    sa.Column('is_active', sa.Boolean(), server_default=sa.text('true'), nullable=False),
-    sa.PrimaryKeyConstraint('access_code', name='state_entities_pkey')
+    sa.Column('access_code', sa.String(length=50), nullable=False),
+    sa.Column('code_name', sa.String(length=100), nullable=False),
+    sa.Column('ui_type', sa.String(length=50), nullable=False),
+    sa.Column('description', sa.String(length=255), nullable=False),
+    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.PrimaryKeyConstraint('access_code'),
+    sa.UniqueConstraint('code_name')
     )
+    op.create_index(op.f('ix_state_entities_access_code'), 'state_entities', ['access_code'], unique=True)
     op.create_table('static_item_templates',
     sa.Column('template_id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('item_code', sa.String(length=255), nullable=False),
@@ -330,6 +378,19 @@ def upgrade() -> None:
     sa.Column('default_value', sa.Numeric(), nullable=False),
     sa.PrimaryKeyConstraint('id', name='template_modifier_defaults_pkey')
     )
+    op.create_table('used_characters_archive',
+    sa.Column('archive_id', sa.Integer(), nullable=False),
+    sa.Column('original_pool_id', sa.Integer(), nullable=False),
+    sa.Column('linked_entity_id', sa.Integer(), nullable=False),
+    sa.Column('activation_type', sa.String(length=50), nullable=False),
+    sa.Column('lifecycle_status', sa.String(length=50), nullable=False),
+    sa.Column('linked_account_id', sa.Integer(), nullable=True),
+    sa.Column('simplified_pool_data', sa.JSON(), nullable=True),
+    sa.Column('archived_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.PrimaryKeyConstraint('archive_id'),
+    sa.UniqueConstraint('original_pool_id')
+    )
+    op.create_index(op.f('ix_used_characters_archive_linked_entity_id'), 'used_characters_archive', ['linked_entity_id'], unique=False)
     op.create_table('weapon_templates',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('base_item_code', sa.Integer(), nullable=False),
@@ -351,13 +412,6 @@ def upgrade() -> None:
     sa.Column('allowed_for_class', sa.TEXT(), nullable=True),
     sa.Column('visual_asset', sa.TEXT(), nullable=True),
     sa.PrimaryKeyConstraint('id', name='weapon_templates_pkey')
-    )
-    op.create_table('worlds',
-    sa.Column('world_id', sa.Uuid(), server_default=sa.text('gen_random_uuid()'), nullable=False),
-    sa.Column('world_name', sa.String(), nullable=False),
-    sa.Column('is_static', sa.Boolean(), server_default=sa.text('true'), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('world_id', name='worlds_pkey')
     )
     op.create_table('xp_tick_data',
     sa.Column('tick_id', sa.Integer(), nullable=False),
@@ -394,11 +448,12 @@ def upgrade() -> None:
     sa.Column('past_life_fragment_key', sa.String(length=100), nullable=True),
     sa.Column('characters_json', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
     sa.Column('account_cards_data', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('shard_id', sa.String(length=50), nullable=True),
+    sa.Column('shard_id', sa.BigInteger(), nullable=True),
     sa.Column('last_login_game', sa.DateTime(timezone=True), nullable=True),
     sa.Column('total_playtime_seconds', sa.BigInteger(), nullable=False),
     sa.ForeignKeyConstraint(['account_id'], ['account_info.account_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['past_life_fragment_key'], ['past_life_fragments.fragment_key'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['shard_id'], ['game_shards.discord_guild_id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('account_id')
     )
     op.create_table('bloodlines_clan',
@@ -461,35 +516,12 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['skill_key'], ['skills.skill_key'], ),
     sa.PrimaryKeyConstraint('creature_type_id', 'skill_key')
     )
-    op.create_table('state_entities_discord',
-    sa.Column('guild_id', sa.BigInteger(), nullable=False),
-    sa.Column('world_id', sa.UUID(), nullable=False),
-    sa.Column('access_code', sa.Integer(), nullable=False),
-    sa.Column('role_name', sa.TEXT(), nullable=False),
-    sa.Column('role_id', sa.BigInteger(), nullable=False),
-    sa.Column('permissions', sa.Integer(), server_default=sa.text('0'), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.ForeignKeyConstraint(['access_code'], ['state_entities.access_code'], name='fk_state_entities_discord_access_code', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('guild_id', 'world_id', 'access_code', name='state_entities_discord_pkey')
-    )
-    op.create_table('subregions',
-    sa.Column('subregion_id', sa.UUID(), server_default=sa.text('gen_random_uuid()'), nullable=False),
-    sa.Column('access_key', sa.String(length=255), nullable=False),
-    sa.Column('access_code', sa.String(length=255), nullable=False),
-    sa.Column('parent_access_key', sa.String(length=255), nullable=True),
-    sa.Column('subregion_name', sa.String(length=255), nullable=False),
-    sa.Column('is_peaceful', sa.Boolean(), server_default=sa.text('false'), nullable=False),
-    sa.Column('visibility', sa.String(length=50), nullable=False),
-    sa.Column('description', sa.TEXT(), nullable=True),
-    sa.ForeignKeyConstraint(['parent_access_key'], ['regions.access_key'], name='fk_subregions_parent_region_access_key', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('access_key', name='subregions_pkey')
-    )
     op.create_table('characters',
-    sa.Column('character_id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('character_id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('account_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('surname', sa.String(length=100), nullable=True),
+    sa.Column('gender', sa.String(length=50), nullable=True),
     sa.Column('clan_id', sa.Integer(), nullable=True),
     sa.Column('creature_type_id', sa.Integer(), nullable=False),
     sa.Column('personality_id', sa.Integer(), nullable=True),
@@ -549,8 +581,6 @@ def downgrade() -> None:
     op.drop_index('idx_auto_sessions_next_tick_at', table_name='auto_sessions')
     op.drop_table('auto_sessions')
     op.drop_table('characters')
-    op.drop_table('subregions')
-    op.drop_table('state_entities_discord')
     op.drop_table('creature_type_initial_skills')
     op.drop_index(op.f('ix_character_pool_quality_level'), table_name='character_pool')
     op.drop_index('idx_character_pool_status', table_name='character_pool')
@@ -562,18 +592,19 @@ def downgrade() -> None:
     op.drop_table('account_game_data')
     op.drop_table('abilities')
     op.drop_table('xp_tick_data')
-    op.drop_table('worlds')
     op.drop_table('weapon_templates')
+    op.drop_index(op.f('ix_used_characters_archive_linked_entity_id'), table_name='used_characters_archive')
+    op.drop_table('used_characters_archive')
     op.drop_table('template_modifier_defaults')
     op.drop_index(op.f('ix_suffixes_group'), table_name='suffixes')
     op.drop_table('suffixes')
     op.drop_table('static_item_templates')
+    op.drop_index(op.f('ix_state_entities_access_code'), table_name='state_entities')
     op.drop_table('state_entities')
     op.drop_table('special_stat_effects')
     op.drop_table('skills')
     op.drop_table('skill_exclusions')
     op.drop_table('reputation')
-    op.drop_table('regions')
     op.drop_table('personalities')
     op.drop_table('past_life_fragments')
     op.drop_table('modifier_library')
@@ -583,10 +614,17 @@ def downgrade() -> None:
     op.drop_table('inventory_rule_generator')
     op.drop_table('inventory')
     op.drop_table('instanced_items')
+    op.drop_table('game_shards')
+    op.drop_table('game_locations')
     op.drop_table('equipped_items')
     op.drop_table('equipment_templates')
     op.drop_table('entity_state_map')
     op.drop_table('elite_monsters')
+    op.drop_index(op.f('ix_discord_entities_guild_id'), table_name='discord_entities')
+    op.drop_index(op.f('ix_discord_entities_entity_type'), table_name='discord_entities')
+    op.drop_index(op.f('ix_discord_entities_discord_id'), table_name='discord_entities')
+    op.drop_index(op.f('ix_discord_entities_access_code'), table_name='discord_entities')
+    op.drop_table('discord_entities')
     op.drop_table('discord_bindings')
     op.drop_table('data_versions')
     op.drop_table('creature_types')

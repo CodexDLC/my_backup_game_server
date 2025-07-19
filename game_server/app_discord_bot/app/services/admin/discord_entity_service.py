@@ -312,15 +312,15 @@ class DiscordEntityService:
 
         self.logger.info(f"Найдено {len(entities_to_delete)} общих сущностей для удаления (источник: {source}).")
 
-        # Шаг 4 (бывший Шаг 3): Сначала удаляем конфигурацию гильдии из бэкенд-Redis
-        self.logger.info(f"Инициируем удаление конфигурации гильдии {guild_id} из бэкенд-Redis через CacheSyncManager...")
-        delete_success_on_backend_redis = await self.cache_sync_manager.delete_guild_config_from_backend(guild_id, shard_type)
+        # # Шаг 4 (бывший Шаг 3): Сначала удаляем конфигурацию гильдии из бэкенд-Redis
+        # self.logger.info(f"Инициируем удаление конфигурации гильдии {guild_id} из бэкенд-Redis через CacheSyncManager...")
+        # delete_success_on_backend_redis = await self.cache_sync_manager.delete_guild_config_from_backend(guild_id, shard_type)
         
-        if not delete_success_on_backend_redis:
-            self.logger.error(f"Не удалось удалить конфигурацию гильдии {guild_id} из бэкенд-Redis. Отменяем дальнейшее удаление.")
-            return {"status": "failed", "message": "Не удалось удалить конфигурацию из бэкенд-Redis."}
+        # if not delete_success_on_backend_redis:
+        #     self.logger.error(f"Не удалось удалить конфигурацию гильдии {guild_id} из бэкенд-Redis. Отменяем дальнейшее удаление.")
+        #     return {"status": "failed", "message": "Не удалось удалить конфигурацию из бэкенд-Redis."}
         
-        self.logger.success(f"Конфигурация гильдии {guild_id} успешно удалена из бэкенд-Redis.")
+        # self.logger.success(f"Конфигурация гильдии {guild_id} успешно удалена из бэкенд-Redis.")
 
 
         # Шаг 5 (бывший Шаг 4): Удаляем сущности из Discord (логика почти без изменений)

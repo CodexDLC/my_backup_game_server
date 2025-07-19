@@ -11,7 +11,9 @@ from game_server.app_discord_bot.app.services.admin.base_discord_operations impo
 from game_server.app_discord_bot.app.services.admin.discord_entity_service import DiscordEntityService
 from game_server.app_discord_bot.app.services.admin.hub_layout_service import HubLayoutService
 from game_server.app_discord_bot.app.services.admin.role_management_service import RoleManagementService
-from game_server.app_discord_bot.app.services.authentication.authentication_service import AuthenticationService
+from game_server.app_discord_bot.app.services.authentication.logic_handlers.Faq_handler import ShowFaqHandler
+from game_server.app_discord_bot.app.services.authentication.logic_handlers.hub_registration_handler import HubRegistrationFlowHandler
+from game_server.app_discord_bot.app.services.authentication.presentation_handlers.authentication_service import AuthenticationService
 from game_server.app_discord_bot.app.services.utils.interaction_response_manager import InteractionResponseManager
 from game_server.app_discord_bot.app.services.utils.navigation_helper import NavigationHelper
 from game_server.app_discord_bot.app.services.world_location.game_world_data_loader_service import GameWorldDataLoaderService
@@ -43,6 +45,7 @@ def configure_bot_services(binder, bot_instance: Any):
     binder.bind_to_constructor(GameWorldDataLoaderService, GameWorldDataLoaderService)
     binder.bind_to_constructor(InteractionResponseManager, InteractionResponseManager)
     binder.bind_to_constructor(NavigationHelper, NavigationHelper)
-    
+    binder.bind_to_constructor(HubRegistrationFlowHandler, HubRegistrationFlowHandler)
+    binder.bind_to_constructor(ShowFaqHandler, ShowFaqHandler)
     # Привязка простых значений остается без изменений
     binder.bind('emojis_formatting_config', CHANNELS_CONFIG["emojis_formatting"])
