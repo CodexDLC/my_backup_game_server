@@ -7,6 +7,8 @@ from typing import Any, Callable
 from sqlalchemy.ext.asyncio import AsyncSession # Добавлен для фабрик репозиториев
 
 # Импорты System Services Orchestrator
+from game_server.Logic.ApplicationLogic.SystemServices.cache_request_orchestrator import CacheRequestOrchestrator
+from game_server.Logic.ApplicationLogic.SystemServices.handler_cache_requests.get_location_summary_handler import GetLocationSummaryCommandHandler
 from game_server.Logic.ApplicationLogic.SystemServices.system_services_orchestrator import SystemServicesOrchestrator
 
 
@@ -82,7 +84,12 @@ def configure_system_services(binder):
     binder.bind_to_constructor(AddPlayerToStateHandler, AddPlayerToStateHandler)
     binder.bind_to_constructor(RemovePlayerFromStateHandler, RemovePlayerFromStateHandler)
     binder.bind_to_constructor(GetLocationSummaryHandler, GetLocationSummaryHandler)
-    
+        # ✅ НОВАЯ ПРИВЯЗКА: Регистрируем новый оркестратор
+    binder.bind_to_constructor(CacheRequestOrchestrator, CacheRequestOrchestrator)
+
+    # ✅ НОВАЯ ПРИВЯЗКА: Регистрируем новый обработчик для кэша
+    binder.bind_to_constructor(GetLocationSummaryCommandHandler, GetLocationSummaryCommandHandler)
+
     # World Map Handlers
     binder.bind_to_constructor(GetWorldDataHandler, GetWorldDataHandler)
     

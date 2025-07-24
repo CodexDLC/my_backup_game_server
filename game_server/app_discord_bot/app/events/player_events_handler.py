@@ -6,7 +6,8 @@ from typing import Optional
 
 
 from game_server.app_discord_bot.app.constant.roles_blueprint import OFFLINE_ROLE, PLAYER_ROLE
-from game_server.app_discord_bot.app.services.admin.base_discord_operations import BaseDiscordOperations
+
+from game_server.app_discord_bot.app.services.core_services.admin.base_discord_operations import BaseDiscordOperations
 from game_server.app_discord_bot.config.discord_settings import HUB_GUILD_ID
 from game_server.app_discord_bot.storage.cache.managers.account_data_manager import AccountDataManager
 from game_server.app_discord_bot.storage.cache.managers.guild_config_manager import GuildConfigManager 

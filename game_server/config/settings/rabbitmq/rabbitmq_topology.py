@@ -22,7 +22,9 @@ SYSTEM_SERVICES_COMMANDS_QUEUE = {"name": Q.SYSTEM_COMMANDS, "durable": True}
 
 # Единая очередь для всех исходящих сообщений к Gateway
 GATEWAY_OUTBOUND_WS_MESSAGES_QUEUE = {"name": Q.GATEWAY_OUTBOUND_WS_MESSAGES, "durable": True}
-
+# ✅ НОВАЯ ОЧЕРЕДЬ для обработки широковещательных событий в Gateway
+GATEWAY_INBOUND_EVENTS_QUEUE = {"name": Q.GATEWAY_INBOUND_EVENTS, "durable": True}
+SYSTEM_CACHE_REQUESTS_QUEUE = {"name": Q.SYSTEM_CACHE_REQUESTS, "durable": True}
 
 # 3. ОПРЕДЕЛЯЕМ СТРУКТУРУ ДЛЯ АВТОМАТИЧЕСКОЙ НАСТРОЙКИ
 RABBITMQ_TOPOLOGY_SETUP = [
@@ -37,6 +39,8 @@ RABBITMQ_TOPOLOGY_SETUP = [
     {"type": "queue", "spec": COORDINATOR_COMMANDS_QUEUE},
     {"type": "queue", "spec": SYSTEM_SERVICES_COMMANDS_QUEUE},
     {"type": "queue", "spec": GATEWAY_OUTBOUND_WS_MESSAGES_QUEUE},
+    {"type": "queue", "spec": GATEWAY_INBOUND_EVENTS_QUEUE},
+    {"type": "queue", "spec": SYSTEM_CACHE_REQUESTS_QUEUE},
     
     # --- СВЯЗИ (BINDINGS) ---
     # ✅ НОВЫЙ ПОДХОД: Привязки для команд на основе их СМЫСЛА, а не источника.
@@ -76,7 +80,15 @@ RABBITMQ_TOPOLOGY_SETUP = [
         "destination": Q.SYSTEM_COMMANDS,
         "routing_key": f"{RK.COMMAND_PREFIX}.discord.#"  # command.discord.* (для sync_config_from_bot и других команд Discord)
     },
-
+        # ✅ НОВАЯ ПРИВЯЗКА для команд к кэшу
+    # Мы будем использовать новый домен 'cache'
+    {
+        "type": "binding",
+        "source": Ex.COMMANDS,
+        "destination": Q.SYSTEM_CACHE_REQUESTS,
+        "routing_key": f"{RK.COMMAND_PREFIX}.cache.#"  # command.cache.*
+    },
+    
     # ✅ НОВЫЙ ПОДХОД: Привязки для ЕДИНОЙ исходящей очереди Gateway
     # Эта очередь слушает ВСЕ ответы и события, предназначенные для клиентов.
     {
@@ -88,7 +100,8 @@ RABBITMQ_TOPOLOGY_SETUP = [
     {
         "type": "binding",
         "source": Ex.EVENTS,
-        "destination": Q.GATEWAY_OUTBOUND_WS_MESSAGES,
-        "routing_key": f"{RK.EVENT_PREFIX}.#"  # event.# (ловит все события для клиентов)
+        "destination": Q.GATEWAY_INBOUND_EVENTS,
+        "routing_key": f"{RK.EVENT_PREFIX}.#"  # event.#
     },
+
 ]

@@ -54,15 +54,17 @@ class OutboundWebSocketDispatcher:
         Колбэк, вызываемый при получении сообщения из RabbitMQ.
         Десериализует, находит адресата и отправляет сообщение по WebSocket.
         """
+        self.logger.info("OutboundDispatcher: Обработка входящего сообщения...")
         message_envelope: Optional[Dict[str, Any]] = None
         actual_websocket_message_data: Optional[Dict[str, Any]] = None
+        
 
-        self.logger.info(f"OutboundDispatcher: Получено сырое сообщение. Body length: {len(message.body)}")
+        self.logger.debug(f"OutboundDispatcher: Получено сырое сообщение. Body length: {len(message.body)}")
         self.logger.debug(f"OutboundDispatcher: Сырое сообщение body (raw bytes): {message.body}")
 
         try:
             message_envelope = msgpack.unpackb(message.body, raw=False)
-            self.logger.info(f"OutboundDispatcher: Сообщение MsgPack распаковано. Тип внешней обертки: {type(message_envelope)}. Содержимое (частично): {str(message_envelope)[:200]}")
+            self.logger.debug(f"OutboundDispatcher: Сообщение MsgPack распаковано. Тип внешней обертки: {type(message_envelope)}. Содержимое (частично): {str(message_envelope)[:200]}")
 
             if not isinstance(message_envelope, dict) or 'payload' not in message_envelope:
                 self.logger.warning(f"Получено сообщение без ожидаемого поля 'payload' или не словарь. Сообщение: {message.body.decode(errors='ignore')[:200]}...")
@@ -70,7 +72,7 @@ class OutboundWebSocketDispatcher:
                 return
             
             actual_websocket_message_data = message_envelope['payload']
-            self.logger.info(f"OutboundDispatcher: Извлечен фактический WebSocketMessage. Тип: {type(actual_websocket_message_data)}. Содержимое (частично): {str(actual_websocket_message_data)[:200]}")
+            self.logger.debug(f"OutboundDispatcher: Извлечен фактический WebSocketMessage. Тип: {type(actual_websocket_message_data)}. Содержимое (частично): {str(actual_websocket_message_data)[:200]}")
 
             websocket_msg = WebSocketMessage.model_validate(actual_websocket_message_data)
             self.logger.info("OutboundDispatcher: Сообщение успешно валидировано как WebSocketMessage.")

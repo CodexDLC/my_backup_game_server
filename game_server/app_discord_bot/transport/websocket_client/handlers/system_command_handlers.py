@@ -1,76 +1,41 @@
-# game_server/app_discord_bot/transport/websocket_client/handlers/system_command_handlers.py (уже существующий файл)
+# game_server/app_discord_bot/transport/websocket_client/handlers/event_handlers.py
 
+import inject
 import logging
-from typing import Dict, Any
-from discord.ext import commands # Если хендлер - это ког Discord.py
+from discord.ext import commands
 
-# Импортируем контракты
-from game_server.app_discord_bot.config.server_commands_config import get_system_command_handlers
-from game_server.contracts.shared_models.websocket_base_models import WebSocketSystemCommandToClientPayload
+from game_server.contracts.shared_models.websocket_base_models import WebSocketEventPayload
 
 
-# Импортируем наш новый конфиг
-
-
-
-class WSSystemCommandHandlers: # Или это может быть commands.Cog, если команды Discord
-    def __init__(self, logger: logging.Logger, bot: commands.Bot):
-        self.logger = logger
+class WSEventHandlers:
+    """
+    ЗАГЛУШКА: Обработчик событий WebSocket.
+    На данный момент просто логирует все входящие события.
+    """
+    @inject.autoparams()
+    def __init__(self, bot: commands.Bot, logger: logging.Logger):
         self.bot = bot
-        # Инициализируем маппинг команд после того, как все методы будут доступны
-        self.command_map = get_system_command_handlers(self)
-        self.logger.info("WSSystemCommandHandlers инициализирован.")
+        self.logger = logger
+        self.logger.info(f"✅ {self.__class__.__name__} (заглушка) инициализирован.")
 
-    async def handle_command(self, payload: Dict[str, Any]):
+    async def handle_event(self, event_data: WebSocketEventPayload):
         """
-        Основной метод для обработки входящих системных команд.
+        Основной метод, который получает все события.
         """
-        try:
-            # Валидация payload с помощью Pydantic модели
-            command_dto = WebSocketSystemCommandToClientPayload(**payload) #
-            command_name = command_dto.command_name #
-            command_data = command_dto.command_data #
+        event_type = event_data.type
+        payload = event_data.payload
+        
+        self.logger.info(f"Получено WebSocket событие '{event_type}'. Payload: {payload}")
 
-            self.logger.info(f"Получена системная команда от сервера: '{command_name}'")
-            self.logger.debug(f"Данные команды: {command_data}")
+        # TODO: Добавить здесь в будущем логику маршрутизации на основе event_type
+        # для вызова конкретных обработчиков из слоя системной логики.
+        
+        # Пока просто логируем, что событие получено и обработано как неизвестное.
+        await self.handle_unknown_event(event_data)
 
-            # Используем маппинг для вызова нужного метода
-            handler_method = self.command_map.get(command_name)
-            if handler_method:
-                await handler_method(command_data) # Передаем данные команды в обработчик
-                self.logger.info(f"Системная команда '{command_name}' успешно обработана.")
-            else:
-                self.logger.warning(f"Получена неизвестная системная команда: '{command_name}'. Данные: {command_data}")
 
-        except Exception as e:
-            self.logger.error(f"Ошибка обработки системной команды: {e}", exc_info=True)
-
-    # --- Примеры методов-обработчиков для различных команд ---
-
-    async def handle_update_config(self, data: Dict[str, Any]):
-        self.logger.info(f"Выполняю команду: Обновить конфигурацию. Данные: {data}")
-        # Здесь будет логика обновления конфига бота
-        pass
-
-    async def handle_shutdown_command(self, data: Dict[str, Any]):
-        self.logger.info(f"Выполняю команду: Отключение бота. Причина: {data.get('reason', 'Не указана')}")
-        # Здесь будет логика корректного отключения бота
-        await self.bot.close() # Например
-        pass
-
-    async def handle_reload_module(self, data: Dict[str, Any]):
-        module_name = data.get("module_name")
-        self.logger.info(f"Выполняю команду: Перезагрузить модуль: {module_name}")
-        # Здесь будет логика перезагрузки модуля (аналогично CommandsManager.reload_cogs)
-        pass
-    
-    async def handle_sync_time(self, data: Dict[str, Any]):
-        self.logger.info(f"Выполняю команду: Синхронизация времени. Данные: {data}")
-        # Логика синхронизации времени
-        pass
-
-    async def handle_notify_admins(self, data: Dict[str, Any]):
-        message_to_send = data.get("message", "Сообщение для администраторов")
-        self.logger.info(f"Выполняю команду: Уведомить администраторов. Сообщение: {message_to_send}")
-        # Логика отправки сообщения в Discord администраторам
-        pass
+    async def handle_unknown_event(self, event_data: WebSocketEventPayload):
+        """
+        Вызывается для любого события, так как специфичные обработчики еще не реализованы.
+        """
+        self.logger.debug(f"Событие '{event_data.type}' получено, но специфичный обработчик не реализован.")

@@ -100,12 +100,9 @@ async def get_auth_token(
 ):
     logger.info(f"Получен REST-запрос на /token от клиента типа: {request_data.client_type}.")
 
-    logger.error(f"DEBUG_GATEWAY_RECEIVED: {request_data.model_dump()}")
     
     rpc_request_payload = request_data.model_dump()
     rpc_request_payload['command'] = "issue_auth_token" 
-
-    logger.error(f"DEBUG_GATEWAY_SENT_TO_RMQ: {rpc_request_payload}")
     
     rpc_queue_name = None
 
@@ -133,7 +130,6 @@ async def get_auth_token(
             payload=rpc_request_payload,
             timeout=5
         )
-        logger.error(f"DEBUG_GATEWAY_RECEIVED_RPC_RESPONSE: {rpc_response_full}")
 
         # 🔥 ИСПРАВЛЕНО: Извлекаем payload из полного RPC-ответа
         rpc_response_payload = rpc_response_full.get("payload")

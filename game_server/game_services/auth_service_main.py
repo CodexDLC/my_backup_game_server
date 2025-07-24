@@ -1,8 +1,7 @@
 # game_server/game_services/auth_service_main.py
 
-import asyncio
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 import logging
 import inject # 🔥 Импортируем inject
 
@@ -10,9 +9,6 @@ import inject # 🔥 Импортируем inject
 from game_server.core.di_container import initialize_di_container, shutdown_di_container
 
 # Импорты классов, которые теперь будут извлекаться из inject
-from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus
-from game_server.Logic.InfrastructureLogic.app_cache.interfaces.interfaces_session_cache import ISessionManager
-from game_server.Logic.ApplicationLogic.auth_service.auth_service import AuthOrchestrator
 from game_server.game_services.command_center.auth_service_command.auth_issue_token_rpc import AuthIssueTokenRpc
 from game_server.game_services.command_center.auth_service_command.auth_service_listener import AuthServiceCommandListener
 from game_server.game_services.command_center.auth_service_command.auth_service_rpc_handler import AuthServiceRpcHandler
@@ -44,13 +40,6 @@ async def lifespan(app: FastAPI):
         # Асинхронный вызов функции для инициализации DI-контейнера.
         await initialize_di_container()
 
-        # Получение экземпляра оркестратора аутентификации из DI-контейнера.
-        orchestrator = inject.instance(AuthOrchestrator) 
-        # Получение экземпляра шины сообщений из DI-контейнера.
-        message_bus = inject.instance(IMessageBus)
-        # Получение экземпляра менеджера сессий из DI-контейнера.
-        session_manager = inject.instance(ISessionManager)
-        # Получение экземпляра логгера из DI-контейнера (для использования в текущем контексте).
         current_logger = inject.instance(logging.Logger)
 
         # --- Получение и логирование слушателей ---
@@ -58,7 +47,7 @@ async def lifespan(app: FastAPI):
         command_listener = inject.instance(AuthServiceCommandListener) 
         current_logger.info(f"Type of command_listener: {type(command_listener)}") 
         
-        # Получение экземпляра RPC-обработчика аутентификации из DI-контейнера.        
+        # Получение экземпляра RPC-обработчика аутентификации из DI-контейнера.
         rpc_handler = inject.instance(AuthServiceRpcHandler)
         current_logger.info(f"Type of rpc_handler: {type(rpc_handler)}") 
         
@@ -66,20 +55,7 @@ async def lifespan(app: FastAPI):
         issue_token_rpc_handler = inject.instance(AuthIssueTokenRpc) # 🔥 ИЗМЕНЕНО: Инициализируем переименованный класс
         current_logger.info(f"Type of issue_token_rpc_handler: {type(issue_token_rpc_handler)}") 
 
-        # Сохранение экземпляра оркестратора в состоянии приложения FastAPI.
-        app.state.orchestrator = orchestrator
-        # Сохранение экземпляра шины сообщений в состоянии приложения FastAPI.
-        app.state.message_bus = message_bus
-        # Сохранение экземпляра менеджера сессий в состоянии приложения FastAPI.
-        app.state.session_manager = session_manager
-        # Сохранение экземпляра логгера в состоянии приложения FastAPI.
-        app.state.logger = current_logger
-        # Сохранение экземпляра слушателя команд в состоянии приложения FastAPI.
-        app.state.command_listener = command_listener
-        # Сохранение экземпляра RPC-обработчика в состоянии приложения FastAPI.
-        app.state.rpc_handler = rpc_handler
-        # Сохранение экземпляра RPC-обработчика выдачи токенов в состоянии приложения FastAPI.
-        app.state.issue_token_rpc_handler = issue_token_rpc_handler
+
         
         # --- Запуск слушателей ---
         # Запуск RPC-слушателя для валидации токенов.

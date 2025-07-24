@@ -10,7 +10,7 @@ from discord.ext import commands
 import aiohttp.client_exceptions
 
 from game_server.app_discord_bot.transport.websocket_client.handlers.event_handlers import WSEventHandlers
-from game_server.app_discord_bot.transport.websocket_client.handlers.system_command_handlers import WSSystemCommandHandlers
+
 from game_server.app_discord_bot.transport.websocket_client.rest_api.websocket_rest_helpers import request_auth_token
 from game_server.contracts.shared_models.websocket_base_models import WebSocketCommandFromClientPayload, WebSocketMessage
 
@@ -48,12 +48,21 @@ class WebSocketManager:
         bot: commands.Bot,
         pending_requests_manager: PendingRequestsManager,
         event_handler: WSEventHandlers,
-        system_command_handler: WSSystemCommandHandlers,
         logger: logging.Logger,
         bot_cache: Optional[BotCache] = None
     ):
         self.logger = logger
         self.logger.info("WSManager: Начинается инициализация __init__.")
+        self.logger.debug("DEBUG: Инициализация WSManager запущена.")
+
+        self._bot = bot
+        self._ws_url = GATEWAY_URL
+        self._api_key = GATEWAY_AUTH_TOKEN
+        self._rest_api_base_url = GAME_SERVER_API
+        self._auth_token_rest_endpoint = f"{self._rest_api_base_url}/auth/token"
+
+        if not self._ws_url:
+            self.logger.critical("CRITICAL: GATEWAY_URL не установлен.")
         self.logger.debug("DEBUG: Инициализация WSManager запущена.")
 
         self._bot = bot
@@ -74,7 +83,6 @@ class WebSocketManager:
 
         self.pending_requests = pending_requests_manager
         self.event_handler = event_handler
-        self.system_command_handler = system_command_handler
         self._bot_cache = bot_cache
         self._bot_name = BOT_NAME_FOR_GATEWAY
         
@@ -88,8 +96,7 @@ class WebSocketManager:
         self._inbound_dispatcher = WebSocketInboundDispatcher(
             logger=self.logger,
             pending_requests_manager=self.pending_requests,
-            event_handler=self.event_handler,
-            system_command_handler=self.system_command_handler
+            event_handler=self.event_handler
         )
 
         self.logger.info("WSManager: Инициализация __init__ завершена.")

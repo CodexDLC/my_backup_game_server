@@ -2,7 +2,6 @@
 
 import logging
 from typing import Dict, Any, Optional, List, Callable
-# import inject # 🔥 УДАЛЕНО: inject больше не нужен для autoparams здесь
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # Импортируем наш transactional декоратор
@@ -19,8 +18,6 @@ from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal
 from game_server.config.constants.arq import KEY_CHARACTER_GENERATION_TASK
 from game_server.contracts.dtos.orchestrator.data_models import CharacterGenerationSpec
 
-
-# 🔥 УДАЛЕНО: @inject.autoparams() полностью
 @transactional(AsyncSessionLocal)
 async def generate_character_batch_task(
     session: AsyncSession, # <--- Сессия от @transactional

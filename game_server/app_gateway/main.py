@@ -9,6 +9,8 @@ from typing import Optional, Dict, Any
 from fastapi import FastAPI
 from dotenv import load_dotenv
 
+from game_server.app_gateway.gateway.event_broadcast_handler import EventBroadcastHandler
+
 print("DEBUG: main.py - Basic imports completed")
 
 # 🔥 НОВЫЕ ИМПОРТЫ для унифицированной архитектуры WS
@@ -58,45 +60,66 @@ global_outbound_ws_dispatcher: Optional[OutboundWebSocketDispatcher] = None
 async def lifespan(app: FastAPI):
     """
     Управляет запуском и остановкой сервисов Gateway.
+    Теперь запускает ОБА диспетчера.
     """
-    logger.info("🚀 Запуск Lifespan шлюза в оптимизированном режиме...")
+    logger.info("🚀 Запуск Lifespan шлюза...")
     
     global global_client_connection_manager
     global global_outbound_ws_dispatcher
+    # ✅ Объявляем новую глобальную переменную
+    global global_event_broadcast_handler
 
     try:
         app.state.gateway_dependencies = await initialize_gateway_dependencies()
         
-        if "message_bus" not in app.state.gateway_dependencies or app.state.gateway_dependencies["message_bus"] is None:
-            logger.critical("🚨 КРИТИЧЕСКАЯ ОШИБКА: RabbitMQ Message Bus отсутствует или не инициализирован в gateway_dependencies!")
-            raise RuntimeError("RabbitMQ Message Bus не инициализирован. Запуск шлюза невозможен.")
+        message_bus = app.state.gateway_dependencies.get('message_bus')
+        if not message_bus:
+            logger.critical("🚨 КРИТИЧЕСКАЯ ОШИБКА: RabbitMQ Message Bus не инициализирован!")
+            raise RuntimeError("RabbitMQ Message Bus не инициализирован.")
 
-        message_bus = app.state.gateway_dependencies['message_bus']
         app.state.message_bus = message_bus 
 
         global_client_connection_manager = ClientConnectionManager()
         app.state.client_connection_manager = global_client_connection_manager
         
+        # --- Инициализация и запуск ПЕРВОГО слушателя (для прямых ответов) ---
         global_outbound_ws_dispatcher = OutboundWebSocketDispatcher(
             message_bus=message_bus,
             client_connection_manager=global_client_connection_manager
         )
         app.state.outbound_ws_dispatcher = global_outbound_ws_dispatcher
-        
         await global_outbound_ws_dispatcher.start_listening_for_outbound_messages()
         app.state.outbound_ws_dispatcher_task = global_outbound_ws_dispatcher._listen_task
 
-        logger.info("✅ Оптимизированный шлюз готов к работе.")
+        # --- ✅ Инициализация и запуск ВТОРОГО слушателя (для событий) ---
+        global_event_broadcast_handler = EventBroadcastHandler(
+            message_bus=message_bus,
+            client_connection_manager=global_client_connection_manager
+        )
+        app.state.event_broadcast_handler = global_event_broadcast_handler
+        await global_event_broadcast_handler.start_listening_for_events()
+        app.state.event_broadcast_handler_task = global_event_broadcast_handler._listen_task
+        
+        logger.info("✅ Шлюз готов к работе с ДВУМЯ слушателями.")
         
         yield
 
     finally:
         logger.info("👋 Завершение работы Lifespan шлюза...")
 
+        # --- Остановка обоих слушателей ---
         if hasattr(app.state, 'outbound_ws_dispatcher_task') and app.state.outbound_ws_dispatcher_task:
             app.state.outbound_ws_dispatcher_task.cancel()
             try:
                 await app.state.outbound_ws_dispatcher_task
+            except asyncio.CancelledError:
+                pass
+
+        # ✅ Остановка второго слушателя
+        if hasattr(app.state, 'event_broadcast_handler_task') and app.state.event_broadcast_handler_task:
+            app.state.event_broadcast_handler_task.cancel()
+            try:
+                await app.state.event_broadcast_handler_task
             except asyncio.CancelledError:
                 pass
 

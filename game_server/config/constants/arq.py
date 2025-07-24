@@ -4,6 +4,7 @@
 ARQ_TASK_GENERATE_CHARACTER_BATCH: str = "game_server.Logic.ApplicationLogic.world_orchestrator.workers.tasks.arq_character_generation.generate_character_batch_task"
 ARQ_TASK_PROCESS_ITEM_GENERATION_BATCH: str = "game_server.Logic.ApplicationLogic.world_orchestrator.workers.tasks.arq_item_generation.process_item_generation_batch_task"
 ARQ_TASK_GENERATE_WORLD_MAP: str = "game_server.Logic.ApplicationLogic.world_orchestrator.workers.tasks.arq_world_map_generation.generate_world_map_task"
+ARQ_TASK_AGGREGATE_LOCATION_STATE: str = "game_server.Logic.DomainLogic.arq_tasks.location_tasks.aggregate_location_state"
 
 
 
@@ -12,6 +13,7 @@ TASKS = [
     ARQ_TASK_GENERATE_CHARACTER_BATCH,
     ARQ_TASK_PROCESS_ITEM_GENERATION_BATCH,
     ARQ_TASK_GENERATE_WORLD_MAP,
+    ARQ_TASK_AGGREGATE_LOCATION_STATE
 ]
 
 # === КЛЮЧИ, СВЯЗАННЫЕ С ФОНОВЫМИ ЗАДАЧАМИ (WORKERS) ===

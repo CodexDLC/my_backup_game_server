@@ -7,7 +7,7 @@ import json
 from typing import Dict, Any
 
 from game_server.app_discord_bot.storage.cache.interfaces.account_data_manager_interface import IAccountDataManager
-from game_server.app_discord_bot.storage.cache.interfaces.character_cache_manager_interface import ICharacterCacheManager
+from game_server.app_discord_bot.storage.cache.interfaces.character_cache_manager_interface import ICharacterCacheDiscordManager
 from game_server.app_discord_bot.storage.cache.constant.constant_key import RedisKeys
 
 class NavigationHelper:
@@ -17,7 +17,7 @@ class NavigationHelper:
     @inject.autoparams()
     def __init__(
         self,
-        character_cache_manager: ICharacterCacheManager,
+        character_cache_manager: ICharacterCacheDiscordManager,
         account_data_manager: IAccountDataManager,
         logger: logging.Logger,
     ):

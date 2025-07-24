@@ -6,17 +6,15 @@ from fastapi import FastAPI, Response, status, HTTPException
 # 🔥 ИЗМЕНЕНИЕ: Импортируем функции инициализации/остановки DI-контейнера
 from game_server.core.di_container import initialize_di_container, shutdown_di_container
 
-# 🔥 УДАЛЕНО: Больше не нужен service_builders
-# from game_server.core.service_builders import build_game_world_dependencies
 
 # Импорты для главных координаторов (теперь они будут браться из inject)
 from game_server.Logic.ApplicationLogic.world_orchestrator.pre_start.coordinator_pre_start import PreStartCoordinator
 from game_server.Logic.ApplicationLogic.world_orchestrator.runtime.runtime_coordinator import RuntimeCoordinator
 from game_server.game_services.command_center.coordinator_command.coordinator_listener import CoordinatorListener
-from game_server.game_services.command_center.coordinator_command import coordinator_config # Оставляем импорт config, если он нужен для других целей (например, констант)
+
 
 # Импорты для инфраструктуры
-from game_server.Logic.InfrastructureLogic.db_instance import AsyncSessionLocal # Если нужен для типизации
+
 from game_server.Logic.InfrastructureLogic.messaging.i_message_bus import IMessageBus # Если нужен для типизации
 
 
