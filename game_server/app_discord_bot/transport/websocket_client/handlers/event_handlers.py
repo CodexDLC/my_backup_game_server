@@ -1,38 +1,65 @@
-# game_server/app_discord_bot/transport/websocket_client/event_handlers.py
+# game_server/app_discord_bot/transport/websocket_client/handlers/event_handlers.py
+
 import inject
 import logging
-import discord
 from discord.ext import commands
+from typing import Dict, Any
 
-from game_server.contracts.shared_models.websocket_base_models import WebSocketEventPayload
+# ✅ Импортируем нашу новую карту
+from ....config.event_to_custom_id_config import EVENT_TO_CUSTOM_ID_MAP
 
-# 🔥 ИЗМЕНЕНИЕ: УДАЛИТЬ ИМПОРТ ГЛОБАЛЬНОГО ЛОГГЕРА
-# from game_server.config.logging.logging_setup import app_logger as logger # УДАЛИТЬ ЭТУ СТРОКУ
 
 class WSEventHandlers:
+    """
+    Получает события от бэкенда, преобразует их в custom_id с помощью карты
+    и имитирует внутреннее событие 'нажатия кнопки' для InteractionRouter.
+    """
     @inject.autoparams()
-    def __init__(self, bot: commands.Bot, logger: logging.Logger = None): # Логгер инжектируется
+    def __init__(self, bot: commands.Bot, logger: logging.Logger):
         self.bot = bot
-        self.logger = logger if logger is not None else logging.getLogger(__name__) # Используем инжектированный логгер
-    
-        self.logger.info("WSEventHandlers: Инициализация.") # 🔥 ДОБАВЛЕНО ДЛЯ ОТЛАДКИ
+        self.logger = logger
+        self.handlers_map = EVENT_TO_CUSTOM_ID_MAP # ✅ Используем новую карту
+        self.logger.info(f"✅ {self.__class__.__name__} инициализирован с {len(self.handlers_map)} правилами.")
 
-    async def handle_event(self, event_data: WebSocketEventPayload):
-        event_type = event_data.type
-        handler_name = f"handle_{event_type.lower()}_event"
-        handler_method = getattr(self, handler_name, self.handle_unknown_event)
-        
-        self.logger.info(f"Получено WebSocket событие '{event_type}'. Вызов '{handler_name}'...")
+    async def handle_event(self, event_payload_data: dict):
+        """
+        Основной метод. Распаковывает событие, находит правило в карте и генерирует
+        внутреннее событие для роутера.
+        """
+        try:
+            event_name = event_payload_data.get("type")
+            if not event_name:
+                self.logger.warning("Получено событие без поля 'type'.")
+                return
 
-        try: # 🔥 ДОБАВЛЕНО ДЛЯ ОТЛАДКИ
-            await handler_method(event_data)
+            # Распаковываем до чистых данных
+            clean_data = event_payload_data.get('payload', {})
+            while isinstance(clean_data, dict) and 'payload' in clean_data:
+                clean_data = clean_data['payload']
+
+            # --- ✅ НОВАЯ ЛОГИКА С ИСПОЛЬЗОВАНИЕМ КАРТЫ ---
+            
+            # Ищем правило для этого события в нашей карте
+            rule = self.handlers_map.get(event_name)
+
+            if rule:
+                custom_id_format = rule.get("custom_id_format")
+                if not custom_id_format:
+                    self.logger.error(f"Для события '{event_name}' в конфиге не указан 'custom_id_format'.")
+                    return
+
+                # Формируем custom_id, подставляя в шаблон значения из данных
+                try:
+                    custom_id = custom_id_format.format(**clean_data)
+                    self.logger.info(f"Событие '{event_name}' преобразовано в custom_id '{custom_id}'. Генерирую внутреннее событие 'on_backend_event'.")
+                    
+                    # Генерируем кастомное событие, которое поймает другой слушатель
+                    self.bot.dispatch("backend_event", custom_id, clean_data)
+                except KeyError as e:
+                    self.logger.error(f"Не удалось создать custom_id для '{event_name}': в данных не хватает ключа {e}.")
+
+            else:
+                self.logger.warning(f"Для события '{event_name}' не найдено правило в EVENT_TO_CUSTOM_ID_MAP.")
+
         except Exception as e:
-            self.logger.critical(f"WSEventHandlers: Ошибка в обработчике события '{event_type}': {e}", exc_info=True)
-
-
-    async def handle_unknown_event(self, event_data: WebSocketEventPayload):
-        self.logger.warning(f"Получено неизвестное событие типа '{event_data.type}'.")
-
-    # Здесь будут конкретные обработчики
-    # async def handle_player_moved_event(self, event_data: WebSocketEventPayload):
-    #     self.logger.info(f"Обработано событие перемещения игрока: {event_data.payload}")
+            self.logger.critical(f"Ошибка в WSEventHandlers: {e}", exc_info=True)

@@ -1,9 +1,9 @@
 # character_cache_manager_interface.py
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 
-class ICharacterCacheManager(ABC):
+class ICharacterCacheDiscordManager(ABC):
     """
     Интерфейс для управления кэшем сессий персонажей в Redis.
     """
@@ -47,5 +47,17 @@ class ICharacterCacheManager(ABC):
     async def clear_login_session(self, user_id: int, guild_id: int) -> None:
         """
         Выполняет процедуру очистки кэша при выходе персонажа из игры.
+        """
+        pass
+    
+    @abstractmethod
+    async def get_bulk_character_details(self, character_ids: List[int], guild_id: int) -> Dict[str, Dict[str, Any]]:
+        """
+        Получает сокращенные данные (имя и т.д.) для списка ID персонажей.
+        Оптимизирован для массовых запросов, чтобы избежать многократных вызовов.
+
+        :param character_ids: Список ID персонажей.
+        :param guild_id: ID сервера.
+        :return: Словарь, где ключ - ID персонажа, а значение - словарь с его данными.
         """
         pass

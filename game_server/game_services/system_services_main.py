@@ -4,16 +4,17 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import logging
+import inject
 
 # Импортируем функции инициализации/остановки DI-контейнера
 from game_server.core.di_container import initialize_di_container, shutdown_di_container
 
-# Импорты для классов, которые мы будем получать из DI
+# Импортируем ОБА класса слушателей
+from game_server.game_services.command_center.system_services_command.system_services_cache_listener import CacheRequestCommandListener
 from game_server.game_services.command_center.system_services_command.system_services_listener import SystemServicesCommandListener
+# ✅ НОВЫЙ ИМПОРТ
 
-import inject
 
-# Получаем корневой логгер на случай, если DI еще не инициализирован
 logger = logging.getLogger(__name__)
 
 
@@ -25,6 +26,8 @@ async def lifespan(app: FastAPI):
     logger.info("--- 🚀 Запуск микросервиса SystemServices ---")
     
     command_listener: SystemServicesCommandListener | None = None
+    # ✅ НОВАЯ ПЕРЕМЕННАЯ для второго слушателя
+    cache_listener: CacheRequestCommandListener | None = None
     current_logger = logger 
     
     try:
@@ -33,22 +36,32 @@ async def lifespan(app: FastAPI):
 
         # 2. Получаем все необходимые зависимости напрямую из inject
         command_listener = inject.instance(SystemServicesCommandListener)
+        # ✅ Получаем второго слушателя
+        cache_listener = inject.instance(CacheRequestCommandListener)
         current_logger = inject.instance(logging.Logger)
 
         # 3. Запускаем прослушивание команд
-        # ИСПРАВЛЕНО: Вызываем правильный метод start() и убираем await
         command_listener.start()
-        current_logger.info("✅ Слушатель команд SystemServices запущен.")
+        current_logger.info("✅ Слушатель команд (SystemServicesCommandListener) запущен.")
+        
+        # ✅ Запускаем второго слушателя
+        cache_listener.start()
+        current_logger.info("✅ Слушатель запросов к кэшу (CacheRequestCommandListener) запущен.")
         
         yield
 
     finally:
         # --- SHUTDOWN ---
-        current_logger.info("--- 🛑 Начало процесса корректного завершения работы сервиса SystemServices ---")
+        current_logger.info("--- 🛑 Начало процесса корректного завершения работы ---")
         
         if command_listener:
             await command_listener.stop()
             current_logger.info("🔗 SystemServicesCommandListener остановлен.")
+
+        # ✅ Останавливаем второго слушателя
+        if cache_listener:
+            await cache_listener.stop()
+            current_logger.info("🔗 CacheRequestCommandListener остановлен.")
         
         await shutdown_di_container()
         

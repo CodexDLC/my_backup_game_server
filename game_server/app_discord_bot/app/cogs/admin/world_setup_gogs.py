@@ -8,7 +8,8 @@ from typing import Dict, Any, List, Optional
 import asyncio
 
 
-from game_server.app_discord_bot.app.services.admin.discord_entity_service import DiscordEntityService
+
+from game_server.app_discord_bot.app.services.core_services.admin.discord_entity_service import DiscordEntityService
 from game_server.app_discord_bot.app.services.utils.cache_sync_manager import CacheSyncManager
 from game_server.app_discord_bot.app.services.utils.name_formatter import NameFormatter
 from game_server.app_discord_bot.config.discord_settings import BOT_PREFIX

@@ -6,8 +6,9 @@ from discord.ext import commands
 import inject
 import logging
 
+from game_server.app_discord_bot.app.services.core_services.world_location.game_world_data_loader_service import GameWorldDataLoaderService
 from game_server.config.logging.logging_setup import app_logger as logger
-from game_server.app_discord_bot.app.services.world_location.game_world_data_loader_service import GameWorldDataLoaderService
+
 
 
 class LoadWorldStatic(commands.Cog):

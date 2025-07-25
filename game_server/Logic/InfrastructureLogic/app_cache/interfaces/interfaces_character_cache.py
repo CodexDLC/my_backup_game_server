@@ -1,6 +1,6 @@
 # game_server/Logic/InfrastructureLogic/app_cache/interfaces/interfaces_character_cache.py
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 
 class ICharacterCacheManager(ABC):
     """
@@ -32,3 +32,4 @@ class ICharacterCacheManager(ABC):
     @abstractmethod
     async def get_pool_count(self) -> int:
         pass
+    

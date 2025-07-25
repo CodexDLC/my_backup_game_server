@@ -24,11 +24,13 @@ class Queues:
     AUTH_COMMANDS = "q.commands.auth"
     COORDINATOR_COMMANDS = "q.commands.coordinator"
     SYSTEM_COMMANDS = "q.commands.system"
+    SYSTEM_CACHE_REQUESTS = "q.system.cache_requests"
 
 
     # --- ОЧЕРЕДЬ ДЛЯ ИСХОДЯЩИХ СООБЩЕНИЙ (потребляется Gateway) ---
     # ✅ ЕДИНАЯ ОЧЕРЕДЬ для ВСЕХ сообщений, идущих к клиентам через WebSocket.
-    GATEWAY_OUTBOUND_WS_MESSAGES = "q.gateway.outbound_ws_messages"
+    GATEWAY_OUTBOUND_WS_MESSAGES = "q.gateway.outbound_ws_messages"    
+    GATEWAY_INBOUND_EVENTS = "q.gateway.inbound_events"
 
  
 class RoutingKeys:

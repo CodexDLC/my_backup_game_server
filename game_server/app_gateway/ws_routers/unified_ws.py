@@ -73,7 +73,7 @@ async def unified_websocket_endpoint(
             queue_name=Queues.AUTH_VALIDATE_TOKEN_RPC,
             payload=rpc_request_data
         )
-        logger.info(f"DEBUG_GATEWAY_RPC_RESPONSE: Получен ответ от RPC-валидации: {validation_result}")
+        logger.debug(f"DEBUG_GATEWAY_RPC_RESPONSE: Получен ответ от RPC-валидации: {validation_result}")
 
         # Получаем payload из ответа RPC
         rpc_payload = validation_result.get("payload")

@@ -2,25 +2,27 @@
 
 import inject
 
-# Существующие оркестраторы
-from game_server.app_discord_bot.app.services.authentication.authentication_orchestrator import AuthenticationOrchestrator
-from game_server.app_discord_bot.app.services.authentication.lobby.lobby_orchestrator import LobbyOrchestrator
+from game_server.app_discord_bot.app.services.game_modules.authentication.authentication_orchestrator import AuthenticationOrchestrator
+from game_server.app_discord_bot.app.services.game_modules.character.character_orchestrator import CharacterOrchestrator
 
-# --- НОВОЕ: Импорты для новых сервисов ---
-from game_server.app_discord_bot.app.services.character.character_orchestrator import CharacterOrchestrator
-from game_server.app_discord_bot.app.services.navigation.navigation_orchestrator import NavigationOrchestrator
-from game_server.app_discord_bot.app.services.system.system_orchestrator import SystemOrchestrator
+from game_server.app_discord_bot.app.services.game_modules.inspection.inspection_orchestrator import InspectionOrchestrator
+from game_server.app_discord_bot.app.services.game_modules.lobby.lobby_orchestrator import LobbyOrchestrator
+from game_server.app_discord_bot.app.services.game_modules.navigation.navigation_orchestrator import NavigationOrchestrator
+from game_server.app_discord_bot.app.services.game_modules.system.system_orchestrator import SystemOrchestrator
+# ✅ НОВЫЙ ИМПОРТ
+from game_server.app_discord_bot.app.services.game_modules.chashe_updata.chashe_updata_orchestrator import CacheUpdateOrchestrator
 
 
 def configure_bot_orchestrators(binder):
     """
     Конфигурирует привязки для всех оркестраторов сервисов бота.
     """
-    # Старые привязки
-    binder.bind("lobby", LobbyOrchestrator) # Изменен на строковый ключ для единообразия
-    binder.bind("auth", AuthenticationOrchestrator)  # Изменен на строковый ключ
-
-    # --- НОВОЕ: Привязки для новых оркестраторов ---
+    binder.bind("lobby", LobbyOrchestrator)
+    binder.bind("auth", AuthenticationOrchestrator)
     binder.bind("character", CharacterOrchestrator)
     binder.bind("navigation", NavigationOrchestrator)
     binder.bind("system", SystemOrchestrator)
+    binder.bind("inspection", InspectionOrchestrator)
+    
+    # ✅ НОВАЯ ПРИВЯЗКА для нашего сервиса обновления кэша
+    binder.bind("cache", CacheUpdateOrchestrator)

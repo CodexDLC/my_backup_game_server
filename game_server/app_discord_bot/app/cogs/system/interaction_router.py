@@ -48,7 +48,15 @@ class InteractionRouter(commands.Cog):
             return
 
         try:
-            response_message_object = await self.interaction_response_manager.send_thinking_message(interaction)
+            # ✅ НОВАЯ ПРОВЕРКА:
+            # Проверяем, есть ли у interaction наш флаг.
+            # hasattr нужен, чтобы не было ошибки на настоящих интеракциях.
+            is_background_event = getattr(interaction, 'is_background_event', False)
+
+            response_message_object = None
+            if not is_background_event:
+                # Если это НЕ фоновое событие, то отправляем "Думаю..."
+                response_message_object = await self.interaction_response_manager.send_thinking_message(interaction)
 
             orchestrator_instance = inject.instance(OrchestratorClass)
 
@@ -58,9 +66,20 @@ class InteractionRouter(commands.Cog):
 
         except Exception as e:
             self.logger.error(f"[ROUTER] КРИТИЧЕСКАЯ ОШИБКА в оркестраторе '{service_name}': {e}", exc_info=True)
+            
+            # ✅ НОВАЯ ПРОВЕРКА:
+            # Сначала проверяем, является ли это фоновым событием.
+            # Если да, то мы просто логируем ошибку и ничего не отправляем в Discord.
+            is_background_event = getattr(interaction, 'is_background_event', False)
+            if is_background_event:
+                self.logger.debug("[ROUTER] Ошибка произошла в фоновом событии, ответ пользователю не отправляется.")
+                return
+
+            # Если это НЕ фоновое событие, используем старую логику для ответа пользователю.
             if not interaction.response.is_done():
                 await interaction.response.send_message("Произошла критическая ошибка при обработке вашего действия.", ephemeral=True)
-            elif interaction.response.is_done() and response_message_object:
-                await response_message_object.edit(content="Произошла критическая ошибка при обработке вашего действия. Пожалуйста, сообщите администратору.", delete_after=None)
+            elif response_message_object: # is_done() здесь уже подразумевается
+                await response_message_object.edit(content="Произошла критическая ошибка при обработке вашего действия. Пожалуйста, сообщите администратору.", view=None, delete_after=None)
             else:
                 self.logger.warning("Не удалось отправить сообщение об ошибке пользователю, interaction.response уже done, но нет response_message_object.")
+

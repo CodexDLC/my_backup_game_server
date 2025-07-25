@@ -86,8 +86,7 @@ pytest
 rich
 typing_extensions
 
-# uvloop - уже был, оставлен для явности и производительности asyncio
-uvloop
+
 aio-pika  # Сохраняем, если используется в других частях приложения
 
 Pydantic

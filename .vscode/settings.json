@@ -2,5 +2,14 @@
     "python.analysis.extraPaths": [
         "./game_server/Logic/DataAccessLogic/SQLAlchemy",
         "./game_server/app_cache"
-    ]
+    ],
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        ".",
+        "-p",
+        "*test.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
 }

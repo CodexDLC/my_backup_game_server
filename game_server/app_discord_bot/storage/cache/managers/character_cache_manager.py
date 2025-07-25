@@ -3,13 +3,13 @@
 import inject
 import logging
 import json
-from typing import Optional, Dict, Any
+from typing import List, Optional, Dict, Any
 
 from game_server.app_discord_bot.storage.cache.constant.constant_key import RedisKeys
 from game_server.app_discord_bot.storage.cache.discord_redis_client import DiscordRedisClient
-from game_server.app_discord_bot.storage.cache.interfaces.character_cache_manager_interface import ICharacterCacheManager
+from game_server.app_discord_bot.storage.cache.interfaces.character_cache_manager_interface import ICharacterCacheDiscordManager
 
-class CharacterCacheManagerImpl(ICharacterCacheManager):
+class CharacterCacheDiscordManagerImpl(ICharacterCacheDiscordManager):
     """
     Реализация менеджера кэша для сессий персонажей.
     Адаптировано под новую, гибридную структуру хранения сессии в Redis.
@@ -112,3 +112,27 @@ class CharacterCacheManagerImpl(ICharacterCacheManager):
         await self._redis.delete(RedisKeys.ACTIVE_USER_SESSION_HASH.format(discord_id=user_id))
         await self._redis.delete(RedisKeys.CHARACTER_SESSION_HASH.format(guild_id=guild_id, character_id=character_id))
         self._logger.info(f"Сессия для персонажа {character_id} (пользователь {user_id}) была полностью очищена.")
+        
+        
+    async def get_bulk_character_details(self, character_ids: List[int], guild_id: int) -> Dict[str, Dict[str, Any]]:
+        players_details = {}
+        for player_id in character_ids:
+            player_id_str = str(player_id) 
+            try:
+                session_data = await self.get_character_session(player_id, guild_id)
+                if not session_data:
+                    players_details[player_id_str] = {"name": f"Игрок #{player_id_str} (не в сети)"}
+                    continue
+
+                # ИСПРАВЛЕНИЕ 1: Убираем json.loads, так как 'core' - это уже словарь
+                core_data = session_data.get("core", {})
+
+                players_details[player_id_str] = {
+                    "name": core_data.get("name", f"Игрок #{player_id_str}")
+                }
+            except Exception as e:
+                # ИСПРАВЛЕНИЕ 2: Меняем self.logger на self._logger (или как он у вас называется)
+                self._logger.error(f"Ошибка при массовом получении данных для ID {player_id_str}: {e}")
+                players_details[player_id_str] = {"name": f"Игрок #{player_id_str} (ошибка)"}
+        
+        return players_details

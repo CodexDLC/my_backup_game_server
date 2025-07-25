@@ -4,26 +4,27 @@ from typing import Any
 import inject
 from discord.ext import commands
 
-# Импортируем все ваши сервисы
 from game_server.app_discord_bot.app.events.player_events_handler import PlayerEventsHandler
-from game_server.app_discord_bot.app.services.admin.article_management_service import ArticleManagementService
-from game_server.app_discord_bot.app.services.admin.base_discord_operations import BaseDiscordOperations
-from game_server.app_discord_bot.app.services.admin.discord_entity_service import DiscordEntityService
-from game_server.app_discord_bot.app.services.admin.hub_layout_service import HubLayoutService
-from game_server.app_discord_bot.app.services.admin.role_management_service import RoleManagementService
-from game_server.app_discord_bot.app.services.authentication.logic_handlers.Faq_handler import ShowFaqHandler
-from game_server.app_discord_bot.app.services.authentication.logic_handlers.hub_registration_handler import HubRegistrationFlowHandler
-from game_server.app_discord_bot.app.services.authentication.presentation_handlers.authentication_service import AuthenticationService
+from game_server.app_discord_bot.app.services.core_services.admin.article_management_service import ArticleManagementService
+from game_server.app_discord_bot.app.services.core_services.admin.base_discord_operations import BaseDiscordOperations
+from game_server.app_discord_bot.app.services.core_services.admin.discord_entity_service import DiscordEntityService
+from game_server.app_discord_bot.app.services.core_services.admin.hub_layout_service import HubLayoutService
+from game_server.app_discord_bot.app.services.core_services.admin.role_management_service import RoleManagementService
+from game_server.app_discord_bot.app.services.core_services.world_location.game_world_data_loader_service import GameWorldDataLoaderService
+from game_server.app_discord_bot.app.services.game_modules.authentication.logic_handlers.Faq_handler import ShowFaqHandler
+from game_server.app_discord_bot.app.services.game_modules.authentication.logic_handlers.hub_registration_handler import HubRegistrationFlowHandler
+from game_server.app_discord_bot.app.services.game_modules.authentication.presentation_handlers.authentication_service import AuthenticationService
+from game_server.app_discord_bot.app.services.utils.cache_sync_manager import CacheSyncManager
 from game_server.app_discord_bot.app.services.utils.interaction_response_manager import InteractionResponseManager
-from game_server.app_discord_bot.app.services.utils.navigation_helper import NavigationHelper
-from game_server.app_discord_bot.app.services.world_location.game_world_data_loader_service import GameWorldDataLoaderService
 from game_server.app_discord_bot.app.services.utils.message_sender_service import MessageSenderService
+from game_server.app_discord_bot.app.services.utils.navigation_helper import NavigationHelper
 from game_server.app_discord_bot.app.services.utils.player_login_intent_processor import PlayerLoginIntentProcessor
 from game_server.app_discord_bot.app.services.utils.request_helper import RequestHelper
-from game_server.app_discord_bot.app.services.utils.cache_sync_manager import CacheSyncManager
 from game_server.app_discord_bot.app.services.utils.role_finder import RoleFinder
 from game_server.app_discord_bot.app.services.utils.role_verification_service import RoleVerificationService
 from game_server.app_discord_bot.config.assets.data.channels_config import CHANNELS_CONFIG
+
+# Импортируем все ваши сервисы
 
 def configure_bot_services(binder, bot_instance: Any):
     """
