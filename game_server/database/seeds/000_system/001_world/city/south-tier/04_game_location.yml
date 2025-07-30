@@ -1,0 +1,100 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Южного Яруса: Портовый район, Западные трущобы, Восточные трущобы."
+
+data:
+  # =================================================================
+  # Уровень 3: Локации внутри Кварталов (1-XX-YY)
+  # =================================================================
+
+  # -----------------------------------------------
+  # Портовый район - 1-80
+  # -----------------------------------------------
+  - access_key: "1-80-01"
+    parent_id: "1-80"
+    specific_category: "HUB_LOCATION"
+    name: "Главный причал"
+    description: "MAIN_PIER_DESCRIPTION_KEY"
+    exits:
+      - { label: "К складам", target_location_id: "1-80-02" }
+      - { label: "В администрацию порта", target_location_id: "1-80-03" }
+      - { label: "Центральные ворота ведущие в центр города", target_location_id: "1-50_1-80" }
+      - { label: "В Западные трущобы ('Солёный край')", target_location_id: "1-70-01" }
+      - { label: "В Восточные трущобы ('Рыбацкая слобода')", target_location_id: "1-90-01" }
+
+  - access_key: "1-80-02"
+    parent_id: "1-80"
+    specific_category: "POI"
+    name: "Склады портовой гильдии"
+    description: "PORT_GUILD_WAREHOUSES_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на главный причал", target_location_id: "1-80-01" }
+
+  - access_key: "1-80-03"
+    parent_id: "1-80"
+    specific_category: "POI"
+    name: "Администрация порта (Капитанский мостик)"
+    description: "PORT_ADMINISTRATION_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на главный причал", target_location_id: "1-80-01" }
+
+
+  # -----------------------------------------------
+  # Западные трущобы 'Солёный край' - 1-70
+  # -----------------------------------------------
+  - access_key: "1-70-01"
+    parent_id: "1-70"
+    specific_category: "HUB_LOCATION"
+    name: "Таверна 'Кривой якорь'"
+    description: "CROOKED_ANCHOR_TAVERN_DESCRIPTION_KEY"
+    exits:
+      - { label: "Выйти на улицу к баракам", target_location_id: "1-70-02" }
+      - { label: "Проскользнуть в притон", target_location_id: "1-70-03" }
+      - { label: "Пройти в порт", target_location_id: "1-80-01" }
+
+  - access_key: "1-70-02"
+    parent_id: "1-70"
+    specific_category: "POI"
+    name: "Жилые бараки докеров"
+    description: "DOCKERS_BARRACKS_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться к таверне", target_location_id: "1-70-01" }
+      
+  - access_key: "1-70-03"
+    parent_id: "1-70"
+    specific_category: "POI"
+    name: "Контрабандистский притон"
+    description: "SMUGGLERS_DEN_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться к таверне", target_location_id: "1-70-01" }
+
+  # -----------------------------------------------
+  # Восточные трущобы 'Рыбацкая слобода' - 1-90
+  # -----------------------------------------------
+  - access_key: "1-90-01"
+    parent_id: "1-90"
+    specific_category: "HUB_LOCATION"
+    name: "Рыбный рынок"
+    description: "FISH_MARKET_DESCRIPTION_KEY"
+    exits:
+      - { label: "К судоремонтным мастерским", target_location_id: "1-90-02" }
+      - { label: "К молельне", target_location_id: "1-90-03" }
+      - { label: "Пройти в порт", target_location_id: "1-80-01" }
+
+  - access_key: "1-90-02"
+    parent_id: "1-90"
+    specific_category: "POI"
+    name: "Сетевые и судоремонтные мастерские"
+    description: "FISHING_WORKSHOPS_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на рынок", target_location_id: "1-90-01" }
+
+  - access_key: "1-90-03"
+    parent_id: "1-90"
+    specific_category: "POI"
+    name: "Молельня 'Морская Дева'"
+    description: "SEA_MAIDEN_SHRINE_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на рынок", target_location_id: "1-90-01" }

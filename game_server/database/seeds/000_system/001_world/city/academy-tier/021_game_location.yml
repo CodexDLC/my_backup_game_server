@@ -1,0 +1,161 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Gemini AI"
+  description: "Локации и точки входа Магического Кампуса (Район 1-10)"
+
+data:
+  # =================================================================
+  # Магический Кампус (Район 1-10)
+  # =================================================================
+
+  - access_key: "1-10-01"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Архива"
+    description: "1-10-01_KEY"
+    exits:
+      - { label: "Идти к Участку дороги к Оранжерее / Архиву", target_location_id: "1-10-02" }
+      - { label: "Идти к Перекрестку у Восточных Жилых Корпусов", target_location_id: "1-10-14" }
+      - { label: "Идти к Перекрестку у Библиотеки", target_location_id: "1-10-12" }
+      - { label: "Войти в Архив", target_location_id: "1-10_Archive_01" }
+
+  - access_key: "1-10-02"
+    parent_id: "5"
+    specific_category: "PATH"
+    name: "Участок дороги к Оранжерее / Архиву"
+    description: "1-10-02_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Архива", target_location_id: "1-10-01" }
+      - { label: "Идти к Перекрестку у Оранжереи / Центрального Корпуса", target_location_id: "1-10-03" }
+      - { label: "Войти в Оранжерею", target_location_id: "1-10_Orangery_01" }
+      - { label: "Войти в Архив", target_location_id: "1-10_Archive_01" } # Добавил также сюда, если он рядом
+
+  - access_key: "1-10-03"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Оранжереи / Центрального Корпуса"
+    description: "1-10-03_KEY"
+    exits:
+      - { label: "Идти к Участку дороги к Оранжерее / Архиву", target_location_id: "1-10-02" }
+      - { label: "Идти к Перекрестку у Корпуса Артифакторики / Центрального Корпуса", target_location_id: "1-10-04" }
+
+  - access_key: "1-10-04"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Корпуса Артифакторики / Центрального Корпуса"
+    description: "1-10-04_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Оранжереи / Центрального Корпуса", target_location_id: "1-10-03" }
+      - { label: "Идти к Перекрестку у Западной Аллеи", target_location_id: "1-10-05" }
+      - { label: "Войти в Корпус Алхимии", target_location_id: "1-10_AlchemyCorps_01" }
+
+  - access_key: "1-10-05"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Западной Аллеи"
+    description: "1-10-05_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Корпуса Артифакторики / Центрального Корпуса", target_location_id: "1-10-04" }
+      - { label: "Идти к Перекрестку у Факультета Элементарных Форм", target_location_id: "1-10-06" }
+      - { label: "Войти в Корпус Артифакторики", target_location_id: "1-10_ArtificeryCorps_01" }
+
+  - access_key: "1-10-06"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Факультета Элементарных Форм"
+    description: "1-10-06_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Западной Аллеи", target_location_id: "1-10-05" }
+      - { label: "Идти к Участку дороги к Факультету Внутренней Энергии", target_location_id: "1-10-07" }
+      - { label: "Войти в Факультет Элементарных Форм (1)", target_location_id: "1-10_ElementalFormsFaculty_01" }
+
+  - access_key: "1-10-07"
+    parent_id: "5"
+    specific_category: "PATH"
+    name: "Участок дороги к Факультету Внутренней Энергии"
+    description: "1-10-07_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Факультета Элементарных Форм", target_location_id: "1-10-06" }
+      - { label: "Идти к Перекрестку у Северных Жилых Корпусов", target_location_id: "1-10-08" }
+      - { label: "Войти в Факультет Внутренней Энергии (1)", target_location_id: "1-10_InnerEnergyFaculty_01" }
+
+  - access_key: "1-10-08"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Северных Жилых Корпусов"
+    description: "1-10-08_KEY"
+    exits:
+      - { label: "Идти к Участку дороги к Факультету Внутренней Энергии", target_location_id: "1-10-07" }
+      - { label: "Идти к Участку дороги к Факультету Фундаментальных Энергий", target_location_id: "1-10-09" }
+      - { label: "Идти к Центральному Северному Перекрестку", target_location_id: "1-10-13" }
+
+  - access_key: "1-10-09"
+    parent_id: "5"
+    specific_category: "PATH"
+    name: "Участок дороги к Факультету Фундаментальных Энергий"
+    description: "1-10-09_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Северных Жилых Корпусов", target_location_id: "1-10-08" }
+      - { label: "Идти к Перекрестку у Факультета Фундаментальных Энергий", target_location_id: "1-10-10" }
+      - { label: "Войти в Факультет Внутренней Энергии (2)", target_location_id: "1-10_InnerEnergyFaculty_02" }
+
+  - access_key: "1-10-10"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Факультета Фундаментальных Энергий"
+    description: "1-10-10_KEY"
+    exits:
+      - { label: "Идти к Участку дороги к Факультету Фундаментальных Энергий", target_location_id: "1-10-09" }
+      - { label: "Идти к Участку дороги к Библиотеке", target_location_id: "1-10-11" }
+      - { label: "Войти в Факультет Фундаментальных Энергий (1)", target_location_id: "1-10_FundamentalEnergyFaculty_01" }
+
+  - access_key: "1-10-11"
+    parent_id: "5"
+    specific_category: "PATH"
+    name: "Участок дороги к Библиотеке"
+    description: "1-10-11_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Факультета Фундаментальных Энергий", target_location_id: "1-10-10" }
+      - { label: "Идти к Перекрестку у Библиотеки", target_location_id: "1-10-12" }
+
+  - access_key: "1-10-12"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Перекресток у Библиотеки"
+    description: "1-10-12_KEY"
+    exits:
+      - { label: "Идти к Участку дороги к Библиотеке", target_location_id: "1-10-11" }
+      - { label: "Идти к Перекрестку у Архива", target_location_id: "1-10-01" }
+      - { label: "Идти к Центральному Северному Перекрестку", target_location_id: "1-10-13" }
+      - { label: "Войти в Библиотеку", target_location_id: "1-10_Library_01" }
+
+  - access_key: "1-10-13"
+    parent_id: "5"
+    specific_category: "CROSSROAD"
+    name: "Центральный Северный Перекресток"
+    description: "1-10-13_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Северных Жилых Корпусов", target_location_id: "1-10-08" }
+      - { label: "Идти к Перекрестку у Библиотеки", target_location_id: "1-10-12" }
+      - { label: "Войти в Факультет Фундаментальных Энергий (2)", target_location_id: "1-10_FundamentalEnergyFaculty_02" }
+      - { label: "Войти в Главный Холл Факультета Фундаментальных Энергий", target_location_id: "1-10_FundamentalEnergyFaculty_01_Lobby_01" }
+
+  - access_key: "1-10-14"
+    parent_id: "5"
+    specific_category: "PATH" # Исходя из схемы, это участок с 2 путями + вход
+    name: "Перекресток у Восточных Жилых Корпусов"
+    description: "1-10-14_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Архива", target_location_id: "1-10-01" }
+      - { label: "Идти к Перекрестку у Факультета Элементарных Форм / Центрального Корпуса", target_location_id: "1-10-15" }
+
+  - access_key: "1-10-15"
+    parent_id: "5"
+    specific_category: "PATH"
+    name: "Участок дороги к Факультету Элементарных Форм / Центрального Корпуса"
+    description: "1-10-15_KEY"
+    exits:
+      - { label: "Идти к Перекрестку у Восточных Жилых Корпусов", target_location_id: "1-10-14" }
+      - { label: "Войти в Факультет Элементарных Форм (2)", target_location_id: "1-10_ElementalFormsFaculty_02" }
+      - { label: "Войти в Главный Холл Факультета Элементарных Форм", target_location_id: "1-10_ElementalFormsFaculty_01_Lobby_01" }

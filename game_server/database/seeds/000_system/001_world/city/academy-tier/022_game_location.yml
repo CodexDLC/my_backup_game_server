@@ -1,0 +1,168 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Gemini AI"
+  description: "Внутренние локации зданий Магического Кампуса (Район 1-10)"
+
+data:
+  # =================================================================
+  # Факультет Внутренней Энергии
+  # =================================================================
+
+  - access_key: "1-10_InnerEnergyFaculty_01"
+    parent_id: "1-10_InnerEnergyFaculty_Lobby_01"
+    specific_category: "ENTRANCE"
+    name: "Вход в Факультет Внутренней Энергии (1)"
+    description: "1-10_InnerEnergyFaculty_01_KEY"
+    exits:
+      - { label: "Войти в Центральный Холл", target_location_id: "1-10_InnerEnergyFaculty_Lobby_01" }
+      - { label: "Выйти из здания", target_location_id: "1-10-07" }
+
+  - access_key: "1-10_InnerEnergyFaculty_02"
+    parent_id: "1-10_InnerEnergyFaculty_Lobby_01"
+    specific_category: "ENTRANCE"
+    name: "Вход в Факультет Внутренней Энергии (2)"
+    description: "1-10_InnerEnergyFaculty_02_KEY"
+    exits:
+      - { label: "Войти в Центральный Холл", target_location_id: "1-10_InnerEnergyFaculty_Lobby_01" }
+      - { label: "Выйти из здания", target_location_id: "1-10-09" }
+
+  - access_key: "1-10_InnerEnergyFaculty_Lobby_01"
+    parent_id: "1-10_InnerEnergyFaculty"
+    specific_category: "HALLWAY"
+    name: "Центральный Холл Факультета Внутренней Энергии"
+    description: "1-10_InnerEnergyFaculty_Lobby_01_KEY"
+    exits:
+      - { label: "Вернуться ко Входу 1", target_location_id: "1-10_InnerEnergyFaculty_01" }
+      - { label: "Вернуться ко Входу 2", target_location_id: "1-10_InnerEnergyFaculty_02" }
+      - { label: "Войти в Зал Медитации", target_location_id: "1-10_InnerEnergyFaculty_MeditationHall_01" }
+
+  - access_key: "1-10_InnerEnergyFaculty_MeditationHall_01"
+    parent_id: "1-10_InnerEnergyFaculty_Lobby_01"
+    specific_category: "ROOM"
+    name: "Зал Медитации"
+    description: "1-10_InnerEnergyFaculty_MeditationHall_01_KEY"
+    exits:
+      - { label: "Выйти в Центральный Холл", target_location_id: "1-10_InnerEnergyFaculty_Lobby_01" }
+
+  # =================================================================
+  # Факультет Фундаментальных Энергий
+  # =================================================================
+
+  - access_key: "1-10_FundamentalEnergyFaculty_01_Lobby_01"
+    parent_id: "1-10_FundamentalEnergyFaculty"
+    specific_category: "HALLWAY"
+    name: "Главный Холл Факультета Фундаментальных Энергий"
+    description: "1-10_FundamentalEnergyFaculty_01_Lobby_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-10" }
+      - { label: "Выйти из здания", target_location_id: "1-10-13" }
+      - { label: "Войти в Тренировочный Зал", target_location_id: "1-10_FundamentalEnergyFaculty_01_TrainingHall_01" }
+      - { label: "Войти в Аудиторию", target_location_id: "1-10_FundamentalEnergyFaculty_01_Auditorium_01" }
+
+  - access_key: "1-10_FundamentalEnergyFaculty_01_TrainingHall_01"
+    parent_id: "1-10_FundamentalEnergyFaculty_01_Lobby_01"
+    specific_category: "ROOM"
+    name: "Тренировочный Зал Факультета Фундаментальных Энергий"
+    description: "1-10_FundamentalEnergyFaculty_01_TrainingHall_01_KEY"
+    exits:
+      - { label: "Выйти в Главный Холл", target_location_id: "1-10_FundamentalEnergyFaculty_01_Lobby_01" }
+
+  - access_key: "1-10_FundamentalEnergyFaculty_01_Auditorium_01"
+    parent_id: "1-10_FundamentalEnergyFaculty_01_Lobby_01"
+    specific_category: "ROOM"
+    name: "Аудитория Факультета Фундаментальных Энергий"
+    description: "1-10_FundamentalEnergyFaculty_01_Auditorium_01_KEY"
+    exits:
+      - { label: "Выйти в Главный Холл", target_location_id: "1-10_FundamentalEnergyFaculty_01_Lobby_01" }
+
+  # =================================================================
+  # Факультет Элементарных Форм
+  # =================================================================
+
+  - access_key: "1-10_ElementalFormsFaculty_01_Lobby_01"
+    parent_id: "1-10_ElementalFormsFaculty"
+    specific_category: "HALLWAY"
+    name: "Главный Холл Факультета Элементарных Форм"
+    description: "1-10_ElementalFormsFaculty_01_Lobby_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-06" }
+      - { label: "Выйти из здания", target_location_id: "1-10-15" }
+      - { label: "Войти в Аудиторию", target_location_id: "1-10_ElementalFormsFaculty_01_Auditorium_01" }
+      - { label: "Войти в Тренировочный Зал", target_location_id: "1-10_ElementalFormsFaculty_01_TrainingHall_01" }
+
+  - access_key: "1-10_ElementalFormsFaculty_01_Auditorium_01"
+    parent_id: "1-10_ElementalFormsFaculty_01_Lobby_01"
+    specific_category: "ROOM"
+    name: "Аудитория Факультета Элементарных Форм"
+    description: "1-10_ElementalFormsFaculty_01_Auditorium_01_KEY"
+    exits:
+      - { label: "Выйти в Главный Холл", target_location_id: "1-10_ElementalFormsFaculty_01_Lobby_01" }
+
+  - access_key: "1-10_ElementalFormsFaculty_01_TrainingHall_01"
+    parent_id: "1-10_ElementalFormsFaculty_01_Lobby_01"
+    specific_category: "ROOM"
+    name: "Тренировочный Зал Факультета Элементарных Форм"
+    description: "1-10_ElementalFormsFaculty_01_TrainingHall_01_KEY"
+    exits:
+      - { label: "Выйти в Главный Холл", target_location_id: "1-10_ElementalFormsFaculty_01_Lobby_01" }
+
+  # =================================================================
+  # Библиотека
+  # =================================================================
+
+  - access_key: "1-10_Library_01_MainHall_01"
+    parent_id: "1-10_Library"
+    specific_category: "HALLWAY"
+    name: "Главный Зал Библиотеки"
+    description: "1-10_Library_01_MainHall_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-12" }
+
+  # =================================================================
+  # Архив
+  # =================================================================
+
+  - access_key: "1-10_Archive_01_MainHall_01"
+    parent_id: "1-10_Archive"
+    specific_category: "HALLWAY"
+    name: "Главный Зал Архива"
+    description: "1-10_Archive_01_MainHall_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-01" }
+
+  # =================================================================
+  # Оранжерея
+  # =================================================================
+
+  - access_key: "1-10_Orangery_01_MainHall_01"
+    parent_id: "1-10_Orangery"
+    specific_category: "HALLWAY"
+    name: "Центральная Пальмовая Оранжерея"
+    description: "1-10_Orangery_01_MainHall_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-02" }
+
+  # =================================================================
+  # Корпус Алхимии
+  # =================================================================
+
+  - access_key: "1-10_AlchemyCorps_01_MainHall_01"
+    parent_id: "1-10_AlchemyCorps"
+    specific_category: "HALLWAY"
+    name: "Главный Зал Алхимии"
+    description: "1-10_AlchemyCorps_01_MainHall_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-04" }
+
+  # =================================================================
+  # Корпус Артифакторики
+  # =================================================================
+
+  - access_key: "1-10_ArtificeryCorps_01_MainHall_01"
+    parent_id: "1-10_ArtificeryCorps"
+    specific_category: "HALLWAY"
+    name: "Главный Цех Артифакторики"
+    description: "1-10_ArtificeryCorps_01_MainHall_01_KEY"
+    exits:
+      - { label: "Выйти из здания", target_location_id: "1-10-05" }

@@ -1,0 +1,158 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Gemini AI"
+  description: "Локации-переходы (Шлюзы/Туннели) между крупными кварталами Города-Бастиона и в Эпицентры, а также точки подъема на стены."
+
+data:
+  # =================================================================
+  # Уровень 3: Точки Перехода (Шлюзы между Кварталами)
+  # =================================================================
+
+  # Шлюз: Академия ⇄ Магическое Крыло
+  - access_key: "1-20_1-10"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Академия ⇄ Магическое Крыло"
+    description: "GATEWAY_1-20_1-10_KEY"
+    exits:
+      - { label: "Выйти в Академию", target_location_id: "1-20-02" }
+      - { label: "Выйти в Магическое крыло", target_location_id: "1-10-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_4_DEAD_END_1" }
+
+  - access_key: "1-10_1-20"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Магическое Крыло ⇄ Академия"
+    description: "GATEWAY_1-10_1-20_KEY"
+    exits:
+      - { label: "Выйти в Магическое крыло", target_location_id: "1-10-05" }
+      - { label: "Выйти в Академию", target_location_id: "1-20-02" }
+      - { label: "Подняться на стену (к Скале)", target_location_id: "OBS_4_DEAD_END_1" }
+
+  # Шлюз: Академия ⇄ Боевое Крыло
+  - access_key: "1-20_1-30"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Академия ⇄ Боевое Крыло"
+    description: "GATEWAY_1-20_1-30_KEY"
+    exits:
+      - { label: "Выйти в Академию", target_location_id: "1-20-03" }
+      - { label: "Выйти в Боевое крыло", target_location_id: "1-30-02" }
+      - { label: "Подняться на стену", target_location_id: "OBS_5_DEAD_END_1" }
+
+  - access_key: "1-30_1-20"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Боевое Крыло ⇄ Академия"
+    description: "GATEWAY_1-30_1-20_KEY"
+    exits:
+      - { label: "Выйти в Боевое крыло", target_location_id: "1-30-02" }
+      - { label: "Выйти в Академию", target_location_id: "1-20-03" }
+      - { label: "Подняться на стену", target_location_id: "OBS_5_DEAD_END_1" }
+
+  # Шлюз: Академия ⇄ Центральный район
+  - access_key: "1-20_1-50"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Академия ⇄ Центральный район"
+    description: "GATEWAY_1-20_1-50_KEY"
+    exits:
+      - { label: "Выйти в Академию", target_location_id: "1-20-02" }
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_4_5_1" }
+
+  - access_key: "1-50_1-20"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Центральный район ⇄ Академия"
+    description: "GATEWAY_1-50_1-20_KEY"
+    exits:
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Выйти в Академию", target_location_id: "1-20-02" }
+      - { label: "Подняться на стену", target_location_id: "OBS_4_5_1" }
+
+  # Шлюз: Центральный район ⇄ Западные Врата
+  - access_key: "1-50_1-40"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Центральный район ⇄ Западные Врата"
+    description: "GATEWAY_1-50_1-40_KEY"
+    exits:
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Выйти в квартал Западных Врат", target_location_id: "1-40-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_4_8_1" }
+
+  - access_key: "1-40_1-50"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Западные Врата ⇄ Центральный район"
+    description: "GATEWAY_1-40_1-50_KEY"
+    exits:
+      - { label: "Выйти в квартал Западных Врат", target_location_id: "1-40-01" }
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_4_8_1" }
+
+  # Шлюз: Центральный район ⇄ Восточные Врата
+  - access_key: "1-50_1-60"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Центральный район ⇄ Восточные Врата"
+    description: "GATEWAY_1-50_1-60_KEY"
+    exits:
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Выйти в квартал Восточных Врат", target_location_id: "1-60-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_5_9_1" }
+
+  - access_key: "1-60_1-50"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Восточные Врата ⇄ Центральный район"
+    description: "GATEWAY_1-60_1-50_KEY"
+    exits:
+      - { label: "Выйти в квартал Восточных Врат", target_location_id: "1-60-01" }
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_5_9_1" }
+
+  # Шлюз: Центральный район ⇄ Портовый район
+  - access_key: "1-50_1-80"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Центральный район ⇄ Портовый район"
+    description: "GATEWAY_1-50_1-80_KEY"
+    exits:
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Выйти в Портовый район", target_location_id: "1-80-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_8_9_1" }
+
+  - access_key: "1-80_1-50"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз: Портовый район ⇄ Центральный район"
+    description: "GATEWAY_1-80_1-50_KEY"
+    exits:
+      - { label: "Выйти в Портовый район", target_location_id: "1-80-01" }
+      - { label: "Выйти в Центральный район", target_location_id: "1-50-01" }
+      - { label: "Подняться на стену", target_location_id: "OBS_8_9_1" }
+
+  # Шлюз: Город-Бастион (через Западные Врата) ⇄ Эпицентр-2 (Западный)
+  - access_key: "GATEWAY_TO_EPICENTER_2"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз в Эпицентр-2 (Западный)"
+    description: "GATEWAY_TO_EPICENTER_2_KEY"
+    exits:
+      - { label: "Выйти в квартал Западных Врат", target_location_id: "1-40-01" }
+      - { label: "Выйти в Эпицентр-2", target_location_id: "2" }
+      - { label: "Подняться на стену", target_location_id: "OBS_3_7_1" }
+
+  # Шлюз: Город-Бастион (через Восточные Врата) ⇄ Эпицентр-1 (Восточный)
+  - access_key: "GATEWAY_TO_EPICENTER_1"
+    parent_id: "1"
+    specific_category: "GATEWAY"
+    name: "Шлюз в Эпицентр-1 (Восточный)"
+    description: "GATEWAY_TO_EPICENTER_1_KEY"
+    exits:
+      - { label: "Выйти в квартал Восточных Врат", target_location_id: "1-60-01" }
+      - { label: "Выйти в Эпицентр-1", target_location_id: "3" }
+      - { label: "Подняться на стену", target_location_id: "OBS_6_10_1" }

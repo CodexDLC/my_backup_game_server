@@ -1,0 +1,692 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Gemini AI"
+  description: "Детализация системы городских стен: участки, башни и точки перемещения с финальными названиями, навигацией и уникальными ключами описаний."
+
+data:
+  # =================================================================
+  # БАШНИ (WATCHTOWER)
+  # =================================================================
+
+  - access_key: "TOWER_1"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Западная Башня у Скалы"
+    description: "TOWER_1_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_1_3_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_1_TOP" }
+
+  - access_key: "TOWER_2"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Восточная Башня у Скалы"
+    description: "TOWER_2_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_2_6_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_2_TOP" }
+
+  - access_key: "TOWER_3"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Башня Западных Врат"
+    description: "TOWER_3_KEY"
+    exits:
+      - { label: "Идти в сторону Западной Башни у Скалы", target_location_id: "OBS_1_3_2" }
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_3_7_0" }
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_3_4_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_3_TOP" }
+
+  - access_key: "TOWER_4"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Дозорная башня Академии"
+    description: "TOWER_4_KEY"
+    exits:
+      - { label: "Идти к Скале", target_location_id: "OBS_4_DEAD_END_0" }
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_3_4_2" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_4_8_0" }
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_4_5_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_4_TOP" }
+
+  - access_key: "TOWER_5"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Дозорная башня Центрального рынка"
+    description: "TOWER_5_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_4_5_2" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_5_6_0" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_5_9_0" }
+      - { label: "Идти к Скале", target_location_id: "OBS_5_DEAD_END_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_5_TOP" }
+
+  - access_key: "TOWER_6"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Башня Восточных Врат"
+    description: "TOWER_6_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "OBS_2_6_2" }
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_5_6_2" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_6_10_0" }
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "OBS_6_2_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_6_TOP" }
+
+  - access_key: "TOWER_7"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Южная башня Западных врат"
+    description: "TOWER_7_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_3_7_2" }
+      - { label: "Идти в сторону Западного дозорного маяка", target_location_id: "OBS_7_11_0" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_7_8_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_7_TOP" }
+
+  - access_key: "TOWER_8"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Дозорная башня Портового района"
+    description: "TOWER_8_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_4_8_2" }
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_7_8_2" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_8_9_0" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "OBS_8_12_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_8_TOP" }
+
+  - access_key: "TOWER_9"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Восточная дозорная башня Портового района"
+    description: "TOWER_9_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_5_9_2" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_8_9_2" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_9_10_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_9_TOP" }
+
+  - access_key: "TOWER_10"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Южная башня Восточных врат"
+    description: "TOWER_10_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_6_10_2" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_9_10_2" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "OBS_10_12_0" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_10_TOP" }
+
+  - access_key: "TOWER_11"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Западный дозорный маяк"
+    description: "TOWER_11_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_7_11_2" }
+      - { label: "Подняться на Башню", target_location_id: "TOWER_11_TOP" }
+
+  - access_key: "TOWER_12"
+    parent_id: "4"
+    specific_category: "WATCHTOWER"
+    name: "Восточный дозорный маяк"
+    description: "TOWER_12_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_10_12_2" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_8_12_2"}
+      - { label: "Подняться на Башню", target_location_id: "TOWER_12_TOP" }
+
+  # =================================================================
+  # ТОЧКИ ПЕРЕМЕЩЕНИЯ (УЧАСТКИ СТЕНЫ)
+  # =================================================================
+
+  - access_key: "OBS_1_3_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_1_3_0_KEY"
+    exits:
+      - { label: "Идти в сторону Западной Башни у Скалы", target_location_id: "TOWER_1" }
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_1_3_1" }
+  - access_key: "OBS_1_3_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_1_3_1_KEY"
+    exits:
+      - { label: "Идти в сторону Западной Башни у Скалы", target_location_id: "OBS_1_3_0" }
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_1_3_2" }
+  - access_key: "OBS_1_3_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_1_3_2_KEY"
+    exits:
+      - { label: "Идти в сторону Западной Башни у Скалы", target_location_id: "OBS_1_3_1" }
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "TOWER_3" }
+
+  - access_key: "OBS_2_6_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_2_6_0_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "TOWER_2" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_2_6_1" }
+  - access_key: "OBS_2_6_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_2_6_1_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "OBS_2_6_0" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_2_6_2" }
+  - access_key: "OBS_2_6_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_2_6_2_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "OBS_2_6_1" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "TOWER_6" }
+      
+  - access_key: "OBS_3_4_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_3_4_0_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "TOWER_3" }
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_3_4_1" }
+  - access_key: "OBS_3_4_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_3_4_1_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_3_4_0" }
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_3_4_2" }
+  - access_key: "OBS_3_4_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_3_4_2_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_3_4_1" }
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "TOWER_4" }
+
+  - access_key: "OBS_3_7_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_3_7_0_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "TOWER_3" }
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_3_7_1" }
+  - access_key: "OBS_3_7_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_3_7_1_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_3_7_0" }
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_3_7_2" }
+      - { label: "Спуститься со стены", target_location_id: "GATEWAY_TO_EPICENTER_2" }
+  - access_key: "OBS_3_7_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_3_7_2_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Западных Врат", target_location_id: "OBS_3_7_1" }
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "TOWER_7" }
+
+  - access_key: "OBS_4_5_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_4_5_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "TOWER_4" }
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_4_5_1" }
+  - access_key: "OBS_4_5_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_4_5_1_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_4_5_0" }
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_4_5_2" }
+      - { label: "Спуститься со стены", target_location_id: "1-20_1-50" }
+  - access_key: "OBS_4_5_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_4_5_2_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_4_5_1" }
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "TOWER_5" }
+
+  - access_key: "OBS_4_8_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_4_8_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "TOWER_4" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_4_8_1" }
+  - access_key: "OBS_4_8_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_4_8_1_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_4_8_0" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_4_8_2" }
+      - { label: "Спуститься со стены", target_location_id: "1-40_1-50" }
+  - access_key: "OBS_4_8_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_4_8_2_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "OBS_4_8_1" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "TOWER_8" }
+
+  - access_key: "OBS_5_6_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_5_6_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "TOWER_5" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_5_6_1" }
+  - access_key: "OBS_5_6_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_5_6_1_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_5_6_0" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_5_6_2" }
+  - access_key: "OBS_5_6_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_5_6_2_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_5_6_1" }
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "TOWER_6" }
+      
+  - access_key: "OBS_5_9_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_5_9_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "TOWER_5" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_5_9_1" }
+  - access_key: "OBS_5_9_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_5_9_1_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_5_9_0" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_5_9_2" }
+      - { label: "Спуститься со стены", target_location_id: "1-50_1-60" }
+  - access_key: "OBS_5_9_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_5_9_2_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "OBS_5_9_1" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "TOWER_9" }
+
+  - access_key: "OBS_6_2_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_6_2_0_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "TOWER_6" }
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "OBS_6_2_1" }
+  - access_key: "OBS_6_2_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_6_2_1_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_6_2_0" }
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "OBS_6_2_2" }
+  - access_key: "OBS_6_2_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_6_2_2_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_6_2_1" }
+      - { label: "Идти в сторону Восточной Башни у Скалы", target_location_id: "TOWER_2" }
+
+  - access_key: "OBS_6_10_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_6_10_0_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "TOWER_6" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_6_10_1" }
+  - access_key: "OBS_6_10_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_6_10_1_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_6_10_0" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_6_10_2" }
+      - { label: "Спуститься со стены", target_location_id: "GATEWAY_TO_EPICENTER_1" }
+  - access_key: "OBS_6_10_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_6_10_2_KEY"
+    exits:
+      - { label: "Идти в сторону Башни Восточных Врат", target_location_id: "OBS_6_10_1" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "TOWER_10" }
+
+  - access_key: "OBS_7_11_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_7_11_0_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "TOWER_7" }
+      - { label: "Идти в сторону Западного дозорного маяка", target_location_id: "OBS_7_11_1" }
+  - access_key: "OBS_7_11_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_7_11_1_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_7_11_0" }
+      - { label: "Идти в сторону Западного дозорного маяка", target_location_id: "OBS_7_11_2" }
+  - access_key: "OBS_7_11_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_7_11_2_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_7_11_1" }
+      - { label: "Идти в сторону Западного дозорного маяка", target_location_id: "TOWER_11" }
+
+  - access_key: "OBS_7_8_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_7_8_0_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "TOWER_7" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_7_8_1" }
+  - access_key: "OBS_7_8_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_7_8_1_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_7_8_0" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_7_8_2" }
+  - access_key: "OBS_7_8_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_7_8_2_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Западных врат", target_location_id: "OBS_7_8_1" }
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "TOWER_8" }
+      
+  - access_key: "OBS_8_12_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_8_12_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "TOWER_8" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "OBS_8_12_1" }
+  - access_key: "OBS_8_12_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_8_12_1_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_8_12_0" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "OBS_8_12_2" }
+  - access_key: "OBS_8_12_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_8_12_2_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_8_12_1" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "TOWER_12" }
+
+  - access_key: "OBS_8_9_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_8_9_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "TOWER_8" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_8_9_1" }
+  - access_key: "OBS_8_9_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_8_9_1_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_8_9_0" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_8_9_2" }
+      - { label: "Спуститься со стены", target_location_id: "1-50_1-80" }
+  - access_key: "OBS_8_9_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_8_9_2_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Портового района", target_location_id: "OBS_8_9_1" }
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "TOWER_9" }
+
+  - access_key: "OBS_9_10_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_9_10_0_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "TOWER_9" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_9_10_1" }
+  - access_key: "OBS_9_10_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_9_10_1_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_9_10_0" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_9_10_2" }
+  - access_key: "OBS_9_10_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_9_10_2_KEY"
+    exits:
+      - { label: "Идти в сторону Восточной дозорной башни Портового района", target_location_id: "OBS_9_10_1" }
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "TOWER_10" }
+
+  - access_key: "OBS_10_12_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_10_12_0_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "TOWER_10" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "OBS_10_12_1" }
+  - access_key: "OBS_10_12_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_10_12_1_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_10_12_0" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "OBS_10_12_2" }
+  - access_key: "OBS_10_12_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Участок Стены"
+    description: "OBS_10_12_2_KEY"
+    exits:
+      - { label: "Идти в сторону Южной башни Восточных врат", target_location_id: "OBS_10_12_1" }
+      - { label: "Идти в сторону Восточного дозорного маяка", target_location_id: "TOWER_12" }
+
+  # Тупики
+  - access_key: "OBS_4_DEAD_END_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Путь к Скале (Начало)"
+    description: "OBS_4_DEAD_END_0_KEY"
+    exits:
+      - { label: "Идти в сторону Дозорной башни Академии", target_location_id: "TOWER_4" }
+      - { label: "Идти дальше к скале", target_location_id: "OBS_4_DEAD_END_1" }
+
+  - access_key: "OBS_4_DEAD_END_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Путь к Скале (Подъем)"
+    description: "OBS_4_DEAD_END_1_KEY"
+    exits:
+      - { label: "Вернуться к башне", target_location_id: "OBS_4_DEAD_END_0" }
+      - { label: "Идти к окончанию пути", target_location_id: "OBS_4_DEAD_END_2" }
+      - { label: "Спуститься со стены", target_location_id: "1-20_1-10" } # <-- Спуск в шлюз
+
+  - access_key: "OBS_4_DEAD_END_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Путь к Скале (Окончание)"
+    description: "OBS_4_DEAD_END_2_KEY"
+    exits:
+      - { label: "Вернуться к подъему", target_location_id: "OBS_4_DEAD_END_1" }
+      
+  - access_key: "OBS_5_DEAD_END_0"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Путь к Скале (Начало)"
+    description: "OBS_5_DEAD_END_0_KEY"
+    exits:
+        - { label: "Идти в сторону Дозорной башни Центрального рынка", target_location_id: "TOWER_5" }
+        - { label: "Идти дальше к скале", target_location_id: "OBS_5_DEAD_END_1" }
+
+  - access_key: "OBS_5_DEAD_END_1"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Путь к Скале (Подъем)"
+    description: "OBS_5_DEAD_END_1_KEY"
+    exits:
+      - { label: "Вернуться к башне", target_location_id: "OBS_5_DEAD_END_0" }
+      - { label: "Идти к окончанию пути", target_location_id: "OBS_5_DEAD_END_2" }
+      - { label: "Спуститься со стены", target_location_id: "1-20_1-30" } # <-- Спуск в шлюз
+
+  - access_key: "OBS_5_DEAD_END_2"
+    parent_id: "4"
+    specific_category: "OBSERVATION_POINT"
+    name: "Путь к Скале (Окончание)"
+    description: "OBS_5_DEAD_END_2_KEY"
+    exits:
+      - { label: "Вернуться к подъему", target_location_id: "OBS_5_DEAD_END_1" }
+
+  # =================================================================
+  # ВЕРХНИЕ ПЛОЩАДКИ БАШЕН (WATCHTOWER_TOP)
+  # =================================================================
+  - access_key: "TOWER_1_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Западной Башни у Скалы"
+    description: "TOWER_1_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_1" }
+  - access_key: "TOWER_2_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Восточной Башни у Скалы"
+    description: "TOWER_2_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_2" }
+  - access_key: "TOWER_3_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Башни Западных Врат"
+    description: "TOWER_3_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_3" }
+  - access_key: "TOWER_4_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Дозорной башни Академии"
+    description: "TOWER_4_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_4" }
+  - access_key: "TOWER_5_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Дозорной башни Центрального рынка"
+    description: "TOWER_5_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_5" }
+  - access_key: "TOWER_6_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Башни Восточных Врат"
+    description: "TOWER_6_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_6" }
+  - access_key: "TOWER_7_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Южной башни Западных врат"
+    description: "TOWER_7_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_7" }
+  - access_key: "TOWER_8_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Дозорной башни Портового района"
+    description: "TOWER_8_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_8" }
+  - access_key: "TOWER_9_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Восточной дозорной башни Портового района"
+    description: "TOWER_9_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_9" }
+  - access_key: "TOWER_10_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Южной башни Восточных врат"
+    description: "TOWER_10_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_10" }
+  - access_key: "TOWER_11_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Западного дозорного маяка"
+    description: "TOWER_11_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_11" }
+  - access_key: "TOWER_12_TOP"
+    parent_id: "4"
+    specific_category: "WATCHTOWER_TOP"
+    name: "Верхняя площадка Восточного дозорного маяка"
+    description: "TOWER_12_TOP_KEY"
+    exits:
+      - { label: "Спуститься с башни", target_location_id: "TOWER_12" }

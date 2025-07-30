@@ -1,0 +1,149 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Среднего Яруса: Западные Врата, Центральный Район, Восточные Врата."
+
+data:
+  # =================================================================
+  # Уровень 3: Локации внутри Кварталов (1-XX-YY)
+  # =================================================================
+
+  # -----------------------------------------------
+  # Центральный Район (Сердце города) - 1-50
+  # -----------------------------------------------
+  - access_key: "1-50-01"
+    parent_id: "1-50"
+    specific_category: "HUB_LOCATION"
+    name: "Центральный Рынок"
+    description: "CENTRAL_MARKET_DESCRIPTION_KEY"
+    exits:
+      - { label: "Пройти к Аукционному Дому", target_location_id: "1-50-02" }
+      - { label: "На улицу Ремесленников", target_location_id: "1-50-03" }
+      - { label: "К Банку", target_location_id: "1-50-04" }
+      - { label: "В жилой квартал", target_location_id: "1-50-05" }
+      - { label: "Пройти в Шлюз к Академии", target_location_id: "1-20_1-50" }
+      - { label: "Пройти в Шлюз к Западным Вратам", target_location_id: "1-50_1-40" }
+      - { label: "Пройти в Шлюз к Восточным Вратам", target_location_id: "1-50_1-60" }
+      - { label: "Пройти в Шлюз к Портовому Району", target_location_id: "1-50_1-80" }
+
+  - access_key: "1-50-02"
+    parent_id: "1-50"
+    specific_category: "POI"
+    name: "Аукционный Дом"
+    description: "AUCTION_HOUSE_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на рынок", target_location_id: "1-50-01" }
+
+  - access_key: "1-50-03"
+    parent_id: "1-50"
+    specific_category: "POI"
+    name: "Ремесленные Мастерские"
+    description: "CRAFTSMEN_WORKSHOPS_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на рынок", target_location_id: "1-50-01" }
+
+  - access_key: "1-50-04"
+    parent_id: "1-50"
+    specific_category: "POI"
+    name: "Банк"
+    description: "BANK_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на рынок", target_location_id: "1-50-01" }
+
+  - access_key: "1-50-05"
+    parent_id: "1-50"
+    specific_category: "POI"
+    name: "Жилые дома высокого класса"
+    description: "ELITE_HOUSING_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на рынок", target_location_id: "1-50-01" }
+
+  # -----------------------------------------------
+  # Западные Врата (Научный Фронт) - 1-40
+  # -----------------------------------------------
+  - access_key: "1-40-01"
+    parent_id: "1-40"
+    specific_category: "HUB_LOCATION"
+    name: "Площадь перед Западными Вратами"
+    description: "WEST_GATES_PLAZA_DESCRIPTION_KEY"
+    exits:
+      - { label: "Пройти к западным воротам", target_location_id: "GATEWAY_TO_EPICENTER_2" }
+      - { label: "Пройти к Корпусу Снабжения", target_location_id: "1-40-02" }
+      - { label: "В Гильдию Картографов", target_location_id: "1-40-04" }
+      - { label: "К Западному Гарнизону", target_location_id: "1-40-05" }
+      - { label: "Ворота ведущие в сторону Центрального района города", target_location_id: "1-50_1-40" }
+
+  - access_key: "1-40-02"
+    parent_id: "1-40"
+    specific_category: "POI"
+    name: "Корпус Снабжения 'Экспедиция'"
+    description: "SUPPLY_CORPS_EXPEDITION_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на площадь", target_location_id: "1-40-01" }
+
+  - access_key: "1-40-04"
+    parent_id: "1-40"
+    specific_category: "POI"
+    name: "Гильдия Картографов"
+    description: "CARTOGRAPHERS_GUILD_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на площадь", target_location_id: "1-40-01" }
+      
+  - access_key: "1-40-05"
+    parent_id: "1-40"
+    specific_category: "POI"
+    name: "Западный Гарнизон"
+    description: "WESTERN_GARRISON_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться на площадь", target_location_id: "1-40-01" }
+
+
+  # -----------------------------------------------
+  # Восточные Врата (Дикий Фронт) - 1-60
+  # -----------------------------------------------
+  - access_key: "1-60-01"
+    parent_id: "1-60"
+    specific_category: "HUB_LOCATION"
+    name: "Преддверие 'Мясорубки'"
+    description: "SLAUGHTERHOUSE_ANTECHAMBER_DESCRIPTION_KEY"
+    exits:
+      - { label: "Пройти к Восточным Вратам", target_location_id: "GATEWAY_TO_EPICENTER_1" }
+      - { label: "На Черный Рынок", target_location_id: "1-60-02" }
+      - { label: "К Полевому Госпиталю", target_location_id: "1-60-03" }
+      - { label: "В Гильдию Наемников", target_location_id: "1-60-04" }
+      - { label: "К Восточному Гарнизону", target_location_id: "1-60-05" }
+      - { label: "Ворота ведущие к центральному району", target_location_id: "1-50_1-60" }
+
+  - access_key: "1-60-02"
+    parent_id: "1-60"
+    specific_category: "POI"
+    name: "Черный Рынок Снабжения 'Все для Рейда'"
+    description: "BLACK_MARKET_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться в преддверие", target_location_id: "1-60-01" }
+
+  - access_key: "1-60-03"
+    parent_id: "1-60"
+    specific_category: "POI"
+    name: "Полевой Госпиталь 'Последний Шанс'"
+    description: "FIELD_HOSPITAL_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться в преддверие", target_location_id: "1-60-01" }
+
+  - access_key: "1-60-04"
+    parent_id: "1-60"
+    specific_category: "POI"
+    name: "Гильдия Наемников 'Свободные Клинки'"
+    description: "MERCENARIES_GUILD_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться в преддверие", target_location_id: "1-60-01" }
+
+  - access_key: "1-60-05"
+    parent_id: "1-60"
+    specific_category: "POI"
+    name: "Восточный Гарнизон"
+    description: "EASTERN_GARRISON_DESCRIPTION_KEY"
+    exits:
+      - { label: "Вернуться в преддверие", target_location_id: "1-60-01" }
+
