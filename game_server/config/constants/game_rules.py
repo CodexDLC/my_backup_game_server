@@ -109,8 +109,8 @@ CHARACTER_POOL_SAMPLE_SIZE: Final[int] = 100
 
 # Начальная локация для всех новых персонажей
 INITIAL_LOCATION: Final[Dict[str, str]] = {
-    "current_location_id": "201",  # "Площадь Созыва"
-    "current_region_id": "200",    # "Академия Охотников"
+    "current_location_id": "GATEWAY_TO_EPICENTER_1",  # Шлюз в Эпицентр-1
+    "current_region_id": "1",                         # Глобальная зона "Город-Бастион"
 }
 
 # Начальные жизненные показатели

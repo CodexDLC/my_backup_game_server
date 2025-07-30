@@ -1,0 +1,100 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Северного Яруса: Боевое Крыло (Внутренние помещения)."
+
+data:
+  # =================================================================
+  # Боевое Крыло (1-30) - Внутренние локации
+  # =================================================================
+
+  # --- Корпус тренировки Боевых навыков ---
+  - access_key: "1-30_CombatSkills_Hall"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Холл корпуса Боевых навыков"
+    description: "1-30_CombatSkills_Hall_KEY"
+    exits:
+      - { label: "Выйти на площадь", target_location_id: "1-30-03" }
+      - { label: "Пройти в аудиторию", target_location_id: "1-30_CombatSkills_Auditorium" }
+      - { label: "Пройти в комнату тренировок", target_location_id: "1-30_CombatSkills_Training" }
+
+  - access_key: "1-30_CombatSkills_Auditorium"
+    parent_id: "1-30"
+    specific_category: "POI"
+    name: "Аудитория (Боевые навыки)"
+    description: "1-30_CombatSkills_Auditorium_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-30_CombatSkills_Hall" }
+
+  - access_key: "1-30_CombatSkills_Training"
+    parent_id: "1-30"
+    specific_category: "POI"
+    name: "Комната тренировок (Боевые навыки)"
+    description: "1-30_CombatSkills_Training_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-30_CombatSkills_Hall" }
+
+  # --- Факультет выживания и скорой помощи ---
+  - access_key: "1-30_SurvivalFaculty_Hall"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Холл факультета Выживания"
+    description: "1-30_SurvivalFaculty_Hall_KEY"
+    exits:
+      - { label: "Выйти на площадь", target_location_id: "1-30-01" }
+      - { label: "Пройти в аудиторию", target_location_id: "1-30_SurvivalFaculty_Auditorium" }
+      - { label: "Подняться на 2-й этаж", target_location_id: "1-30_SurvivalFaculty_Stairs" }
+
+  - access_key: "1-30_SurvivalFaculty_Auditorium"
+    parent_id: "1-30"
+    specific_category: "POI"
+    name: "Аудитория (Выживание)"
+    description: "1-30_SurvivalFaculty_Auditorium_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-30_SurvivalFaculty_Hall" }
+
+  - access_key: "1-30_SurvivalFaculty_Stairs"
+    parent_id: "1-30"
+    specific_category: "TRANSITION"
+    name: "Лестница"
+    description: "1-30_SurvivalFaculty_Stairs_KEY"
+    exits:
+      - { label: "Спуститься в холл", target_location_id: "1-30_SurvivalFaculty_Hall" }
+      - { label: "Подняться в тренировочный зал", target_location_id: "1-30_SurvivalFaculty_Training_F2" }
+
+  - access_key: "1-30_SurvivalFaculty_Training_F2"
+    parent_id: "1-30"
+    specific_category: "POI"
+    name: "Тренировочный зал (2 этаж)"
+    description: "1-30_SurvivalFaculty_Training_F2_KEY"
+    exits:
+      - { label: "Спуститься по лестнице", target_location_id: "1-30_SurvivalFaculty_Stairs" }
+
+  # --- Корпус укрепления тела и обороны ---
+  - access_key: "1-30_DefenseCorps_Hall"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Холл корпуса Укрепления"
+    description: "1-30_DefenseCorps_Hall_KEY"
+    exits:
+      - { label: "Выйти на площадь", target_location_id: "1-30-04" }
+      - { label: "Пройти в аудиторию", target_location_id: "1-30_DefenseCorps_Auditorium" }
+      - { label: "Пройти в комнату тренировок", target_location_id: "1-30_DefenseCorps_Training" }
+
+  - access_key: "1-30_DefenseCorps_Auditorium"
+    parent_id: "1-30"
+    specific_category: "POI"
+    name: "Аудитория (Укрепление)"
+    description: "1-30_DefenseCorps_Auditorium_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-30_DefenseCorps_Hall" }
+
+  - access_key: "1-30_DefenseCorps_Training"
+    parent_id: "1-30"
+    specific_category: "POI"
+    name: "Комната тренировок (Укрепление)"
+    description: "1-30_DefenseCorps_Training_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-30_DefenseCorps_Hall" }

@@ -1,0 +1,79 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Северного Яруса: Академия Центр (Внешние пространства)."
+
+data:
+  # =================================================================
+  # Академия Центр (1-20) - Внешние локации
+  # =================================================================
+
+  # --- Ключевые открытые локации (красные) ---
+  - access_key: "1-20_SummoningPlaza_01"
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Площадь Созыва"
+    description: "1-20_SummoningPlaza_01_KEY"
+    exits:
+      - { label: "К южным воротам", target_location_id: "1-20-01" }
+      - { label: "К Гильдии Охотников", target_location_id: "1-20-02" }
+      - { label: "К Корпусу Экономики", target_location_id: "1-20-04" }
+      - { label: "Войти в Главное здание Академии", target_location_id: "1-20_MainBldgHallway_01" }
+
+  - access_key: "1-20_Park_01"
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Парк"
+    description: "1-20_Park_01_KEY"
+    exits:
+      - { label: "Выйти к Главному зданию", target_location_id: "1-20-05" }
+
+  # --- Уличные перекрестки (синие) ---
+  - access_key: "1-20-01"
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Южные ворота Академии"
+    description: "1-20-01_KEY"
+    exits:
+      - { label: "Пройти на Площадь Созыва", target_location_id: "1-20_SummoningPlaza_01" }
+      - { label: "Выйти в шлюз (к Центральному Району)", target_location_id: "1-20_1-50" }
+
+  - access_key: "1-20-02"
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Перекресток у Гильдии Охотников"
+    description: "1-20-02_KEY"
+    exits:
+      - { label: "Вернуться на Площадь Созыва", target_location_id: "1-20_SummoningPlaza_01" }
+      - { label: "Войти в Гильдию Охотников", target_location_id: "1-20_HuntersGuild_Tavern" }
+      - { label: "Пройти к восточному шлюзу", target_location_id: "1-20-03" }
+
+  - access_key: "1-20-03"
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Восточные ворота Академии"
+    description: "1-20-03_KEY"
+    exits:
+      - { label: "Вернуться к Гильдии Охотников", target_location_id: "1-20-02" }
+      - { label: "Выйти в шлюз (к Боевому Крылу)", target_location_id: "1-20_1-30" }
+
+  - access_key: "1-20-04"
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Перекресток у Корпуса Экономики"
+    description: "1-20-04_KEY"
+    exits:
+      - { label: "Вернуться на Площадь Созыва", target_location_id: "1-20_SummoningPlaza_01" }
+      - { label: "Войти в Корпус Экономики", target_location_id: "1-20_EconomyCorps_Hall" }
+      - { label: "Пройти к парку", target_location_id: "1-20-05" }
+
+  - access_key: "1-20-05"
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Западные ворота Академии"
+    description: "1-20-05_KEY"
+    exits:
+      - { label: "Вернуться к Корпусу Экономики", target_location_id: "1-20-04" }
+      - { label: "Пройти в парк", target_location_id: "1-20_Park_01" }
+      - { label: "Выйти в шлюз (к Магическому Крылу)", target_location_id: "1-10_1-20" }

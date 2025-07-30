@@ -47,7 +47,7 @@ class GameWorldDataLoaderService:
                 domain="system",
                 discord_context={}
             )
-            logger.info(f"Получен ответ от сервера на команду '{command_dto.command}': {full_message_dict}")
+            logger.debug(f"Получен ответ от сервера на команду '{command_dto.command}': {full_message_dict}")
 
             response_payload_dict = full_message_dict.get('payload', {})
             ws_response_payload = WebSocketResponsePayload(**response_payload_dict)

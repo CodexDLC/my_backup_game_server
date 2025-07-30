@@ -1,0 +1,127 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Северного Яруса: Академия Центр (Внутренние помещения)."
+
+data:
+  # =================================================================
+  # Академия Центр (1-20) - Внутренние локации
+  # =================================================================
+
+  # --- Главное здание академии ---
+  - access_key: "1-20_MainBldgHallway_01" # Желтое облачко у входа
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Холл Главного здания"
+    description: "1-20_MainBldgHallway_01_KEY"
+    exits:
+      - { label: "Выйти на Площадь Созыва", target_location_id: "1-20_SummoningPlaza_01" }
+      - { label: "Пройти к рецепции", target_location_id: "1-20_Reception_01" }
+
+  - access_key: "1-20_Reception_01" # Центральное красное облачко
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Рецепция"
+    description: "1-20_Reception_01_KEY"
+    exits:
+      - { label: "К Залу проверки ранга", target_location_id: "1-20_MainBldgHallway_02" }
+      - { label: "К Комнате выдачи наград", target_location_id: "1-20_MainBldgHallway_03" }
+      - { label: "К лестнице", target_location_id: "1-20_MainBldgHallway_04" }
+      - { label: "Вернуться в холл", target_location_id: "1-20_MainBldgHallway_01" }
+
+  - access_key: "1-20_MainBldgHallway_02" # Желтое облачко у зала рангов
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Коридор к Залу рангов"
+    description: "1-20_MainBldgHallway_02_KEY"
+    exits:
+      - { label: "Войти в Зал проверки ранга", target_location_id: "1-20_RankHall_01" }
+      - { label: "Вернуться к рецепции", target_location_id: "1-20_Reception_01" }
+
+  - access_key: "1-20_RankHall_01" # Красное облачко
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Зал проверки ранга"
+    description: "1-20_RankHall_01_KEY"
+    exits:
+      - { label: "Выйти в коридор", target_location_id: "1-20_MainBldgHallway_02" }
+
+  - access_key: "1-20_MainBldgHallway_03" # Желтое облачко у комнаты наград
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Коридор к Комнате наград"
+    description: "1-20_MainBldgHallway_03_KEY"
+    exits:
+      - { label: "Войти в Комнату выдачи наград", target_location_id: "1-20_RewardRoom_01" }
+      - { label: "Вернуться к рецепции", target_location_id: "1-20_Reception_01" }
+
+  - access_key: "1-20_RewardRoom_01" # Красное облачко
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Комната выдачи наград"
+    description: "1-20_RewardRoom_01_KEY"
+    exits:
+      - { label: "Выйти в коридор", target_location_id: "1-20_MainBldgHallway_03" }
+
+  - access_key: "1-20_MainBldgHallway_04" # Желтое облачко у лестницы
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Холл у лестницы"
+    description: "1-20_MainBldgHallway_04_KEY"
+    exits:
+      - { label: "К лестнице", target_location_id: "1-20_Stairs_01" }
+      - { label: "Вернуться к рецепции", target_location_id: "1-20_Reception_01" }
+
+  - access_key: "1-20_Stairs_01" # Зеленое облачко
+    parent_id: "1-20"
+    specific_category: "TRANSITION"
+    name: "Лестница на 2 этаж"
+    description: "1-20_Stairs_01_KEY"
+    exits:
+      - { label: "Подняться наверх", target_location_id: "1-20_SecondFloorLanding_01" }
+      - { label: "Спуститься в холл", target_location_id: "1-20_MainBldgHallway_04" }
+
+  - access_key: "1-20_SecondFloorLanding_01" # Заглушка
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Площадка второго этажа"
+    description: "1-20_SecondFloorLanding_01_KEY" # Описание будет "Проход закрыт..."
+    exits:
+      - { label: "Спуститься по лестнице", target_location_id: "1-20_Stairs_01" }
+
+  # --- Корпус экономики ---
+  - access_key: "1-20_EconomyCorps_Hall" # Внутренний желтый узел
+    parent_id: "1-20"
+    specific_category: "HUB_LOCATION"
+    name: "Холл Корпуса Экономики"
+    description: "1-20_EconomyCorps_Hall_KEY"
+    exits:
+      - { label: "Выйти на площадь", target_location_id: "1-20-04" }
+      - { label: "Пройти в аудиторию", target_location_id: "1-20_Auditorium_01" }
+      - { label: "Пройти в тренировочный зал", target_location_id: "1-20_TrainingHall_Eco_01" }
+
+  - access_key: "1-20_Auditorium_01" # Красное облачко
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Аудитория"
+    description: "1-20_Auditorium_01_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-20_EconomyCorps_Hall" }
+
+  - access_key: "1-20_TrainingHall_Eco_01" # Красное облачко
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Тренировочный зал"
+    description: "1-20_TrainingHall_Eco_01_KEY"
+    exits:
+      - { label: "Выйти в холл", target_location_id: "1-20_EconomyCorps_Hall" }
+
+  # --- Гильдия охотников ---
+  - access_key: "1-20_HuntersGuild_Tavern" # Красное облачко
+    parent_id: "1-20"
+    specific_category: "POI"
+    name: "Гильдия Охотников (Таверна)"
+    description: "1-20_HuntersGuild_Tavern_KEY"
+    exits:
+      - { label: "Выйти на площадь", target_location_id: "1-20-02" }

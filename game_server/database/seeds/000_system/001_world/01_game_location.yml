@@ -1,76 +1,91 @@
-version: "2.0"
+version: "3.0"
 schema: "game_locations"
 metadata:
-  author: "System"
-  description: "Корневые сущности игрового мира, не имеющие родительских локаций."
+  author: "Game Architect"
+  description: "Основа мира: Глобальные зоны и Кварталы-контейнеры Города-Бастиона."
 
 data:
   # ===============================================
-  # 1. Город - главный хаб (access_key в диапазоне 1-99)
+  # Уровень 1: Глобальные Зоны (X)
   # ===============================================
-  - location_id: "10"
+  - access_key: "1"
     parent_id: null
-    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
-    name: "Город"
-    description: "Центральный город, основной хаб для игроков."
-    exits: []
-    child_location_ids:
-      - "100"
-      - "200"
-      - "300"
-      - "400"
-      - "500"
-    entry_point_location_id: null
-    unified_display_type: "EXTERNAL_LOCATION"
-    specific_category: "CITY"
-    presentation:
-      image_url: null
-      icon_emoji: null
-    flavor_text_options: []
-    tags: []
+    specific_category: "GLOBAL_ZONE"
+    name: "Город-Бастион"
+    entry_point_location_id: "1-50-01" # Точка входа в город - Центральная площадь
 
-  # ===============================================
-  # 2. Южный Эпицентр - зона хаоса (access_key в диапазоне 1-99)
-  # ===============================================
-  - location_id: "20"
+  - access_key: "2"
     parent_id: null
-    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
-    name: "Южный эпицентр"
-    description: "Разломы миров, нестабильные пространства и аномальные явления. Опасная зона для высокоуровневых игроков."
-    exits: []
-    child_location_ids:
-      - "21"
-      - "22"
-      - "23"
-      - "24"
-    entry_point_location_id: null
-    unified_display_type: "EXTERNAL_LOCATION"
-    specific_category: "REGION"
-    presentation:
-      image_url: null
-      icon_emoji: null
-    flavor_text_options: []
-    tags: []
+    specific_category: "GLOBAL_ZONE"
+    name: "Эпицентр-1 (Восточный)"
 
-  # ===============================================
-  # 3. Северный Эпицентр - задел на будущее (access_key в диапазоне 1-99)
+  - access_key: "3"
+    parent_id: null
+    specific_category: "GLOBAL_ZONE"
+    name: "Эпицентр-2 (Западный)"
+
+  - access_key: "4" # <-- НОВОЕ: Отдельный регион для Стены
+    parent_id: null
+    specific_category: "GLOBAL_ZONE"
+    name: "Стена"
+
   # =================================================================
-  - location_id: "30"
-    parent_id: null
-    skeleton_template_id: "main_world_v1" # 🔥 ВОССТАНОВЛЕНО
-    name: "Северный эпицентр"
-    description: "Неизведанные ледяные пустоши, хранящие древние тайны. (Контент для будущих обновлений)."
-    exits: []
-    child_location_ids:
-      - "31"
-      - "32"
-      - "33"
-      - "34"
-    entry_point_location_id: null
-    unified_display_type: "EXTERNAL_LOCATION"
-    specific_category: "REGION"
-    presentation:
-      image_url: null
-      icon_emoji: null
-    flavor_text_options: []
-    tags: []
+  # Уровень 2: Кварталы Города (1-XX) - КОНТЕЙНЕРЫ
+  # =================================================================
+
+  # Северный Ярус
+  - access_key: "1-10"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Магическое Крыло (Западный кампус)"
+    entry_point_location_id: "1-10-01"
+
+  - access_key: "1-20"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Академия Центр (Административное сердце)"
+    entry_point_location_id: "1-20-02"
+
+  - access_key: "1-30"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Боевое Крыло (Восточный кампус)"
+    entry_point_location_id: "1-30-01"
+
+  # Средний Ярус
+  - access_key: "1-40"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Западные Врата (Научный Фронт)"
+    entry_point_location_id: "1-40-01"
+
+  - access_key: "1-50"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Центральный Район (Сердце города)"
+    entry_point_location_id: "1-50-01"
+
+  - access_key: "1-60"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Восточные Врата (Дикий Фронт)"
+    entry_point_location_id: "1-60-01"
+
+  # Южный Ярус
+  - access_key: "1-70"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Западные трущобы 'Солёный край'"
+    entry_point_location_id: "1-70-02"
+
+  - access_key: "1-80"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Портовый район"
+    entry_point_location_id: "1-80-01"
+
+  - access_key: "1-90"
+    parent_id: "1"
+    specific_category: "QUARTER"
+    name: "Восточные трущобы 'Рыбацкая слобода'"
+    entry_point_location_id: "1-90-01"

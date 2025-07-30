@@ -1,0 +1,59 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Северного Яруса: Боевое Крыло (Внешние пространства)."
+
+data:
+  # =================================================================
+  # Боевое Крыло (1-30) - Внешние локации
+  # =================================================================
+
+  - access_key: "1-30_Arena_01"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Арена для отрабатывания навыков"
+    description: "1-30_Arena_01_KEY"
+    exits:
+      - { label: "К корпусу Боевых навыков", target_location_id: "1-30-03" }
+      - { label: "К факультету Выживания", target_location_id: "1-30-01" }
+      - { label: "К корпусу Укрепления", target_location_id: "1-30-04" } # hypothetical key for clarity
+
+  - access_key: "1-30-01"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Площадь у факультета Выживания"
+    description: "1-30-01_KEY"
+    exits:
+      - { label: "Выйти на Арену", target_location_id: "1-30_Arena_01" }
+      - { label: "К западному шлюзу", target_location_id: "1-30-02" }
+      - { label: "Войти в факультет Выживания и скорой помощи", target_location_id: "1-30_SurvivalFaculty_Hall" }
+
+  - access_key: "1-30-02"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Западные ворота Боевого крыла"
+    description: "1-30-02_KEY"
+    exits:
+      - { label: "К факультету Выживания", target_location_id: "1-30-01" }
+      - { label: "К корпусу Боевых навыков", target_location_id: "1-30-03" }
+      - { label: "Выйти в шлюз (к Академии)", target_location_id: "1-20_1-30" }
+
+  - access_key: "1-30-03"
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Площадь у корпуса Боевых навыков"
+    description: "1-30-03_KEY"
+    exits:
+      - { label: "Выйти на Арену", target_location_id: "1-30_Arena_01" }
+      - { label: "К западным воротам", target_location_id: "1-30-02" }
+      - { label: "Войти в корпус тренировки Боевых навыков", target_location_id: "1-30_CombatSkills_Hall" }
+
+  - access_key: "1-30-04" # Добавил этот узел для полноты связей
+    parent_id: "1-30"
+    specific_category: "HUB_LOCATION"
+    name: "Площадь у корпуса Укрепления"
+    description: "1-30-04_KEY"
+    exits:
+      - { label: "Выйти на Арену", target_location_id: "1-30_Arena_01" }
+      - { label: "Войти в корпус Укрепления тела и обороны", target_location_id: "1-30_DefenseCorps_Hall" }

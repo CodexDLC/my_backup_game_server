@@ -1158,79 +1158,85 @@ class GameShard(Base):
 
 class GameLocation(Base):
     """
-    Универсальная модель для элементов скелета игрового мира (регионов, субрегионов, зон и т.д.),
-    поддерживающая произвольную вложенность и шаблонизацию.
+    Универсальная модель для всех сущностей игрового мира (кварталов, улиц,
+    зданий, комнат, шлюзов). Поддерживает иерархическую вложенность
+    и панорамную модель навигации.
     """
     __tablename__ = 'game_locations'
 
-    # access_key теперь будет location_id
-    access_key: Mapped[str] = mapped_column(String(255), primary_key=True) # Это будет location_id
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), server_default=text('gen_random_uuid()'), nullable=False, unique=True)
-    
-    skeleton_template_id: Mapped[str] = mapped_column(String(100), nullable=False)
-    
-    # 🔥 ИЗМЕНЕНИЕ: location_type переименован в specific_category
-    specific_category: Mapped[str] = mapped_column(String(50), nullable=False)
-    
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(TEXT)
-    
-    # parent_access_key переименован в parent_id
-    parent_id: Mapped[Optional[str]] = mapped_column( # 🔥 ИЗМЕНЕНИЕ
-        String(255),
-        ForeignKey('game_locations.access_key', ondelete='CASCADE'), # ForeignKey все еще ссылается на access_key
-        nullable=True
-    )    
-   
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text('now()'))
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now(), server_default=text('now()'))
-    
-    # 🔥 НОВОЕ ПОЛЕ: unified_display_type
-    unified_display_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True) # Может быть null, если не задан
+    # --- Основные Идентификаторы ---
+    access_key: Mapped[str] = mapped_column(
+        String(255), primary_key=True,
+        comment="Иерархический ID 'X-XX-YY-ZZZ'. Главный ключ для связей."
+    )
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), server_default=text('gen_random_uuid()'), unique=True,
+        comment="Уникальный внутренний ID записи в базе."
+    )
+    parent_id: Mapped[Optional[str]] = mapped_column(
+        String(255), ForeignKey('game_locations.access_key', ondelete='CASCADE'),
+        nullable=True, comment="access_key родительской локации для иерархии."
+    )
 
-    # 🔥 НОВОЕ ПОЛЕ: presentation (JSONB для PostgreSQL)
-    presentation: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True) # Словарь для image_url, icon_emoji
+    # --- Категоризация ---
+    specific_category: Mapped[str] = mapped_column(
+        String(50),
+        comment="Внутренний тип для логики: QUARTER, HUB_LOCATION, POI, INTERIOR, GATEWAY."
+    )
+    unified_display_type: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True,
+        comment="Внешний тип для отображения (для ботов и т.д.): Город, Магазин."
+    )
+    tags: Mapped[Optional[List[str]]] = mapped_column(
+        JSONB, nullable=True,
+        comment='Теги для логики: ["безопасная_зона", "торговля"].'
+    )
 
-    # 🔥 НОВОЕ ПОЛЕ: entry_point_location_id
-    entry_point_location_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # --- Контент и Презентация ---
+    name: Mapped[str] = mapped_column(
+        String(255), comment="Отображаемое название локации."
+    )
+    description: Mapped[Optional[str]] = mapped_column(
+        TEXT, nullable=True, comment="Основной описательный текст для панорамы."
+    )
+    presentation: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+        JSONB, nullable=True,
+        comment='Данные для панорамы: {"image_url": "...", "sound_key": "..."}.'
+    )
+    flavor_text_options: Mapped[Optional[List[str]]] = mapped_column(
+        JSONB, nullable=True, comment="Список случайных фраз для разнообразия."
+    )
 
-    # 🔥 НОВОЕ ПОЛЕ: flavor_text_options (JSONB для списка строк)
-    flavor_text_options: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True) # Список строк
+    # --- Навигация и Логика ---
+    exits: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(
+        JSONB, nullable=True,
+        comment='Список выходов: [{"label": "Войти", "target": "1-50-01-001"}].'
+    )
+    entry_point_location_id: Mapped[Optional[str]] = mapped_column(
+        String(255), nullable=True,
+        comment="Для QUARTER: access_key точки входа в квартал."
+    )
+    skeleton_template_id: Mapped[Optional[str]] = mapped_column(
+        String(100), nullable=True,
+        comment="ID шаблона для процедурной генерации (если используется)."
+    )
 
-    # 🔥 НОВОЕ ПОЛЕ: tags (JSONB для списка строк)
-    tags: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True) # Список строк
+    # --- Служебные Поля ---
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text('now()')
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), server_default=text('now()')
+    )
 
-    # Отношения остаются прежними, но ссылаются на access_key и parent_id
+    # --- Отношения для удобной работы в коде ---
     parent_location: Mapped[Optional['GameLocation']] = relationship(
         'GameLocation', remote_side=[access_key], back_populates='child_locations'
     )
     child_locations: Mapped[List['GameLocation']] = relationship(
         'GameLocation', back_populates='parent_location'
-    ) 
-
-    # Метод to_dict нужно будет обновить, чтобы он включал новые поля
-    def to_dict(self):
-        # Лучше явно перечислить поля, которые вы хотите включить,
-        # или использовать более универсальный подход, если полей много.
-        # Для JSONB полей, SQLAlchemy обычно возвращает их как Python dict/list.
-        return {
-            "access_key": self.access_key,
-            "id": str(self.id),
-            "skeleton_template_id": self.skeleton_template_id,
-            "specific_category": self.specific_category, # Изменено
-            "name": self.name,
-            "description": self.description,
-            "parent_id": self.parent_id, # Изменено
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "unified_display_type": self.unified_display_type, # Новое
-            "presentation": self.presentation, # Новое
-            "entry_point_location_id": self.entry_point_location_id, # Новое
-            "flavor_text_options": self.flavor_text_options, # Новое
-            "tags": self.tags, # Новое
-        }
+    )
 
     def __repr__(self):
-        return (f"<GameLocation(access_key='{self.access_key}', specific_category='{self.specific_category}', "
-                f"name='{self.name}', parent_id='{self.parent_id}', "
-                f"unified_display_type='{self.unified_display_type}')>") # Изменено
+        return (f"<GameLocation(access_key='{self.access_key}', "
+                f"name='{self.name}', category='{self.specific_category}')>")

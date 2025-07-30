@@ -129,13 +129,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Только те переменные, которые действительно нужны гейтвею
-      - REDIS_URL=redis://redis:6379/0 # Redis для сессий/кэша, если используется
+      - REDIS_URL=redis://redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-      # MONGO_URI и DATABASE_URL удалены, если fast_api не взаимодействует напрямую
       - CONTAINER_ID=fast_api_service
     depends_on:
-      rabbitmq: { condition: service_healthy } # Гейтвей зависит только от RabbitMQ
+      rabbitmq: { condition: service_healthy }
     volumes:
       - ./logs/fast_api_output:/app/game_server/logs
     healthcheck:
@@ -182,14 +180,13 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=${RABBITMQ_PORT}
       - RABBITMQ_VHOST=${RABBITMQ_VHOST}
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin # Добавлено
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin
       - CONTAINER_ID=auth_service_container
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
-      mongo_db: { condition: service_healthy } # Добавлено
-
+      mongo_db: { condition: service_healthy }
     volumes:
       - ./logs/auth_service_output:/app/game_server/logs
 
@@ -209,14 +206,13 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=${RABBITMQ_PORT}
       - RABBITMQ_VHOST=${RABBITMQ_VHOST}
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin # Добавлено
-      - CONTAINER_ID=system_services_container # Исправлено: был auth_service_container
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_db:27017/${MONGO_DB_NAME}?authSource=admin
+      - CONTAINER_ID=system_services_container
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
       rabbitmq: { condition: service_healthy }
-      mongo_db: { condition: service_healthy } # Добавлено
-
+      mongo_db: { condition: service_healthy }
     volumes:
       - ./logs/system_services_output:/app/game_server/logs
 
@@ -231,7 +227,6 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - MONGO_URI=${MONGO_URI}
-      # Удалены дублирующие переменные MongoDB, так как MONGO_URI уже содержит всю информацию
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - RABBITMQ_HOST=rabbitmq
@@ -245,3 +240,18 @@ services:
       rabbitmq: { condition: service_healthy }
     volumes:
       - ./logs/arq_worker_output:/app/game_server/logs
+
+  # ===================================================================
+  # 🖼️ НОВЫЙ СЕРВИС ДЛЯ ВЕБ-КЛИЕНТА
+  # ===================================================================
+  # web_client:
+  #   <<: [*common-restart-policy]
+  #   networks: [backend_network]
+  #   build:
+  #     context: .  # <-- ИСПРАВЛЕНИЕ 1: Контекст - корень проекта
+  #     dockerfile: ./services_config/website/Dockerfile # <-- ИСПРАВЛЕНИЕ 2: Явный путь к Dockerfile
+  #   container_name: web_client_service
+  #   ports:
+  #     - "8080:80"
+  #   volumes:
+  #     - ./web_client/build:/usr/share/nginx/html:ro

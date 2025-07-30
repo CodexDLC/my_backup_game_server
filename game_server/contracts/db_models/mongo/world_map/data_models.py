@@ -34,7 +34,7 @@ class StaticLocationData(BaseModel):
     parent_id: Optional[str] = None
     type: str 
     name: str
-    description: str
+    description: Optional[str] = None
     unified_display_type: Optional[str] = None
     exits: List[LocationExit] = [] # Используем Local LocationExit
     entry_point_location_id: Optional[str] = None

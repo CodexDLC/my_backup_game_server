@@ -31,7 +31,7 @@ class WorldLocationDataDTO(BaseModel):
     parent_id: Optional[str] = None
     type: str # ИЗМЕНЕНИЕ: Поле 'type' (бывшее location_type)
     name: str
-    description: str
+    description: Optional[str] = None
     
     exits: List[WorldLocationExitDTO] = [] 
 

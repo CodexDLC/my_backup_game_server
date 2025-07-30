@@ -1,7 +1,6 @@
 # game_server/Logic/InfrastructureLogic/generator/name_orchestrator.py
 
-from typing import Tuple, Any, Optional
-# Импортируем логгер
+from typing import Tuple, Optional
 
 from game_server.Logic.ApplicationLogic.shared_logic.worker_generator.generator_name.generator_name_utils.character_name_generator import CharacterNameGenerator
 from game_server.Logic.ApplicationLogic.shared_logic.worker_generator.generator_name.generator_name_utils.item_name_generator import ItemNameGenerator
