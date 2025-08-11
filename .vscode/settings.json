@@ -1,7 +1,8 @@
 {
     "python.analysis.extraPaths": [
         "./game_server/Logic/DataAccessLogic/SQLAlchemy",
-        "./game_server/app_cache"
+        "./game_server/app_cache",
+        "./game_server/app_discord_bot/app/services/game_modules/inspection/inspection_"
     ],
     "python.testing.unittestArgs": [
         "-v",

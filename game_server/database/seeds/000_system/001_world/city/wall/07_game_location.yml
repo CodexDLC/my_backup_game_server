@@ -1,0 +1,730 @@
+version: "3.0"
+schema: "game_locations"
+metadata:
+  author: "Game Architect"
+  description: "Локации Стены (1-95): Участки Стены (NAVIGATION_NODE)."
+
+data:
+  # =================================================================
+  # Западная Стена
+  # =================================================================
+
+  # --- Путь: Башня 1 <-> Башня 4 ---
+  - access_key: "1-95_PATH_01_and_04_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_01" }
+      "СВ": null
+      "В": { label: "Вид на Магическое Крыло", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_01_and_04_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+      
+  - access_key: "1-95_PATH_01_and_04_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_01_and_04_01" }
+      "СВ": null
+      "В": { label: "Вид на Магическое Крыло", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_01_and_04_03" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_01_and_04_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_01_and_04_02" }
+      "СВ": null
+      "В": { label: "Вид на Магическое Крыло", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_04" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+
+
+  # --- Путь: Башня 4 <-> Башня 3 ---
+  - access_key: "1-95_PATH_04_and_03_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Войти", target: "1-95_TOWER_04" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Западные Врата", target: null }
+      "ЮЗ": null
+      "З": { label: "Войти", target: "1-95_TOWER_03" }
+      "СЗ": null
+
+# --- Путь: Башня 4 <-> Башня 5 ---
+  - access_key: "1-95_PATH_04_and_05_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-95_PATH_04_and_05_02" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Войти", target: "1-95_TOWER_04" }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_04_and_05_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Войти", target: "1-95_TOWER_05" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-95_PATH_04_and_05_01" }
+      "СЗ": null
+
+# --- Путь: Башня 3 <-> Башня 19 ---
+  - access_key: "1-95_PATH_03_and_19_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_03" }
+      "СВ": null
+      "В": { label: "Вид на Западные Врата", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_19" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+
+# --- Путь: Башня 5 <-> Башня 13 ---
+  - access_key: "1-95_PATH_05_and_13_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_05" }
+      "СВ": null
+      "В": { label: "Вид на Центральный Район", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_05_and_13_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на Западные Врата", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_05_and_13_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_05_and_13_01" }
+      "СВ": null
+      "В": { label: "Вид на Центральный Район", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти в шлюз", target: "GATEWAY_40_50_TOP" }
+      "ЮЗ": null
+      "З": { label: "Вид на Западные Трущобы", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_05_and_13_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти в шлюз", target: "GATEWAY_40_50_TOP" }
+      "СВ": null
+      "В": { label: "Вид на Портовый Район", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_05_and_13_04" }
+      "ЮЗ": null
+      "З": { label: "Вид на Западные Трущобы", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_05_and_13_04"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_05_and_13_03" }
+      "СВ": null
+      "В": { label: "Вид на Портовый Район", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_13" }
+      "ЮЗ": null
+      "З": { label: "Вид на Западные Трущобы", target: null }
+      "СЗ": null
+# --- Путь: Башня 6 -> Тупик у Западной Скалы ---
+  - access_key: "1-95_PATH_06_and_WDE_01" # Точка 1
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти в шлюз", target: "GATEWAY_10_20_TOP" }
+      "СВ": null
+      "В": { label: "Вид на Академию", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_06" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_06_and_WDE_03" # Точка 3
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_06_and_WDE_04" }
+      "СВ": null
+      "В": { label: "Вид на Академию", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти в шлюз", target: "GATEWAY_10_20_TOP" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_06_and_WDE_04" # Точка 4 (Тупик)
+    specific_category: "NAVIGATION_NODE"
+    name: "Тупик у скалы"
+    description: "wall_path"
+    exits:
+      "С": { label: "Скала", target: null }
+      "СВ": null
+      "В": { label: "Вид на Академию", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_06_and_WDE_03" }
+      "ЮЗ": null
+      "З": { label: "Вид на Эпицентр", target: null }
+      "СЗ": null
+
+# --- Путь: Башня 6 <-> Башня 7 ---
+  - access_key: "1-95_PATH_06_and_07_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-95_PATH_06_and_07_02" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Войти", target: "1-95_TOWER_06" }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_06_and_07_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Войти", target: "1-95_TOWER_07" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-95_PATH_06_and_07_01" }
+      "СЗ": null
+
+# --- Путь: Башня 7 <-> Тупик у скалы ---
+  - access_key: "1-95_PATH_07_and_NDE_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "GATEWAY_20_30_TOP" }
+      "СВ": null
+      "В": { label: "Вид на Боевое Крыло", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_07" }
+      "ЮЗ": null
+      "З": { label: "Вид на Академию", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_07_and_NDE_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_07_and_NDE_03" }
+      "СВ": null
+      "В": { label: "Вид на Боевое Крыло", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "GATEWAY_20_30_TOP" }
+      "ЮЗ": null
+      "З": { label: "Вид на Академию", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_07_and_NDE_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Тупик у скалы"
+    description: "wall_path"
+    exits:
+      "С": { label: "Скала", target: null }
+      "СВ": null
+      "В": { label: "Вид на Боевое Крыло", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_07_and_NDE_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на Академию", target: null }
+      "СЗ": null
+
+  # --- Путь: Башня 8 (Нижний) <-> Башня 14 ---
+  - access_key: "1-95_PATH_08_and_14_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_08_LOWER" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Трущобы", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_08_and_14_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на Центральный Район", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_08_and_14_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_08_and_14_01" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Трущобы", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "GATEWAY_50_60_TOP" }
+      "ЮЗ": null
+      "З": { label: "Вид на Центральный Район", target: null }
+      "СЗ": null
+
+
+  - access_key: "1-95_PATH_08_and_14_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "GATEWAY_50_60_TOP" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Врата", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_08_and_14_04" }
+      "ЮЗ": null
+      "З": { label: "Вид на Южные Кварталы", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_08_and_14_04"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_08_and_14_03" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Врата", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_14" }
+      "ЮЗ": null
+      "З": { label: "Вид на Южные Кварталы", target: null }
+      "СЗ": null
+
+  # --- Путь: Башня 8 (Средний) <-> Башня 9 ---
+  - access_key: "1-95_PATH_08_and_09_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-95_PATH_08_and_09_02" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Войти", target: "1-95_TOWER_08_MIDDLE" }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_08_and_09_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Войти", target: "1-95_TOWER_09" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-95_PATH_08_and_09_01" }
+      "СЗ": null
+
+  # --- Путь: Башня 9 <-> Башня 2 ---
+  - access_key: "1-95_PATH_09_and_02_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_09_and_02_02" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Трущобы", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_09" }
+      "ЮЗ": null
+      "З": { label: "Вид на Академию", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_09_and_02_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-95_PATH_09_and_02_03" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Трущобы", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_09_and_02_01" }
+      "ЮЗ": null
+      "З": { label: "Вид на Академию", target: null }
+      "СЗ": null
+
+  - access_key: "1-95_PATH_09_and_02_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_02" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Трущобы", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-95_PATH_09_and_02_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на Академию", target: null }
+      "СЗ": null
+
+  # --- Путь: Башня 9 <-> Башня 10 (Средний) ---
+  - access_key: "1-95_PATH_09_and_10_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Восточные Трущобы", target: null }
+      "СВ": null
+      "В": { label: "Войти", target: "1-95_TOWER_10_MIDDLE" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Восточные Ворота", target: null }
+      "ЮЗ": null
+      "З": { label: "Войти", target: "1-95_TOWER_09" }
+      "СЗ": null
+
+  # --- Путь: Башня 10 (Нижний) <-> Башня 21 ---
+  - access_key: "1-95_PATH_10_and_21_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_10_LOWER" }
+      "СВ": null
+      "В": { label: "Вид на Восточные Ворота", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_21" }
+      "ЮЗ": null
+      "З": { label: "Вид на 1-60", target: null }
+      "СЗ": null
+
+  # --- Путь: Башня 20 <-> Башня 11 ---
+  - access_key: "1-95_PATH_20_and_11_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Войти", target: "1-95_TOWER_20" }
+      "СВ": null
+      "В": { label: "Вид на Западные Трущобы", target: null }
+      "ЮВ": null
+      "Ю": { label: "Войти", target: "1-95_TOWER_11" }
+      "ЮЗ": null
+      "З": { label: "Вид на Западное Море", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_11_and_12_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_PATH_11_and_12_02" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_TOWER_11" }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_11_and_12_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на Академию", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_TOWER_12" }
+      "ЮВ": null
+      "Ю": { label: "Вид на Центральный Район", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_PATH_11_and_12_01" }
+      "СЗ": null
+  # --- Путь: Башня 12 <-> Башня 17 ---
+  - access_key: "1-20_PATH_12_and_17_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_TOWER_12" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_PATH_12_and_17_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_12_and_17_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_PATH_12_and_17_01" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_PATH_12_and_17_03" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_12_and_17_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_PATH_12_and_17_02" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_PATH_12_and_17_04" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_12_and_17_04"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_PATH_12_and_17_03" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_TOWER_17" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  # --- Путь: Башня 12 <-> Башня 13 ---
+  - access_key: "1-20_PATH_12_and_13_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_TOWER_13" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_TOWER_12" }
+      "СЗ": null
+  # --- Путь: Башня 13 <-> Башня 14 ---
+  - access_key: "1-20_PATH_13_and_14_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_PATH_13_and_14_02" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_TOWER_13" }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_13_and_14_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "GATEWAY_50_LOW_CITY_TOP" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_PATH_13_and_14_01" }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_13_and_14_04"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_PATH_13_and_14_05" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "GATEWAY_50_LOW_CITY_TOP" }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_13_and_14_05"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_TOWER_14" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_PATH_13_and_14_04" }
+      "СЗ": null
+
+  # --- Путь: Башня 14 <-> Башня 15 ---
+  - access_key: "1-20_PATH_14_and_15_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_TOWER_15" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_TOWER_14" }
+      "СЗ": null
+
+  # --- Путь: Башня 15 <-> Башня 18 ---
+  - access_key: "1-20_PATH_15_and_18_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_TOWER_15" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_PATH_15_and_18_02" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_15_and_18_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_PATH_15_and_18_01" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_PATH_15_and_18_03" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_15_and_18_03"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_PATH_15_and_18_02" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_PATH_15_and_18_04" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_15_and_18_04"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_PATH_15_and_18_03" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_TOWER_18" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
+
+  # --- Путь: Башня 15 <-> Башня 16 ---
+  - access_key: "1-20_PATH_15_and_16_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_PATH_15_and_16_02" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_TOWER_15" }
+      "СЗ": null
+
+  - access_key: "1-20_PATH_15_and_16_02"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Вид на", target: null }
+      "СВ": null
+      "В": { label: "Идти", target: "1-20_TOWER_16" }
+      "ЮВ": null
+      "Ю": { label: "Вид на", target: null }
+      "ЮЗ": null
+      "З": { label: "Идти", target: "1-20_PATH_15_and_16_01" }
+      "СЗ": null
+
+  # --- Путь: Башня 16 <-> Башня 22 ---
+  - access_key: "1-20_PATH_16_and_22_01"
+    specific_category: "NAVIGATION_NODE"
+    name: "Участок стены"
+    description: "wall_path"
+    exits:
+      "С": { label: "Идти", target: "1-20_TOWER_16" }
+      "СВ": null
+      "В": { label: "Вид на", target: null }
+      "ЮВ": null
+      "Ю": { label: "Идти", target: "1-20_TOWER_22" }
+      "ЮЗ": null
+      "З": { label: "Вид на", target: null }
+      "СЗ": null
